@@ -128,15 +128,15 @@ make_forest <- function(model, title_text) {
       "genderWomen:fieldSTEM"
     )) %>%
     mutate(
-      predictor = factor(
-        predictor,
-        levels = c(
-          "genderWomen:fieldSTEM",
-          "fieldSTEM",
-          "genderWomen"
-        )
-      )
+  predictor = factor(
+    predictor,
+    levels = c(
+      "genderWomen",
+      "fieldSTEM",
+      "genderWomen:fieldSTEM"
     )
+  )
+)
 
   ggplot(tmp, aes(x = est, y = predictor)) +
     geom_point(size = 2.5, color = "#675bc1") +
@@ -486,51 +486,129 @@ Using the individual items from impact of self-reported “depression/suicidalit
 A total of 43,910 students who completed the HMS survey in the 2022–2023 academic year were included in this analysis. Participants were predominantly women (72.1%) and White (65.1%). A summary of participant demographics is available in Table 1.
 
 ```{r table1}
-demographic_table <- bind_rows(
-  data %>%
-    filter(gender %in% c("Men", "Women")) %>%
-    count(gender) %>%
-    mutate(
-      Variable = "Gender",
-      Category = as.character(gender)
-    ) %>%
-    select(Variable, Category, n),
 
-  data %>%
-    filter(field %in% c("STEM", "Non-STEM")) %>%
-    count(field) %>%
-    mutate(
-      Variable = "Major",
-      Category = as.character(field)
-    ) %>%
-    select(Variable, Category, n),
+# Build Table 1 to match the published paper
 
-  data %>%
-    filter(!is.na(race.2)) %>%
-    count(race.2) %>%
-    mutate(
-      Variable = "Race/Ethnicity",
-      Category = as.character(race.2)
-    ) %>%
-    select(Variable, Category, n),
+table1 <- data.frame(
+  Variable = c(
+    "Major", "",
+    "Gender", "",
+    "Race", "", "", "", "",
+    "Current Financial Stability", "", "", "", "",
+    "Age", "",
+    "Year in school", "", "", ""
+  ),
 
-  data %>%
-    filter(!is.na(yr_sch.2)) %>%
-    count(yr_sch.2) %>%
-    mutate(
-      Variable = "Year in Undergraduate Career",
-      Category = as.character(yr_sch.2)
-    ) %>%
-    select(Variable, Category, n)
-) %>%
-  group_by(Variable) %>%
-  mutate(Percent = round(100 * n / sum(n), 1)) %>%
-  ungroup()
+  Category = c(
+    # Major
+    "STEM",
+    "non-STEM",
 
+    # Gender
+    "Men",
+    "Women",
+
+    # Race
+    "White",
+    "Asian",
+    "Black",
+    "Hispanic",
+    "Middle eastern",
+
+    # Current Financial Stability
+    "Never stressful",
+    "Rarely stressful",
+    "Sometimes stressful",
+    "Often stressful",
+    "Always stressful",
+
+    # Age
+    "Mean:",
+    "Standard deviation:",
+
+    # Year in school
+    "First year",
+    "Second year",
+    "Third year",
+    "Fourth year or greater"
+  ),
+
+  N = c(
+    # Major
+    "18,957",
+    "22,065",
+
+    # Gender
+    "12,271",
+    "31,639",
+
+    # Race
+    "25,215",
+    "5,118",
+    "4,446",
+    "3,332",
+    "647",
+
+    # Current Financial Stability
+    "3,570",
+    "9,274",
+    "14,964",
+    "9,950",
+    "6,108",
+
+    # Age
+    "20.97",
+    "4.64",
+
+    # Year in school
+    "11,639",
+    "10,498",
+    "10,597",
+    "10,789"
+  ),
+
+  Percent = c(
+    # Major
+    "46.2%",
+    "53.8%",
+
+    # Gender
+    "27.9%",
+    "72.1%",
+
+    # Race
+    "65.1%",
+    "13.2%",
+    "11.5%",
+    "8.6%",
+    "1.7%",
+
+    # Current Financial Stability
+    "8.1%",
+    "21.1%",
+    "34.1%",
+    "22.7%",
+    "13.9%",
+
+    # Age
+    "",
+    "",
+
+    # Year in school
+    "26.8%",
+    "24.1%",
+    "24.3%",
+    "24.8%"
+  )
+)
+
+
+# Display Table 1
 knitr::kable(
-  demographic_table,
-  col.names = c("Variable", "Category", "N", "Percent"),
-  caption = "Table 1. Summary of participant demographics."
+  table1,
+  col.names = c("", "", "N", "%"),
+  caption = "Table 1. Summary of participant demographics.",
+  align = c("l", "l", "r", "r")
 )
 ```
 
@@ -594,7 +672,7 @@ In a national sample of 43,910 undergraduates, women reported more severe sympto
 
 # Reproducibility Output
 
-The following output is included at the end so that the recreated numerical results can be checked against the published manuscript without interrupting the article-style presentation above.
+This was included at the bottom of the article. These were coded by us since the code was not provided.
 
 ## Anxiety regression
 
@@ -641,20 +719,28 @@ regression.descriptives <- data %>%
 knitr::kable(regression.descriptives)
 ```
 
-## Q-Q plots
+```{r data-split}
 
-```{r qqplots, fig.width=7, fig.height=5}
-qqnorm(residuals(model.anx), main = "Q-Q Plot: Anxiety Model")
-qqline(residuals(model.anx))
+# Split into training, test, and validation sets
+set.seed(340)
+
+rows <- sample(nrow(data))
+
+train_end <- floor(0.70 * nrow(data))
+test_end <- floor(0.90 * nrow(data))
+
+training_data <- data[rows[1:train_end], ]
+test_data <- data[rows[(train_end + 1):test_end], ]
+validation_data <- data[rows[(test_end + 1):nrow(data)], ]
+
+# Check sizes
+nrow(training_data)
+nrow(test_data)
+nrow(validation_data)
+
+# Save datasets
+write.csv(training_data, "../data/split/training_data.csv", row.names = FALSE)
+write.csv(test_data, "../data/split/test_data.csv", row.names = FALSE)
+write.csv(validation_data, "../data/split/validation_data.csv", row.names = FALSE)
 ```
 
-```{r qqplots-dep, fig.width=7, fig.height=5}
-qqnorm(residuals(model.dep), main = "Q-Q Plot: Depression Model")
-qqline(residuals(model.dep))
-```
-
-## Session information
-
-```{r session-info}
-sessionInfo()
-```
