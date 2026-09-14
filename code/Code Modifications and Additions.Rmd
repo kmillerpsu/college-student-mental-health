@@ -1384,3 +1384,707 @@ ggcorrplot(
   ) +
   theme_minimal()
 ```
+
+
+# Pre-COVID Data Cleaning
+
+## Read Raw Data
+
+```{r pre-covid-read}
+pre_covid_raw <- read.csv(
+  "../data/raw/pre_covid_raw_2017_2018_data.csv",
+  fileEncoding = "latin1"
+)
+```
+
+## Keep Needed Variables
+
+```{r pre-covid-select}
+pre_covid <- pre_covid_raw %>%
+  select(
+    responseid,
+    schoolnum,
+
+    gender,
+    age,
+    yr_sch,
+    fincur,
+
+    race_black,
+    race_ainaan,
+    race_asian,
+    race_his_temp,
+    race_pi,
+    race_mides,
+    race_white,
+    race_other,
+
+    field_hum,
+    field_nat,
+    field_soc,
+    field_arc,
+    field_art,
+    field_bus,
+    field_den,
+    field_ed,
+    field_eng,
+    field_law,
+    field_med,
+    field_mus,
+    field_nur,
+    field_pharm,
+    field_prep,
+    field_ph,
+    field_pp,
+    field_sw,
+    field_und,
+    field_other,
+
+    phq9_1,
+    phq9_2,
+    phq9_3,
+    phq9_4,
+    phq9_5,
+    phq9_6,
+    phq9_7,
+    phq9_8,
+    phq9_9,
+
+    gad7_1,
+    gad7_2,
+    gad7_3,
+    gad7_4,
+    gad7_5,
+    gad7_6,
+    gad7_7,
+
+    aca_anx_1,
+    aca_anx_2,
+    aca_anx_3,
+    aca_anx_4,
+    aca_anx_5,
+    aca_anx_6,
+    aca_anx_7,
+
+    aca_dep_1,
+    aca_dep_2,
+    aca_dep_3,
+    aca_dep_4,
+    aca_dep_5,
+    aca_dep_6,
+    aca_dep_7
+  )
+```
+
+## Clean Gender
+
+```{r pre-covid-gender}
+pre_covid <- pre_covid %>%
+  mutate(
+    gender_clean = case_when(
+      gender == 1 ~ "Men",
+      gender == 2 ~ "Women",
+      TRUE ~ NA_character_
+    )
+  )
+```
+
+## Create Depression Score
+
+```{r pre-covid-phq}
+phq_vars <- paste0("phq9_", 1:9)
+
+pre_covid$PHQ <- ifelse(
+  rowSums(!is.na(pre_covid[, phq_vars])) == 9,
+  rowMeans(pre_covid[, phq_vars]),
+  NA
+)
+```
+
+## Create Anxiety Score
+
+```{r pre-covid-gad}
+gad_vars <- paste0("gad7_", 1:7)
+
+pre_covid$GAD <- ifelse(
+  rowSums(!is.na(pre_covid[, gad_vars])) == 7,
+  rowMeans(pre_covid[, gad_vars]),
+  NA
+)
+```
+
+## Clean Financial Stress
+
+```{r pre-covid-financial}
+pre_covid <- pre_covid %>%
+  mutate(
+    fincur_clean = case_when(
+      fincur %in% 1:5 ~ as.numeric(fincur),
+      TRUE ~ NA_real_
+    )
+  )
+```
+
+## Clean Year in School
+
+```{r pre-covid-year}
+pre_covid <- pre_covid %>%
+  mutate(
+    year_clean = case_when(
+      yr_sch == 1 ~ "firstyear",
+      yr_sch == 2 ~ "secondyear",
+      yr_sch == 3 ~ "thirdyear",
+      yr_sch == 4 ~ "fourthyear+",
+      TRUE ~ NA_character_
+    )
+  )
+```
+
+## Create STEM and Non-STEM Groups
+
+```{r pre-covid-major}
+pre_covid <- pre_covid %>%
+  mutate(
+    stem_count =
+      replace_na(field_nat, 0) +
+      replace_na(field_soc, 0) +
+      replace_na(field_eng, 0) +
+      replace_na(field_nur, 0) +
+      replace_na(field_pharm, 0) +
+      replace_na(field_ph, 0),
+
+    nonstem_count =
+      replace_na(field_hum, 0) +
+      replace_na(field_arc, 0) +
+      replace_na(field_art, 0) +
+      replace_na(field_bus, 0) +
+      replace_na(field_ed, 0) +
+      replace_na(field_mus, 0) +
+      replace_na(field_pp, 0) +
+      replace_na(field_und, 0) +
+      replace_na(field_other, 0)
+  ) %>%
+  mutate(
+    field_clean = case_when(
+      stem_count > 0 & nonstem_count == 0 ~ "STEM",
+      nonstem_count > 0 & stem_count == 0 ~ "Non-STEM",
+      TRUE ~ NA_character_
+    )
+  )
+```
+
+## Clean Race
+
+```{r pre-covid-race}
+pre_covid <- pre_covid %>%
+  mutate(
+    race_target_count =
+      replace_na(race_white, 0) +
+      replace_na(race_asian, 0) +
+      replace_na(race_black, 0) +
+      replace_na(race_his_temp, 0) +
+      replace_na(race_mides, 0),
+
+    race_excluded_count =
+      replace_na(race_ainaan, 0) +
+      replace_na(race_pi, 0) +
+      replace_na(race_other, 0)
+  ) %>%
+  mutate(
+    race_clean = case_when(
+      race_target_count == 1 &
+        race_excluded_count == 0 &
+        race_white == 1 ~ "White",
+
+      race_target_count == 1 &
+        race_excluded_count == 0 &
+        race_asian == 1 ~ "Asian",
+
+      race_target_count == 1 &
+        race_excluded_count == 0 &
+        race_black == 1 ~ "Black",
+
+      race_target_count == 1 &
+        race_excluded_count == 0 &
+        race_his_temp == 1 ~ "Hispanic",
+
+      race_target_count == 1 &
+        race_excluded_count == 0 &
+        race_mides == 1 ~ "Middle Eastern",
+
+      TRUE ~ NA_character_
+    )
+  )
+```
+
+## Create Final Clean Dataset
+
+```{r pre-covid-final}
+pre_covid_clean <- pre_covid %>%
+  mutate(
+    gender = gender_clean,
+    field = field_clean,
+    race.2 = race_clean,
+    fincur.2 = fincur_clean,
+    yr_sch.2 = year_clean,
+
+    gender.field = interaction(
+      gender,
+      field,
+      sep = ".",
+      drop = TRUE
+    ),
+
+    yr_sch.bin = case_when(
+      yr_sch %in% c(1, 2) ~ "1st.2nd",
+      yr_sch %in% c(3, 4) ~ "3rd.4th",
+      TRUE ~ NA_character_
+    ),
+
+    age.1 = age,
+    age.cent = age - mean(age, na.rm = TRUE)
+  ) %>%
+  select(
+    responseid,
+    schoolnum,
+    age,
+    gender,
+    field,
+    gender.field,
+    race.2,
+    PHQ,
+    GAD,
+    fincur.2,
+
+    aca_anx_1,
+    aca_anx_2,
+    aca_anx_3,
+    aca_anx_4,
+    aca_anx_5,
+    aca_anx_6,
+    aca_anx_7,
+
+    aca_dep_1,
+    aca_dep_2,
+    aca_dep_3,
+    aca_dep_4,
+    aca_dep_5,
+    aca_dep_6,
+    aca_dep_7,
+
+    yr_sch,
+    yr_sch.2,
+    yr_sch.bin,
+    age.1,
+    age.cent
+  )
+```
+
+## Cleaning Summary
+
+```{r pre-covid-summary}
+clean_summary <- data.frame(
+  Measure = c(
+    "Rows",
+    "Columns",
+    "PHQ Available",
+    "GAD Available",
+    "Gender Available",
+    "STEM Status Available",
+    "Race Available",
+    "Financial Stress Available",
+    "Year in School Available"
+  ),
+
+  Value = c(
+    nrow(pre_covid_clean),
+    ncol(pre_covid_clean),
+    sum(!is.na(pre_covid_clean$PHQ)),
+    sum(!is.na(pre_covid_clean$GAD)),
+    sum(!is.na(pre_covid_clean$gender)),
+    sum(!is.na(pre_covid_clean$field)),
+    sum(!is.na(pre_covid_clean$race.2)),
+    sum(!is.na(pre_covid_clean$fincur.2)),
+    sum(!is.na(pre_covid_clean$yr_sch.2))
+  )
+)
+
+knitr::kable(
+  clean_summary,
+  row.names = FALSE,
+  caption = "Pre-COVID Data Cleaning Summary"
+)
+```
+
+## Check PHQ and GAD Scores
+
+```{r pre-covid-score-summary}
+score_summary <- data.frame(
+  Measure = c("PHQ", "GAD"),
+
+  N = c(
+    sum(!is.na(pre_covid_clean$PHQ)),
+    sum(!is.na(pre_covid_clean$GAD))
+  ),
+
+  Mean = c(
+    mean(pre_covid_clean$PHQ, na.rm = TRUE),
+    mean(pre_covid_clean$GAD, na.rm = TRUE)
+  ),
+
+  SD = c(
+    sd(pre_covid_clean$PHQ, na.rm = TRUE),
+    sd(pre_covid_clean$GAD, na.rm = TRUE)
+  ),
+
+  Min = c(
+    min(pre_covid_clean$PHQ, na.rm = TRUE),
+    min(pre_covid_clean$GAD, na.rm = TRUE)
+  ),
+
+  Max = c(
+    max(pre_covid_clean$PHQ, na.rm = TRUE),
+    max(pre_covid_clean$GAD, na.rm = TRUE)
+  )
+)
+
+score_summary[, 3:6] <- round(
+  score_summary[, 3:6],
+  2
+)
+
+knitr::kable(
+  score_summary,
+  row.names = FALSE,
+  caption = "Pre-COVID Mental Health Scores"
+)
+```
+
+## Match Variable Types
+
+```{r pre-covid-match-types}
+pre_covid_clean <- pre_covid_clean %>%
+  mutate(
+    age = as.numeric(age),
+
+    gender = factor(
+      as.character(gender),
+      levels = levels(data$gender)
+    ),
+
+    field = factor(
+      as.character(field),
+      levels = levels(data$field)
+    ),
+
+    gender.field = factor(
+      as.character(gender.field),
+      levels = levels(data$gender.field)
+    ),
+
+    race.2 = factor(
+      as.character(race.2),
+      levels = levels(data$race.2)
+    ),
+
+    yr_sch.2 = factor(
+      as.character(yr_sch.2),
+      levels = levels(data$yr_sch.2)
+    ),
+
+    yr_sch.bin = factor(
+      as.character(yr_sch.bin),
+      levels = levels(data$yr_sch.bin)
+    ),
+
+    PHQ = as.numeric(PHQ),
+    GAD = as.numeric(GAD),
+    fincur.2 = as.numeric(fincur.2),
+    age.1 = as.numeric(age.1),
+    age.cent = as.numeric(age.cent)
+  )
+```
+
+## Save Clean Dataset
+
+```{r pre-covid-save}
+write.csv(
+  pre_covid_clean,
+  "../data/processed/pre_covid_clean.csv",
+  row.names = FALSE
+)
+```
+
+# Pre/Post-COVID Compatibility Check
+
+## Dataset Size
+
+```{r pre-post-size}
+dataset_size <- data.frame(
+  Dataset = c(
+    "2017-2018 Pre-COVID",
+    "2022-2023 Post-COVID"
+  ),
+
+  Rows = c(
+    nrow(pre_covid_clean),
+    nrow(data)
+  ),
+
+  Columns = c(
+    ncol(pre_covid_clean),
+    ncol(data)
+  )
+)
+
+knitr::kable(
+  dataset_size,
+  row.names = FALSE,
+  caption = "Dataset Size Comparison"
+)
+```
+
+## Common Variables
+
+```{r pre-post-common-variables}
+common_variables <- intersect(
+  names(pre_covid_clean),
+  names(data)
+)
+
+common_variable_table <- data.frame(
+  Variable = common_variables
+)
+
+knitr::kable(
+  common_variable_table,
+  row.names = FALSE,
+  caption = "Variables Available in Both Datasets"
+)
+```
+
+## Variable Types
+
+```{r pre-post-types}
+variables_to_compare <- c(
+  "PHQ",
+  "GAD",
+  "gender",
+  "field",
+  "age",
+  "race.2",
+  "fincur.2",
+  "yr_sch.2"
+)
+
+type_check <- data.frame(
+  Variable = variables_to_compare,
+
+  Pre_COVID_Type = sapply(
+    pre_covid_clean[, variables_to_compare],
+    function(x) class(x)[1]
+  ),
+
+  Post_COVID_Type = sapply(
+    data[, variables_to_compare],
+    function(x) class(x)[1]
+  )
+)
+
+knitr::kable(
+  type_check,
+  row.names = FALSE,
+  caption = "Variable Type Comparison"
+)
+```
+
+## PHQ and GAD Comparison
+
+```{r pre-post-scores}
+score_check <- data.frame(
+  Dataset = c(
+    "2017-2018 Pre-COVID",
+    "2022-2023 Post-COVID"
+  ),
+
+  PHQ_Mean = c(
+    mean(pre_covid_clean$PHQ, na.rm = TRUE),
+    mean(data$PHQ, na.rm = TRUE)
+  ),
+
+  PHQ_SD = c(
+    sd(pre_covid_clean$PHQ, na.rm = TRUE),
+    sd(data$PHQ, na.rm = TRUE)
+  ),
+
+  PHQ_Min = c(
+    min(pre_covid_clean$PHQ, na.rm = TRUE),
+    min(data$PHQ, na.rm = TRUE)
+  ),
+
+  PHQ_Max = c(
+    max(pre_covid_clean$PHQ, na.rm = TRUE),
+    max(data$PHQ, na.rm = TRUE)
+  ),
+
+  GAD_Mean = c(
+    mean(pre_covid_clean$GAD, na.rm = TRUE),
+    mean(data$GAD, na.rm = TRUE)
+  ),
+
+  GAD_SD = c(
+    sd(pre_covid_clean$GAD, na.rm = TRUE),
+    sd(data$GAD, na.rm = TRUE)
+  ),
+
+  GAD_Min = c(
+    min(pre_covid_clean$GAD, na.rm = TRUE),
+    min(data$GAD, na.rm = TRUE)
+  ),
+
+  GAD_Max = c(
+    max(pre_covid_clean$GAD, na.rm = TRUE),
+    max(data$GAD, na.rm = TRUE)
+  )
+)
+
+score_check[, 2:9] <- round(
+  score_check[, 2:9],
+  2
+)
+
+knitr::kable(
+  score_check,
+  row.names = FALSE,
+  caption = "PHQ and GAD Comparison"
+)
+```
+
+## Gender Distribution
+
+```{r pre-post-gender}
+gender_check <- bind_rows(
+  pre_covid_clean %>%
+    filter(!is.na(gender)) %>%
+    count(gender) %>%
+    mutate(
+      Dataset = "2017-2018 Pre-COVID",
+      Percent = round(n / sum(n) * 100, 1)
+    ),
+
+  data %>%
+    filter(!is.na(gender)) %>%
+    count(gender) %>%
+    mutate(
+      Dataset = "2022-2023 Post-COVID",
+      Percent = round(n / sum(n) * 100, 1)
+    )
+)
+
+knitr::kable(
+  gender_check,
+  row.names = FALSE,
+  caption = "Gender Distribution Comparison"
+)
+```
+
+## STEM Distribution
+
+```{r pre-post-field}
+field_check <- bind_rows(
+  pre_covid_clean %>%
+    filter(!is.na(field)) %>%
+    count(field) %>%
+    mutate(
+      Dataset = "2017-2018 Pre-COVID",
+      Percent = round(n / sum(n) * 100, 1)
+    ),
+
+  data %>%
+    filter(!is.na(field)) %>%
+    count(field) %>%
+    mutate(
+      Dataset = "2022-2023 Post-COVID",
+      Percent = round(n / sum(n) * 100, 1)
+    )
+)
+
+knitr::kable(
+  field_check,
+  row.names = FALSE,
+  caption = "STEM and Non-STEM Distribution Comparison"
+)
+```
+
+## Missing Data
+
+```{r pre-post-missing}
+missing_check <- data.frame(
+  Variable = variables_to_compare,
+
+  Pre_COVID_Missing = sapply(
+    pre_covid_clean[, variables_to_compare],
+    function(x) sum(is.na(x))
+  ),
+
+  Pre_COVID_Percent = round(
+    sapply(
+      pre_covid_clean[, variables_to_compare],
+      function(x) mean(is.na(x)) * 100
+    ),
+    1
+  ),
+
+  Post_COVID_Missing = sapply(
+    data[, variables_to_compare],
+    function(x) sum(is.na(x))
+  ),
+
+  Post_COVID_Percent = round(
+    sapply(
+      data[, variables_to_compare],
+      function(x) mean(is.na(x)) * 100
+    ),
+    1
+  )
+)
+
+knitr::kable(
+  missing_check,
+  row.names = FALSE,
+  caption = "Missing Data Comparison"
+)
+```
+
+## Category Comparison
+
+```{r pre-post-categories}
+category_check <- data.frame(
+  Variable = c(
+    "Gender",
+    "Field",
+    "Race",
+    "Year in School"
+  ),
+
+  Pre_COVID = c(
+    paste(levels(pre_covid_clean$gender), collapse = ", "),
+    paste(levels(pre_covid_clean$field), collapse = ", "),
+    paste(levels(pre_covid_clean$race.2), collapse = ", "),
+    paste(levels(pre_covid_clean$yr_sch.2), collapse = ", ")
+  ),
+
+  Post_COVID = c(
+    paste(levels(data$gender), collapse = ", "),
+    paste(levels(data$field), collapse = ", "),
+    paste(levels(data$race.2), collapse = ", "),
+    paste(levels(data$yr_sch.2), collapse = ", ")
+  )
+)
+
+knitr::kable(
+  category_check,
+  row.names = FALSE,
+  caption = "Category Comparison"
+)
+```

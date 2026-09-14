@@ -47,3 +47,5 @@ po/*~
 
 # RStudio Connect folder
 rsconnect/
+"data/raw/pre_covid_raw_2017_2018_data.csv" 
+"data/raw/pre_covid_raw_2017_2018_data.csv" 
