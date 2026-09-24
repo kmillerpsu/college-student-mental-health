@@ -2088,3 +2088,311 @@ knitr::kable(
   caption = "Category Comparison"
 )
 ```
+
+# Remaining Analysis
+
+# Data Processing
+
+## Final Pre-COVID Data Quality Check
+
+## Final Post-COVID Data Quality Check
+
+## Missing Data Assessment
+
+## Final Variable Compatibility Check
+
+
+# Data Integration
+
+## Create Common Analysis Dataset Structure
+
+## Confirm Consistent Factor Levels and Reference Groups
+
+## Confirm Consistent Outcome Definitions
+
+## Confirm Consistent Predictor Definitions
+
+
+# Pre-COVID Data Splitting
+
+## Create 2017-2018 Training, Testing, and Validation Sets
+
+## Check Pre-COVID Split Sizes
+
+## Check Outcome Balance Across Pre-COVID Splits
+
+## Check Demographic Balance Across Pre-COVID Splits
+
+## Save Pre-COVID Training, Testing, and Validation Sets
+
+
+# Pre-COVID Exploratory Data Analysis
+
+## 2017-2018 Dataset Overview
+
+## 2017-2018 Missing Data
+
+## 2017-2018 Numeric Variable Summaries
+
+## 2017-2018 Gender Distribution
+
+## 2017-2018 STEM and Non-STEM Distribution
+
+## 2017-2018 Race Distribution
+
+## 2017-2018 Year in School Distribution
+
+## 2017-2018 Financial Stress Distribution
+
+## 2017-2018 Depression Score Distribution
+
+## 2017-2018 Anxiety Score Distribution
+
+## 2017-2018 Depression by Gender
+
+## 2017-2018 Anxiety by Gender
+
+## 2017-2018 Depression by STEM Status
+
+## 2017-2018 Anxiety by STEM Status
+
+## 2017-2018 Gender and STEM Groups
+
+## 2017-2018 Mental Health by Financial Stress
+
+## 2017-2018 Mental Health by Race
+
+## 2017-2018 Mental Health by Year in School
+
+## 2017-2018 Mental Health by Age
+
+## 2017-2018 Correlation Analysis
+
+
+# Pre-COVID vs Post-COVID Exploratory Comparison
+
+## Compare Sample Sizes
+
+## Compare Missing Data
+
+## Compare Demographic Distributions
+
+## Compare Gender Distributions
+
+## Compare STEM and Non-STEM Distributions
+
+## Compare Race Distributions
+
+## Compare Year in School Distributions
+
+## Compare Financial Stress
+
+## Compare Depression Scores
+
+## Compare Anxiety Scores
+
+## Compare Depression by Gender
+
+## Compare Anxiety by Gender
+
+## Compare Depression by STEM Status
+
+## Compare Anxiety by STEM Status
+
+## Compare Gender and STEM Groups
+
+## Compare Mental Health by Financial Stress
+
+## Compare Mental Health by Race
+
+## Compare Mental Health by Year in School
+
+## Pre-COVID vs Post-COVID EDA Summary
+
+
+# Pre-COVID Analytical Modeling
+
+## Pre-COVID Depression Model
+
+## Pre-COVID Anxiety Model
+
+## Pre-COVID Gender and STEM Interaction
+
+## Pre-COVID Depression Model Results
+
+## Pre-COVID Anxiety Model Results
+
+## Pre-COVID Interaction Plots
+
+## Pre-COVID Model Coefficient Plots
+
+
+# Post-COVID Analytical Modeling
+
+## Refit Depression Model Using Post-COVID Training Data
+
+## Refit Anxiety Model Using Post-COVID Training Data
+
+## Post-COVID Gender and STEM Interaction
+
+## Post-COVID Depression Model Results
+
+## Post-COVID Anxiety Model Results
+
+
+# Pre-COVID vs Post-COVID Modeling
+
+## Create Combined Pre/Post-COVID Dataset
+
+## Create Pre-COVID vs Post-COVID Indicator
+
+## Depression Model Including Time Period
+
+## Anxiety Model Including Time Period
+
+## Test Time Period by Gender Interaction
+
+## Test Time Period by STEM Interaction
+
+## Test Time Period by Gender by STEM Interaction
+
+## Compare Pre-COVID and Post-COVID Coefficients
+
+## Compare Pre-COVID and Post-COVID Predicted Depression
+
+## Compare Pre-COVID and Post-COVID Predicted Anxiety
+
+## Pre/Post-COVID Interaction Plots
+
+## Pre/Post-COVID Model Summary
+
+
+# Model Diagnostics
+
+## Depression Model Residual Diagnostics
+
+## Anxiety Model Residual Diagnostics
+
+## Check Linearity
+
+## Check Residual Distribution
+
+## Check Heteroskedasticity
+
+## Check Multicollinearity
+
+## Check Influential Observations
+
+## Compare Model Diagnostics Across Time Periods
+
+
+# Model Testing
+
+## Pre-COVID Depression Test Set Predictions
+
+## Pre-COVID Anxiety Test Set Predictions
+
+## Post-COVID Depression Test Set Predictions
+
+## Post-COVID Anxiety Test Set Predictions
+
+## Calculate Test RMSE
+
+## Calculate Test MAE
+
+## Calculate Test R-Squared
+
+## Compare Test Performance Across Models
+
+
+# Model Validation
+
+## Pre-COVID Depression Validation Set
+
+## Pre-COVID Anxiety Validation Set
+
+## Post-COVID Depression Validation Set
+
+## Post-COVID Anxiety Validation Set
+
+## Calculate Validation RMSE
+
+## Calculate Validation MAE
+
+## Calculate Validation R-Squared
+
+## Compare Training, Testing, and Validation Performance
+
+## Check for Overfitting
+
+## Final Model Selection
+
+
+# Final Pre-COVID vs Post-COVID Results
+
+## Final Depression Results
+
+## Final Anxiety Results
+
+## Changes in Gender Differences Over Time
+
+## Changes in STEM Differences Over Time
+
+## Changes in Gender and STEM Interaction Over Time
+
+## Most Important Predictors of Depression
+
+## Most Important Predictors of Anxiety
+
+## Summary of Pre-COVID vs Post-COVID Findings
+
+
+# Final Visualizations
+
+## Final Sample Characteristics Table
+
+## Final Pre/Post-COVID Mental Health Comparison Figure
+
+## Final Gender Comparison Figure
+
+## Final STEM Comparison Figure
+
+## Final Gender by STEM Comparison Figure
+
+## Final Model Coefficient Comparison Figure
+
+## Final Predicted Depression Figure
+
+## Final Predicted Anxiety Figure
+
+## Final Model Performance Table
+
+
+# Final Interpretation
+
+## Main Findings
+
+## Comparison With Parent Paper
+
+## Connection to Engineering Mental Health Paper
+
+## Practical Meaning of Results
+
+## Limitations
+
+## Future Research
+
+
+# Data Science Pipeline Summary
+
+## Data Acquisition
+
+## Data Processing
+
+## Data Integration
+
+## Analytical Modeling
+
+## Validation
+
+## Presentation
