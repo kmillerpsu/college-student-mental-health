@@ -1,0 +1,113 @@
+---
+title: "Pre-COVID EDA"
+output: html_document
+date: "2026-09-24"
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+
+```{r load-data}
+library(tidyverse)
+library(here)
+
+df <- read_csv(here("data", "processed", "pre_covid_clean.csv"))
+
+dim(df)
+glimpse(df)
+```
+
+Notes: 68,427 students and 29 columns.
+
+## Missing values
+
+```{r missing}
+colSums(is.na(df))
+```
+
+## Depression and anxiety scores
+
+PHQ and GAD are averages of 9 and 7 questions, each scored 1 to 4.
+
+```{r scores}
+summary(df$PHQ)
+summary(df$GAD)
+
+ggplot(df, aes(x = PHQ)) + geom_histogram(binwidth = 1/9) +
+  labs(title = "Depression scores (PHQ)", x = "PHQ score (average, 1-4)", y = "Students")
+
+ggplot(df, aes(x = GAD)) + geom_histogram(binwidth = 1/7) +
+  labs(title = "Anxiety scores (GAD)", x = "GAD score (average, 1-4)", y = "Students")
+```
+
+Notes: Median PHQ is 1.78 and median GAD is 1.86, so most students report low to mild symptoms, with some scoring as high as 4.
+
+## Who is in the data
+
+```{r groups}
+count(df, gender)
+count(df, race.2)
+count(df, yr_sch.2)
+count(df, fincur.2)
+count(df, field)
+summary(df$age)
+```
+
+
+
+## Scores across groups
+
+```{r by-group}
+# Put PHQ and GAD in one column so both show on the same plot
+scores_long <- df %>%
+  select(gender, race.2, yr_sch.2, fincur.2, field, PHQ, GAD) %>%
+  pivot_longer(c(PHQ, GAD), names_to = "measure", values_to = "score")
+
+ggplot(filter(scores_long, !is.na(gender)), aes(x = gender, y = score, fill = measure)) +
+  geom_boxplot() + labs(title = "Scores by gender")
+
+ggplot(filter(scores_long, !is.na(yr_sch.2)), aes(x = yr_sch.2, y = score, fill = measure)) +
+  geom_boxplot() + labs(title = "Scores by year in school")
+
+ggplot(filter(scores_long, !is.na(fincur.2)), aes(x = factor(fincur.2), y = score, fill = measure)) +
+  geom_boxplot() + labs(title = "Scores by financial situation", x = "fincur.2")
+
+ggplot(filter(scores_long, !is.na(race.2)), aes(x = race.2, y = score, fill = measure)) +
+  geom_boxplot() + labs(title = "Scores by race")
+
+ggplot(filter(scores_long, !is.na(field)), aes(x = field, y = score, fill = measure)) +
+  geom_boxplot() + labs(title = "Scores by field")
+```
+
+
+## Depression vs. anxiety
+
+```{r phq-vs-gad}
+cor(df$PHQ, df$GAD, use = "complete.obs")
+
+ggplot(df, aes(x = PHQ, y = GAD)) + geom_bin2d() +
+  labs(title = "Depression vs. anxiety")
+```
+
+
+## Academic impact
+
+```{r academic}
+# How many students checked each option (1 = checked)
+df %>%
+  select(starts_with("aca_")) %>%
+  colSums(na.rm = TRUE)
+```
+
+```{r scores}
+summary(df$PHQ)
+summary(df$GAD)
+
+ggplot(df, aes(x = PHQ)) + geom_histogram(binwidth = 1) +
+  labs(title = "Depression scores (PHQ)", x = "PHQ score", y = "Students")
+
+ggplot(df, aes(x = GAD)) + geom_histogram(binwidth = 1) +
+  labs(title = "Anxiety scores (GAD)", x = "GAD score", y = "Students")
+```
