@@ -1,0 +1,1801 @@
+---
+title: "Pre-COVID and Post-COVID Exploratory Data Analysis"
+output: html_document
+date: "2026-10-04"
+---
+
+# Pre-COVID and Post-COVID Exploratory Data
+Analysis
+
+# Setup
+
+```{r}
+library(tidyverse)
+library(here)
+library(scales)
+```
+
+## Plot Colors and Theme
+
+```{r}
+pre_color <- "#377EB8"
+post_color <- "#E69F00"
+
+phq_color <- "#377EB8"
+gad_color <- "#E69F00"
+
+gender_colors <- c(
+  "Men" = "#377EB8",
+  "Women" = "#E69F00"
+)
+
+period_colors <- c(
+  "2017-2018 Pre-COVID" = "#377EB8",
+  "2022-2023 Post-COVID" = "#E69F00"
+)
+
+measure_colors <- c(
+  "PHQ" = "#377EB8",
+  "GAD" = "#E69F00"
+)
+
+theme_set(
+  theme_minimal(base_size = 12) +
+    theme(
+      plot.title = element_text(face = "bold"),
+      axis.text.x = element_text(
+        angle = 0,
+        hjust = 0.5
+      ),
+      legend.position = "bottom",
+      panel.grid.minor = element_blank()
+    )
+)
+```
+
+# Load Data
+
+```{r}
+post_covid <- read.csv(
+  here("data", "raw", "original_data.csv")
+)
+
+pre_covid <- read_csv(
+  here("data", "processed", "pre_covid_clean.csv"),
+  show_col_types = FALSE
+)
+```
+
+# Make Variables Consistent
+
+```{r}
+post_covid <- post_covid %>%
+  mutate(
+    field = case_when(
+      as.character(field) == "STEM" ~ "STEM",
+      as.character(field) == "NotSTEM" ~ "Non-STEM",
+      TRUE ~ as.character(field)
+    ),
+    gender = as.character(gender),
+    field = as.character(field),
+    race.2 = as.character(race.2),
+    yr_sch.2 = as.character(yr_sch.2),
+    fincur.2 = as.numeric(fincur.2),
+    age = as.numeric(age)
+  )
+
+pre_covid <- pre_covid %>%
+  mutate(
+    gender = as.character(gender),
+    field = as.character(field),
+    race.2 = as.character(race.2),
+    yr_sch.2 = as.character(yr_sch.2),
+    fincur.2 = as.numeric(fincur.2),
+    age = as.numeric(age)
+  )
+
+pre_covid$gender <- factor(
+  pre_covid$gender,
+  levels = c("Men", "Women")
+)
+
+post_covid$gender <- factor(
+  post_covid$gender,
+  levels = c("Men", "Women")
+)
+
+pre_covid$field <- factor(
+  pre_covid$field,
+  levels = c("Non-STEM", "STEM")
+)
+
+post_covid$field <- factor(
+  post_covid$field,
+  levels = c("Non-STEM", "STEM")
+)
+
+race_levels <- c(
+  "White",
+  "Asian",
+  "Black",
+  "Hispanic",
+  "Middle Eastern"
+)
+
+pre_covid$race.2 <- factor(
+  pre_covid$race.2,
+  levels = race_levels
+)
+
+post_covid$race.2 <- factor(
+  post_covid$race.2,
+  levels = race_levels
+)
+
+year_levels <- c(
+  "firstyear",
+  "secondyear",
+  "thirdyear",
+  "fourthyear+"
+)
+
+pre_covid$yr_sch.2 <- factor(
+  pre_covid$yr_sch.2,
+  levels = year_levels
+)
+
+post_covid$yr_sch.2 <- factor(
+  post_covid$yr_sch.2,
+  levels = year_levels
+)
+```
+
+# Final Data Check
+
+```{r}
+dim(pre_covid)
+```
+
+```{r}
+dim(post_covid)
+```
+
+```{r}
+variables_used <- c(
+  "PHQ",
+  "GAD",
+  "gender",
+  "field",
+  "race.2",
+  "yr_sch.2",
+  "fincur.2",
+  "age"
+)
+
+variable_check <- data.frame(
+  Variable = variables_used,
+  Pre_COVID = variables_used %in% names(pre_covid),
+  Post_COVID = variables_used %in% names(post_covid)
+)
+
+knitr::kable(
+  variable_check,
+  caption = "Variables Available in Both Datasets"
+)
+```
+
+# 2017-2018 Pre-COVID EDA
+
+## Dataset Overview
+
+```{r}
+dim(pre_covid)
+```
+
+```{r}
+glimpse(pre_covid)
+```
+
+## Missing Values
+
+```{r}
+pre_missing <- data.frame(
+  Variable = variables_used,
+  Missing = sapply(
+    pre_covid[, variables_used],
+    function(x) sum(is.na(x))
+  ),
+  Percent_Missing = sapply(
+    pre_covid[, variables_used],
+    function(x) mean(is.na(x)) * 100
+  )
+)
+
+pre_missing$Percent_Missing <- round(
+  pre_missing$Percent_Missing,
+  2
+)
+
+knitr::kable(
+  pre_missing,
+  caption = "Missing Data: 2017-2018"
+)
+```
+
+## Depression and Anxiety Scores
+
+```{r}
+summary(pre_covid$PHQ)
+```
+
+```{r}
+summary(pre_covid$GAD)
+```
+
+```{r}
+ggplot(pre_covid, aes(x = PHQ)) +
+  geom_histogram(
+    binwidth = 1/9,
+    fill = phq_color,
+    color = "white"
+  ) +
+  labs(
+    title = "Depression Scores: 2017-2018",
+    x = "PHQ Score",
+    y = "Students"
+  )
+```
+
+Most students had lower depression scores, with fewer students having scores toward the higher end of the scale.
+
+```{r}
+ggplot(pre_covid, aes(x = GAD)) +
+  geom_histogram(
+    binwidth = 1/7,
+    fill = gad_color,
+    color = "white"
+  ) +
+  labs(
+    title = "Anxiety Scores: 2017-2018",
+    x = "GAD Score",
+    y = "Students"
+  )
+```
+
+Most students had lower anxiety scores, although there were still students with scores across the full range.
+
+## Gender Distribution
+
+```{r}
+ggplot(
+  filter(pre_covid, !is.na(gender)),
+  aes(x = gender, fill = gender)
+) +
+  geom_bar() +
+  scale_fill_manual(values = gender_colors) +
+  guides(fill = "none") +
+  labs(
+    title = "Gender Distribution: 2017-2018",
+    x = "Gender",
+    y = "Students"
+  )
+```
+
+There were more women than men in the pre-COVID sample.
+
+## STEM and Non-STEM Distribution
+
+```{r}
+ggplot(
+  filter(pre_covid, !is.na(field)),
+  aes(x = field)
+) +
+  geom_bar(fill = pre_color) +
+  labs(
+    title = "STEM Status: 2017-2018",
+    x = "Field",
+    y = "Students"
+  )
+```
+
+The pre-COVID sample included both STEM and non-STEM students, with more students in the non-STEM group.
+
+## Race Distribution
+
+```{r}
+ggplot(
+  filter(pre_covid, !is.na(race.2)),
+  aes(x = race.2)
+) +
+  geom_bar(fill = pre_color) +
+  labs(
+    title = "Race Distribution: 2017-2018",
+    x = "Race",
+    y = "Students"
+  ) +
+  scale_x_discrete(
+    labels = c(
+      "White",
+      "Asian",
+      "Black",
+      "Hispanic",
+      "Middle\nEastern"
+    )
+  )
+```
+
+White students made up the largest racial group in the pre-COVID sample.
+
+## Year in School Distribution
+
+```{r}
+ggplot(
+  filter(pre_covid, !is.na(yr_sch.2)),
+  aes(x = yr_sch.2)
+) +
+  geom_bar(fill = pre_color) +
+  scale_x_discrete(
+    labels = c(
+      "First Year",
+      "Second Year",
+      "Third Year",
+      "Fourth Year+"
+    )
+  ) +
+  labs(
+    title = "Year in School: 2017-2018",
+    x = "Year in School",
+    y = "Students"
+  )
+```
+
+Students from all years in school were represented in the pre-COVID sample.
+
+## Financial Stress Distribution
+
+```{r}
+ggplot(
+  filter(pre_covid, !is.na(fincur.2)),
+  aes(x = factor(fincur.2))
+) +
+  geom_bar(fill = pre_color) +
+  labs(
+    title = "Financial Stress: 2017-2018",
+    x = "Financial Stress",
+    y = "Students"
+  )
+```
+
+Financial stress varied across students, with most students falling around the middle of the scale.
+
+## Age Distribution
+
+```{r}
+ggplot(
+  filter(pre_covid, !is.na(age)),
+  aes(x = age)
+) +
+  geom_histogram(
+    binwidth = 1,
+    fill = pre_color,
+    color = "white"
+  ) +
+  labs(
+    title = "Age Distribution: 2017-2018",
+    x = "Age",
+    y = "Students"
+  )
+```
+
+Most students were in the typical college-age range, with fewer students at older ages.
+
+## Mental Health by Gender
+
+```{r}
+pre_gender_scores <- pre_covid %>%
+  select(gender, PHQ, GAD) %>%
+  pivot_longer(
+    c(PHQ, GAD),
+    names_to = "Measure",
+    values_to = "Score"
+  )
+
+ggplot(
+  filter(
+    pre_gender_scores,
+    !is.na(gender),
+    !is.na(Score)
+  ),
+  aes(
+    x = gender,
+    y = Score,
+    fill = gender
+  )
+) +
+  geom_boxplot() +
+  facet_wrap(~Measure) +
+  scale_fill_manual(values = gender_colors) +
+  guides(fill = "none") +
+  labs(
+    title = "Mental Health Scores by Gender: 2017-2018",
+    x = "Gender",
+    y = "Score"
+  )
+```
+
+Women generally had higher depression and anxiety scores than men before COVID.
+
+## Mental Health by STEM Status
+
+```{r}
+pre_field_scores <- pre_covid %>%
+  select(field, PHQ, GAD) %>%
+  pivot_longer(
+    c(PHQ, GAD),
+    names_to = "Measure",
+    values_to = "Score"
+  )
+
+ggplot(
+  filter(
+    pre_field_scores,
+    !is.na(field),
+    !is.na(Score)
+  ),
+  aes(
+    x = field,
+    y = Score,
+    fill = Measure
+  )
+) +
+  geom_boxplot() +
+  facet_wrap(~Measure) +
+  scale_fill_manual(values = measure_colors) +
+  guides(fill = "none") +
+  labs(
+    title = "Mental Health Scores by STEM Status: 2017-2018",
+    x = "Field",
+    y = "Score"
+  )
+```
+
+The pre-COVID sample included both STEM and non-STEM students, with more students in the non-STEM group.
+
+## Mental Health by Financial Stress
+
+```{r}
+pre_financial_scores <- pre_covid %>%
+  select(fincur.2, PHQ, GAD) %>%
+  pivot_longer(
+    c(PHQ, GAD),
+    names_to = "Measure",
+    values_to = "Score"
+  )
+
+ggplot(
+  filter(
+    pre_financial_scores,
+    !is.na(fincur.2),
+    !is.na(Score)
+  ),
+  aes(
+    x = factor(fincur.2),
+    y = Score,
+    fill = Measure
+  )
+) +
+  geom_boxplot() +
+  facet_wrap(~Measure) +
+  scale_fill_manual(values = measure_colors) +
+  guides(fill = "none") +
+  labs(
+    title = "Mental Health Scores by Financial Stress: 2017-2018",
+    x = "Financial Stress",
+    y = "Score"
+  )
+```
+
+Financial stress varied across students, with most students falling around the middle of the scale.
+
+## Mental Health by Race
+
+```{r}
+pre_race_scores <- pre_covid %>%
+  select(race.2, PHQ, GAD) %>%
+  pivot_longer(
+    c(PHQ, GAD),
+    names_to = "Measure",
+    values_to = "Score"
+  )
+
+ggplot(
+  filter(
+    pre_race_scores,
+    !is.na(race.2),
+    !is.na(Score)
+  ),
+  aes(
+    x = race.2,
+    y = Score,
+    fill = Measure
+  )
+) +
+  geom_boxplot() +
+  facet_wrap(~Measure) +
+  scale_fill_manual(values = measure_colors) +
+  guides(fill = "none") +
+  scale_x_discrete(
+    labels = c(
+      "White",
+      "Asian",
+      "Black",
+      "Hispanic",
+      "Middle\nEastern"
+    )
+  ) +
+  labs(
+    title = "Mental Health Scores by Race: 2017-2018",
+    x = "Race",
+    y = "Score"
+  )
+```
+
+Depression and anxiety scores varied somewhat across racial groups before COVID.
+
+## Mental Health by Year in School
+
+```{r}
+pre_year_scores <- pre_covid %>%
+  select(yr_sch.2, PHQ, GAD) %>%
+  pivot_longer(
+    c(PHQ, GAD),
+    names_to = "Measure",
+    values_to = "Score"
+  )
+
+ggplot(
+  filter(
+    pre_year_scores,
+    !is.na(yr_sch.2),
+    !is.na(Score)
+  ),
+  aes(
+    x = yr_sch.2,
+    y = Score,
+    fill = Measure
+  )
+) +
+  geom_boxplot() +
+  facet_wrap(~Measure) +
+  scale_fill_manual(values = measure_colors) +
+  guides(fill = "none") +
+  scale_x_discrete(
+    labels = c(
+      "First Year",
+      "Second Year",
+      "Third Year",
+      "Fourth Year+"
+    )
+  ) +
+  labs(
+    title = "Mental Health Scores by Year in School: 2017-2018",
+    x = "Year in School",
+    y = "Score"
+  )
+```
+
+Students from all years in school were represented in the pre-COVID sample.
+
+## Depression and Anxiety Relationship
+
+```{r}
+pre_correlation <- cor(
+  pre_covid$PHQ,
+  pre_covid$GAD,
+  use = "complete.obs"
+)
+
+pre_correlation
+```
+
+```{r}
+ggplot(
+  pre_covid,
+  aes(x = PHQ, y = GAD)
+) +
+  geom_point(
+    alpha = 0.08,
+    color = pre_color
+  ) +
+  geom_smooth(
+    method = "lm",
+    se = FALSE,
+    color = "black"
+  ) +
+  labs(
+    title = "Depression and Anxiety: 2017-2018",
+    x = "PHQ Score",
+    y = "GAD Score"
+  )
+```
+
+Depression and anxiety had a strong positive relationship, meaning students with higher depression scores also tended to have higher anxiety scores.
+
+# 2022-2023 Post-COVID EDA
+
+## Dataset Overview
+
+```{r}
+dim(post_covid)
+```
+
+```{r}
+glimpse(post_covid)
+```
+
+## Missing Values
+
+```{r}
+post_missing <- data.frame(
+  Variable = variables_used,
+  Missing = sapply(
+    post_covid[, variables_used],
+    function(x) sum(is.na(x))
+  ),
+  Percent_Missing = sapply(
+    post_covid[, variables_used],
+    function(x) mean(is.na(x)) * 100
+  )
+)
+
+post_missing$Percent_Missing <- round(
+  post_missing$Percent_Missing,
+  2
+)
+
+knitr::kable(
+  post_missing,
+  caption = "Missing Data: 2022-2023"
+)
+```
+
+## Depression and Anxiety Scores
+
+```{r}
+summary(post_covid$PHQ)
+```
+
+```{r}
+summary(post_covid$GAD)
+```
+
+```{r}
+ggplot(post_covid, aes(x = PHQ)) +
+  geom_histogram(
+    binwidth = 1/9,
+    fill = phq_color,
+    color = "white"
+  ) +
+  labs(
+    title = "Depression Scores: 2022-2023",
+    x = "PHQ Score",
+    y = "Students"
+  )
+```
+
+Most students had lower to moderate depression scores, although scores were spread across the full range.
+
+```{r}
+ggplot(post_covid, aes(x = GAD)) +
+  geom_histogram(
+    binwidth = 1/7,
+    fill = gad_color,
+    color = "white"
+  ) +
+  labs(
+    title = "Anxiety Scores: 2022-2023",
+    x = "GAD Score",
+    y = "Students"
+  )
+```
+
+Anxiety scores were spread across the scale, with many students reporting lower to moderate levels of anxiety.
+
+## Gender Distribution
+
+```{r}
+ggplot(
+  filter(post_covid, !is.na(gender)),
+  aes(x = gender, fill = gender)
+) +
+  geom_bar() +
+  scale_fill_manual(values = gender_colors) +
+  guides(fill = "none") +
+  labs(
+    title = "Gender Distribution: 2022-2023",
+    x = "Gender",
+    y = "Students"
+  )
+```
+
+There were more women than men in the post-COVID sample.
+
+## STEM and Non-STEM Distribution
+
+```{r}
+ggplot(
+  filter(post_covid, !is.na(field)),
+  aes(x = field)
+) +
+  geom_bar(fill = post_color) +
+  labs(
+    title = "STEM Status: 2022-2023",
+    x = "Field",
+    y = "Students"
+  )
+```
+
+The post-COVID sample included both STEM and non-STEM students, with more students in the non-STEM group.
+
+## Race Distribution
+
+```{r}
+ggplot(
+  filter(post_covid, !is.na(race.2)),
+  aes(x = race.2)
+) +
+  geom_bar(fill = post_color) +
+  scale_x_discrete(
+    labels = c(
+      "White",
+      "Asian",
+      "Black",
+      "Hispanic",
+      "Middle\nEastern"
+    )
+  ) +
+  labs(
+    title = "Race Distribution: 2022-2023",
+    x = "Race",
+    y = "Students"
+  )
+```
+
+White students made up the largest racial group in the post-COVID sample.
+
+## Year in School Distribution
+
+```{r}
+ggplot(
+  filter(post_covid, !is.na(yr_sch.2)),
+  aes(x = yr_sch.2)
+) +
+  geom_bar(fill = post_color) +
+  scale_x_discrete(
+    labels = c(
+      "First Year",
+      "Second Year",
+      "Third Year",
+      "Fourth Year+"
+    )
+  ) +
+  labs(
+    title = "Year in School: 2022-2023",
+    x = "Year in School",
+    y = "Students"
+  )
+```
+
+Students from all years in school were represented in the post-COVID sample.
+
+## Financial Stress Distribution
+
+```{r}
+ggplot(
+  filter(post_covid, !is.na(fincur.2)),
+  aes(x = factor(fincur.2))
+) +
+  geom_bar(fill = post_color) +
+  labs(
+    title = "Financial Stress: 2022-2023",
+    x = "Financial Stress",
+    y = "Students"
+  )
+```
+
+Financial stress varied across students, with many students reporting moderate levels of financial stress.
+
+## Age Distribution
+
+```{r}
+ggplot(
+  filter(post_covid, !is.na(age)),
+  aes(x = age)
+) +
+  geom_histogram(
+    binwidth = 1,
+    fill = post_color,
+    color = "white"
+  ) +
+  labs(
+    title = "Age Distribution: 2022-2023",
+    x = "Age",
+    y = "Students"
+  )
+```
+
+Most students were in the typical college-age range, with fewer students at older ages.
+
+## Mental Health by Gender
+
+```{r}
+post_gender_scores <- post_covid %>%
+  select(gender, PHQ, GAD) %>%
+  pivot_longer(
+    c(PHQ, GAD),
+    names_to = "Measure",
+    values_to = "Score"
+  )
+
+ggplot(
+  filter(
+    post_gender_scores,
+    !is.na(gender),
+    !is.na(Score)
+  ),
+  aes(
+    x = gender,
+    y = Score,
+    fill = gender
+  )
+) +
+  geom_boxplot() +
+  facet_wrap(~Measure) +
+  scale_fill_manual(values = gender_colors) +
+  guides(fill = "none") +
+  labs(
+    title = "Mental Health Scores by Gender: 2022-2023",
+    x = "Gender",
+    y = "Score"
+  )
+```
+
+Women generally had higher depression and anxiety scores than men after COVID.
+
+## Mental Health by STEM Status
+
+```{r}
+post_field_scores <- post_covid %>%
+  select(field, PHQ, GAD) %>%
+  pivot_longer(
+    c(PHQ, GAD),
+    names_to = "Measure",
+    values_to = "Score"
+  )
+
+ggplot(
+  filter(
+    post_field_scores,
+    !is.na(field),
+    !is.na(Score)
+  ),
+  aes(
+    x = field,
+    y = Score,
+    fill = Measure
+  )
+) +
+  geom_boxplot() +
+  facet_wrap(~Measure) +
+  scale_fill_manual(values = measure_colors) +
+  guides(fill = "none") +
+  labs(
+    title = "Mental Health Scores by STEM Status: 2022-2023",
+    x = "Field",
+    y = "Score"
+  )
+```
+
+The post-COVID sample included both STEM and non-STEM students, with more students in the non-STEM group.
+
+## Mental Health by Financial Stress
+
+```{r}
+post_financial_scores <- post_covid %>%
+  select(fincur.2, PHQ, GAD) %>%
+  pivot_longer(
+    c(PHQ, GAD),
+    names_to = "Measure",
+    values_to = "Score"
+  )
+
+ggplot(
+  filter(
+    post_financial_scores,
+    !is.na(fincur.2),
+    !is.na(Score)
+  ),
+  aes(
+    x = factor(fincur.2),
+    y = Score,
+    fill = Measure
+  )
+) +
+  geom_boxplot() +
+  facet_wrap(~Measure) +
+  scale_fill_manual(values = measure_colors) +
+  guides(fill = "none") +
+  labs(
+    title = "Mental Health Scores by Financial Stress: 2022-2023",
+    x = "Financial Stress",
+    y = "Score"
+  )
+```
+
+Financial stress varied across students, with many students reporting moderate levels of financial stress.
+
+## Mental Health by Race
+
+```{r}
+post_race_scores <- post_covid %>%
+  select(race.2, PHQ, GAD) %>%
+  pivot_longer(
+    c(PHQ, GAD),
+    names_to = "Measure",
+    values_to = "Score"
+  )
+
+ggplot(
+  filter(
+    post_race_scores,
+    !is.na(race.2),
+    !is.na(Score)
+  ),
+  aes(
+    x = race.2,
+    y = Score,
+    fill = Measure
+  )
+) +
+  geom_boxplot() +
+  facet_wrap(~Measure) +
+  scale_fill_manual(values = measure_colors) +
+  guides(fill = "none") +
+  scale_x_discrete(
+    labels = c(
+      "White",
+      "Asian",
+      "Black",
+      "Hispanic",
+      "Middle\nEastern"
+    )
+  ) +
+  labs(
+    title = "Mental Health Scores by Race: 2022-2023",
+    x = "Race",
+    y = "Score"
+  )
+```
+
+Depression and anxiety scores varied somewhat across racial groups after COVID.
+
+## Mental Health by Year in School
+
+```{r}
+post_year_scores <- post_covid %>%
+  select(yr_sch.2, PHQ, GAD) %>%
+  pivot_longer(
+    c(PHQ, GAD),
+    names_to = "Measure",
+    values_to = "Score"
+  )
+
+ggplot(
+  filter(
+    post_year_scores,
+    !is.na(yr_sch.2),
+    !is.na(Score)
+  ),
+  aes(
+    x = yr_sch.2,
+    y = Score,
+    fill = Measure
+  )
+) +
+  geom_boxplot() +
+  facet_wrap(~Measure) +
+  scale_fill_manual(values = measure_colors) +
+  guides(fill = "none") +
+  scale_x_discrete(
+    labels = c(
+      "First Year",
+      "Second Year",
+      "Third Year",
+      "Fourth Year+"
+    )
+  ) +
+  labs(
+    title = "Mental Health Scores by Year in School: 2022-2023",
+    x = "Year in School",
+    y = "Score"
+  )
+```
+
+Students from all years in school were represented in the post-COVID sample.
+
+## Depression and Anxiety Relationship
+
+```{r}
+post_correlation <- cor(
+  post_covid$PHQ,
+  post_covid$GAD,
+  use = "complete.obs"
+)
+
+post_correlation
+```
+
+```{r}
+ggplot(
+  post_covid,
+  aes(x = PHQ, y = GAD)
+) +
+  geom_point(
+    alpha = 0.08,
+    color = post_color
+  ) +
+  geom_smooth(
+    method = "lm",
+    se = FALSE,
+    color = "black"
+  ) +
+  labs(
+    title = "Depression and Anxiety: 2022-2023",
+    x = "PHQ Score",
+    y = "GAD Score"
+  )
+```
+
+Depression and anxiety had a strong positive relationship after COVID, so students with higher depression scores also tended to have higher anxiety scores.
+
+# Pre-COVID vs. Post-COVID Comparison
+
+## Create Combined Dataset
+
+```{r}
+pre_compare <- pre_covid %>%
+  select(all_of(variables_used)) %>%
+  mutate(
+    Period = "2017-2018 Pre-COVID"
+  )
+
+post_compare <- post_covid %>%
+  select(all_of(variables_used)) %>%
+  mutate(
+    Period = "2022-2023 Post-COVID"
+  )
+
+combined <- bind_rows(
+  pre_compare,
+  post_compare
+)
+
+combined$Period <- factor(
+  combined$Period,
+  levels = c(
+    "2017-2018 Pre-COVID",
+    "2022-2023 Post-COVID"
+  )
+)
+```
+
+## Sample Sizes
+
+```{r}
+combined %>%
+  count(Period) %>%
+  knitr::kable(
+    caption = "Sample Size by Time Period"
+  )
+```
+
+## Missing Data Comparison
+
+```{r}
+missing_comparison <- combined %>%
+  group_by(Period) %>%
+  summarise(
+    PHQ = mean(is.na(PHQ)) * 100,
+    GAD = mean(is.na(GAD)) * 100,
+    Gender = mean(is.na(gender)) * 100,
+    Field = mean(is.na(field)) * 100,
+    Race = mean(is.na(race.2)) * 100,
+    Year = mean(is.na(yr_sch.2)) * 100,
+    Financial_Stress = mean(is.na(fincur.2)) * 100,
+    Age = mean(is.na(age)) * 100
+  ) %>%
+  mutate(
+    across(
+      where(is.numeric),
+      ~ round(., 2)
+    )
+  )
+
+knitr::kable(
+  missing_comparison,
+  caption = "Percent Missing by Time Period"
+)
+```
+
+## Demographic Comparison
+
+```{r}
+gender_comparison <- combined %>%
+  filter(!is.na(gender)) %>%
+  count(Period, gender) %>%
+  group_by(Period) %>%
+  mutate(
+    Percent = n / sum(n) * 100
+  )
+
+ggplot(
+  gender_comparison,
+  aes(
+    x = gender,
+    y = Percent,
+    fill = Period
+  )
+) +
+  geom_col(
+    position = position_dodge(width = 0.8),
+    width = 0.7
+  ) +
+  scale_fill_manual(values = period_colors) +
+  labs(
+    title = "Gender Distribution Before and After COVID",
+    x = "Gender",
+    y = "Percent of Students",
+    fill = "Time Period"
+  )
+```
+
+The gender makeup was somewhat different between the two time periods, showing why gender should be considered when comparing mental health outcomes.
+
+```{r}
+field_comparison <- combined %>%
+  filter(!is.na(field)) %>%
+  count(Period, field) %>%
+  group_by(Period) %>%
+  mutate(
+    Percent = n / sum(n) * 100
+  )
+
+ggplot(
+  field_comparison,
+  aes(
+    x = field,
+    y = Percent,
+    fill = Period
+  )
+) +
+  geom_col(
+    position = position_dodge(width = 0.8),
+    width = 0.7
+  ) +
+  scale_fill_manual(values = period_colors) +
+  labs(
+    title = "STEM Status Before and After COVID",
+    x = "Field",
+    y = "Percent of Students",
+    fill = "Time Period"
+  )
+```
+
+The proportion of STEM and non-STEM students differed somewhat between the pre-COVID and post-COVID samples.
+
+```{r}
+race_comparison <- combined %>%
+  filter(!is.na(race.2)) %>%
+  count(Period, race.2) %>%
+  group_by(Period) %>%
+  mutate(
+    Percent = n / sum(n) * 100
+  )
+
+ggplot(
+  race_comparison,
+  aes(
+    x = race.2,
+    y = Percent,
+    fill = Period
+  )
+) +
+  geom_col(
+    position = position_dodge(width = 0.8),
+    width = 0.7
+  ) +
+  scale_fill_manual(values = period_colors) +
+  scale_x_discrete(
+    labels = c(
+      "White",
+      "Asian",
+      "Black",
+      "Hispanic",
+      "Middle\nEastern"
+    )
+  ) +
+  labs(
+    title = "Race Distribution Before and After COVID",
+    x = "Race",
+    y = "Percent of Students",
+    fill = "Time Period"
+  )
+```
+
+The racial makeup of the samples differed somewhat between the two time periods, which is important to consider when comparing them.
+
+```{r}
+year_comparison <- combined %>%
+  filter(!is.na(yr_sch.2)) %>%
+  count(Period, yr_sch.2) %>%
+  group_by(Period) %>%
+  mutate(
+    Percent = n / sum(n) * 100
+  )
+
+ggplot(
+  year_comparison,
+  aes(
+    x = yr_sch.2,
+    y = Percent,
+    fill = Period
+  )
+) +
+  geom_col(
+    position = position_dodge(width = 0.8),
+    width = 0.7
+  ) +
+  scale_fill_manual(values = period_colors) +
+  scale_x_discrete(
+    labels = c(
+      "First Year",
+      "Second Year",
+      "Third Year",
+      "Fourth Year+"
+    )
+  ) +
+  labs(
+    title = "Year in School Before and After COVID",
+    x = "Year in School",
+    y = "Percent of Students",
+    fill = "Time Period"
+  )
+```
+
+The distribution of students across years in school was somewhat different between the pre-COVID and post-COVID samples.
+
+## Depression Before and After COVID
+
+```{r}
+phq_summary <- combined %>%
+  group_by(Period) %>%
+  summarise(
+    N = sum(!is.na(PHQ)),
+    Mean = mean(PHQ, na.rm = TRUE),
+    Median = median(PHQ, na.rm = TRUE),
+    SD = sd(PHQ, na.rm = TRUE)
+  ) %>%
+  mutate(
+    across(
+      where(is.numeric),
+      ~ round(., 2)
+    )
+  )
+
+knitr::kable(
+  phq_summary,
+  caption = "Depression Score Comparison"
+)
+```
+
+```{r}
+ggplot(
+  filter(combined, !is.na(PHQ)),
+  aes(
+    x = Period,
+    y = PHQ,
+    fill = Period
+  )
+) +
+  geom_boxplot() +
+  scale_fill_manual(values = period_colors) +
+  guides(fill = "none") +
+  labs(
+    title = "Depression Scores Before and After COVID",
+    x = "Time Period",
+    y = "PHQ Score"
+  )
+```
+
+Depression scores were slightly higher after COVID, with the average PHQ score increasing from 1.89 before COVID to 1.99 after COVID.
+
+## Anxiety Before and After COVID
+
+```{r}
+gad_summary <- combined %>%
+  group_by(Period) %>%
+  summarise(
+    N = sum(!is.na(GAD)),
+    Mean = mean(GAD, na.rm = TRUE),
+    Median = median(GAD, na.rm = TRUE),
+    SD = sd(GAD, na.rm = TRUE)
+  ) %>%
+  mutate(
+    across(
+      where(is.numeric),
+      ~ round(., 2)
+    )
+  )
+
+knitr::kable(
+  gad_summary,
+  caption = "Anxiety Score Comparison"
+)
+```
+
+```{r}
+ggplot(
+  filter(combined, !is.na(GAD)),
+  aes(
+    x = Period,
+    y = GAD,
+    fill = Period
+  )
+) +
+  geom_boxplot() +
+  scale_fill_manual(values = period_colors) +
+  guides(fill = "none") +
+  labs(
+    title = "Anxiety Scores Before and After COVID",
+    x = "Time Period",
+    y = "GAD Score"
+  )
+```
+
+Anxiety scores were higher after COVID, with the average GAD score increasing from 1.98 before COVID to 2.15 after COVID.
+
+## Depression by Gender Before and After COVID
+
+```{r}
+ggplot(
+  filter(
+    combined,
+    !is.na(gender),
+    !is.na(PHQ)
+  ),
+  aes(
+    x = gender,
+    y = PHQ,
+    fill = Period
+  )
+) +
+  geom_boxplot() +
+  scale_fill_manual(values = period_colors) +
+  labs(
+    title = "Depression by Gender Before and After COVID",
+    x = "Gender",
+    y = "PHQ Score",
+    fill = "Time Period"
+  )
+```
+
+Women had higher depression scores than men in both time periods, and depression scores were generally higher after COVID.
+
+## Anxiety by Gender Before and After COVID
+
+```{r}
+ggplot(
+  filter(
+    combined,
+    !is.na(gender),
+    !is.na(GAD)
+  ),
+  aes(
+    x = gender,
+    y = GAD,
+    fill = Period
+  )
+) +
+  geom_boxplot() +
+  scale_fill_manual(values = period_colors) +
+  labs(
+    title = "Anxiety by Gender Before and After COVID",
+    x = "Gender",
+    y = "GAD Score",
+    fill = "Time Period"
+  )
+```
+
+Women had higher anxiety scores than men in both time periods, with anxiety scores generally increasing after COVID.
+
+## Depression by STEM Status Before and After COVID
+
+```{r}
+ggplot(
+  filter(
+    combined,
+    !is.na(field),
+    !is.na(PHQ)
+  ),
+  aes(
+    x = field,
+    y = PHQ,
+    fill = Period
+  )
+) +
+  geom_boxplot() +
+  scale_fill_manual(values = period_colors) +
+  labs(
+    title = "Depression by STEM Status Before and After COVID",
+    x = "Field",
+    y = "PHQ Score",
+    fill = "Time Period"
+  )
+```
+
+The proportion of STEM and non-STEM students differed somewhat between the pre-COVID and post-COVID samples.
+
+## Anxiety by STEM Status Before and After COVID
+
+```{r}
+ggplot(
+  filter(
+    combined,
+    !is.na(field),
+    !is.na(GAD)
+  ),
+  aes(
+    x = field,
+    y = GAD,
+    fill = Period
+  )
+) +
+  geom_boxplot() +
+  scale_fill_manual(values = period_colors) +
+  labs(
+    title = "Anxiety by STEM Status Before and After COVID",
+    x = "Field",
+    y = "GAD Score",
+    fill = "Time Period"
+  )
+```
+
+The proportion of STEM and non-STEM students differed somewhat between the pre-COVID and post-COVID samples.
+
+# Gender and STEM Together
+
+```{r}
+gender_stem_summary <- combined %>%
+  filter(
+    !is.na(gender),
+    !is.na(field)
+  ) %>%
+  group_by(
+    Period,
+    gender,
+    field
+  ) %>%
+  summarise(
+    N = n(),
+    Mean_PHQ = mean(PHQ, na.rm = TRUE),
+    Mean_GAD = mean(GAD, na.rm = TRUE),
+    .groups = "drop"
+  )
+
+gender_stem_summary
+```
+
+## Depression by Gender and STEM Status
+
+```{r}
+ggplot(
+  gender_stem_summary,
+  aes(
+    x = field,
+    y = Mean_PHQ,
+    fill = gender
+  )
+) +
+  geom_col(
+    position = position_dodge(width = 0.8),
+    width = 0.7
+  ) +
+  facet_wrap(~Period) +
+  scale_fill_manual(values = gender_colors) +
+  labs(
+    title = "Average Depression by Gender and STEM Status",
+    x = "Field",
+    y = "Average PHQ Score",
+    fill = "Gender"
+  )
+```
+
+The gender difference in depression appears in both STEM and non-STEM students, with women generally having higher average depression scores than men.
+
+## Anxiety by Gender and STEM Status
+
+```{r}
+ggplot(
+  gender_stem_summary,
+  aes(
+    x = field,
+    y = Mean_GAD,
+    fill = gender
+  )
+) +
+  geom_col(
+    position = position_dodge(width = 0.8),
+    width = 0.7
+  ) +
+  facet_wrap(~Period) +
+  scale_fill_manual(values = gender_colors) +
+  labs(
+    title = "Average Anxiety by Gender and STEM Status",
+    x = "Field",
+    y = "Average GAD Score",
+    fill = "Gender"
+  )
+```
+
+Women generally had higher average anxiety scores than men in both STEM and non-STEM groups.
+
+# Financial Stress and Mental Health Comparison
+
+```{r}
+financial_summary <- combined %>%
+  group_by(
+    Period,
+    fincur.2
+  ) %>%
+  summarise(
+    Mean_PHQ = mean(PHQ, na.rm = TRUE),
+    Mean_GAD = mean(GAD, na.rm = TRUE),
+    .groups = "drop"
+  ) %>%
+  pivot_longer(
+    c(Mean_PHQ, Mean_GAD),
+    names_to = "Measure",
+    values_to = "Mean_Score"
+  ) %>%
+  mutate(
+    Measure = recode(
+      Measure,
+      Mean_PHQ = "PHQ",
+      Mean_GAD = "GAD"
+    )
+  )
+
+ggplot(
+  financial_summary,
+  aes(
+    x = fincur.2,
+    y = Mean_Score,
+    color = Period,
+    group = Period
+  )
+) +
+  geom_line(linewidth = 1) +
+  geom_point(size = 2) +
+  facet_wrap(~Measure) +
+  scale_color_manual(values = period_colors) +
+  labs(
+    title = "Mental Health by Financial Stress Before and After COVID",
+    x = "Financial Stress",
+    y = "Average Score",
+    color = "Time Period"
+  )
+```
+
+Higher financial stress was associated with higher average depression and anxiety scores in both time periods.
+
+# Mental Health by Race Comparison
+
+```{r}
+race_summary <- combined %>%
+  group_by(
+    Period,
+    race.2
+  ) %>%
+  summarise(
+    Mean_PHQ = mean(PHQ, na.rm = TRUE),
+    Mean_GAD = mean(GAD, na.rm = TRUE),
+    .groups = "drop"
+  ) %>%
+  pivot_longer(
+    c(Mean_PHQ, Mean_GAD),
+    names_to = "Measure",
+    values_to = "Mean_Score"
+  ) %>%
+  mutate(
+    Measure = recode(
+      Measure,
+      Mean_PHQ = "PHQ",
+      Mean_GAD = "GAD"
+    )
+  )
+
+ggplot(
+  filter(
+    race_summary,
+    !is.na(race.2)
+  ),
+  aes(
+    x = race.2,
+    y = Mean_Score,
+    fill = Period
+  )
+) +
+  geom_col(
+    position = position_dodge(width = 0.8),
+    width = 0.7
+  ) +
+  facet_wrap(~Measure) +
+  scale_fill_manual(values = period_colors) +
+  scale_x_discrete(
+    labels = c(
+      "White",
+      "Asian",
+      "Black",
+      "Hispanic",
+      "Middle\nEastern"
+    )
+  ) +
+  labs(
+    title = "Mental Health by Race Before and After COVID",
+    x = "Race",
+    y = "Average Score",
+    fill = "Time Period"
+  )
+```
+
+Average depression and anxiety scores differed somewhat across racial groups and between the two time periods.
+
+# Mental Health by Year in School Comparison
+
+```{r}
+year_summary <- combined %>%
+  group_by(
+    Period,
+    yr_sch.2
+  ) %>%
+  summarise(
+    Mean_PHQ = mean(PHQ, na.rm = TRUE),
+    Mean_GAD = mean(GAD, na.rm = TRUE),
+    .groups = "drop"
+  ) %>%
+  pivot_longer(
+    c(Mean_PHQ, Mean_GAD),
+    names_to = "Measure",
+    values_to = "Mean_Score"
+  ) %>%
+  mutate(
+    Measure = recode(
+      Measure,
+      Mean_PHQ = "PHQ",
+      Mean_GAD = "GAD"
+    )
+  )
+
+ggplot(
+  filter(
+    year_summary,
+    !is.na(yr_sch.2)
+  ),
+  aes(
+    x = yr_sch.2,
+    y = Mean_Score,
+    fill = Period
+  )
+) +
+  geom_col(
+    position = position_dodge(width = 0.8),
+    width = 0.7
+  ) +
+  facet_wrap(~Measure) +
+  scale_fill_manual(values = period_colors) +
+  scale_x_discrete(
+    labels = c(
+      "First Year",
+      "Second Year",
+      "Third Year",
+      "Fourth Year+"
+    )
+  ) +
+  labs(
+    title = "Mental Health by Year in School Before and After COVID",
+    x = "Year in School",
+    y = "Average Score",
+    fill = "Time Period"
+  )
+```
+
+The distribution of students across years in school was somewhat different between the pre-COVID and post-COVID samples.
+
+# Depression and Anxiety Correlation Comparison
+
+```{r}
+correlation_summary <- combined %>%
+  group_by(Period) %>%
+  summarise(
+    PHQ_GAD_Correlation = cor(
+      PHQ,
+      GAD,
+      use = "complete.obs"
+    )
+  ) %>%
+  mutate(
+    PHQ_GAD_Correlation = round(
+      PHQ_GAD_Correlation,
+      3
+    )
+  )
+
+knitr::kable(
+  correlation_summary,
+  caption = "Correlation Between Depression and Anxiety"
+)
+```
+
+The relationship between depression and anxiety stayed almost the same across the two time periods, with correlations of 0.75 before COVID and 0.74 after COVID.
+
+# Final EDA Summary
+
+```{r}
+eda_summary <- combined %>%
+  group_by(Period) %>%
+  summarise(
+    Students = n(),
+    PHQ_N = sum(!is.na(PHQ)),
+    Mean_PHQ = mean(PHQ, na.rm = TRUE),
+    Median_PHQ = median(PHQ, na.rm = TRUE),
+    SD_PHQ = sd(PHQ, na.rm = TRUE),
+    GAD_N = sum(!is.na(GAD)),
+    Mean_GAD = mean(GAD, na.rm = TRUE),
+    Median_GAD = median(GAD, na.rm = TRUE),
+    SD_GAD = sd(GAD, na.rm = TRUE),
+    Mean_Age = mean(age, na.rm = TRUE),
+    Mean_Financial_Stress = mean(
+      fincur.2,
+      na.rm = TRUE
+    ),
+    PHQ_GAD_Correlation = cor(
+      PHQ,
+      GAD,
+      use = "complete.obs"
+    )
+  ) %>%
+  mutate(
+    across(
+      where(is.numeric),
+      ~ round(., 2)
+    )
+  )
+
+knitr::kable(
+  eda_summary,
+  caption = "Overall EDA Summary"
+)
+```
+
+Overall, both depression and anxiety scores were higher in the post-COVID sample, while the relationship between depression and anxiety remained very similar across the two time periods.
+
+# EDA Conclusions
+
+The exploratory analysis above allows us to compare the
+characteristics of the 2017-2018 and 2022-2023 samples before fitting statistical models.
+
+The main outcomes of interest are depression and anxiety scores.
+Gender and STEM status are the main groups of interest, while age, race, year in school, and financial stress are also examined because they will be considered in the later modeling.
+
+The next step will be to split the data into training, testing, and
+validation sets and begin the analytical modeling and validation stages of the data science pipeline.
