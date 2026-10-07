@@ -1,0 +1,2115 @@
+---
+title: "Pre/Post-COVID Hypothesis Tests and Predictive Modeling"
+author: "Kate Miller and Caylee Collins"
+output:
+  html_document:
+    toc: true
+    toc_depth: 2
+    number_sections: true
+---
+
+```{r setup, message=FALSE, warning=FALSE}
+library(tidyverse)
+library(here)
+library(rpart)
+library(randomForest)
+library(glmnet)
+library(xgboost)
+
+set.seed(415)
+
+theme_set(theme_minimal())
+```
+
+# Load Data
+
+The pre-COVID and post-COVID datasets are used for the hypothesis testing portion of the analysis.
+
+```{r}
+pre_covid <- read_csv(
+  here("data", "processed", "pre_covid_clean.csv"),
+  show_col_types = FALSE
+)
+
+post_covid <- read.csv(
+  here("data", "raw", "original_data.csv")
+)
+```
+
+The already-created training, testing, and validation datasets are used for the predictive modeling portion.
+
+```{r}
+training_data <- read.csv(
+  here("data", "split", "training_data.csv")
+)
+
+testing_data <- read.csv(
+  here("data", "split", "test_data.csv")
+)
+
+validation_data <- read.csv(
+  here("data", "split", "validation_data.csv")
+)
+
+dim(training_data)
+dim(testing_data)
+dim(validation_data)
+```
+
+**Interpretation:** The predictive analysis uses three separate datasets. The training data are used to build the models, the testing data are used to compare the models, and the validation data are saved for the final evaluation.
+
+# Clean Pre-COVID and Post-COVID Data
+
+```{r}
+pre_covid$Period <- "2017-2018 Pre-COVID"
+post_covid$Period <- "2022-2023 Post-COVID"
+
+post_covid$field <- as.character(post_covid$field)
+
+post_covid$field[
+  post_covid$field == "NotSTEM"
+] <- "Non-STEM"
+
+pre_covid$gender <- factor(
+  pre_covid$gender,
+  levels = c("Men", "Women")
+)
+
+post_covid$gender <- factor(
+  post_covid$gender,
+  levels = c("Men", "Women")
+)
+
+pre_covid$field <- factor(
+  pre_covid$field,
+  levels = c("Non-STEM", "STEM")
+)
+
+post_covid$field <- factor(
+  post_covid$field,
+  levels = c("Non-STEM", "STEM")
+)
+
+race_levels <- c(
+  "White",
+  "Asian",
+  "Black",
+  "Hispanic",
+  "Middle Eastern"
+)
+
+pre_covid$race.2 <- factor(
+  pre_covid$race.2,
+  levels = race_levels
+)
+
+post_covid$race.2 <- factor(
+  post_covid$race.2,
+  levels = race_levels
+)
+
+year_levels <- c(
+  "firstyear",
+  "secondyear",
+  "thirdyear",
+  "fourthyear+"
+)
+
+pre_covid$yr_sch.2 <- factor(
+  pre_covid$yr_sch.2,
+  levels = year_levels
+)
+
+post_covid$yr_sch.2 <- factor(
+  post_covid$yr_sch.2,
+  levels = year_levels
+)
+
+pre_covid$PHQ <- as.numeric(pre_covid$PHQ)
+pre_covid$GAD <- as.numeric(pre_covid$GAD)
+pre_covid$fincur.2 <- as.numeric(pre_covid$fincur.2)
+pre_covid$age <- as.numeric(pre_covid$age)
+
+post_covid$PHQ <- as.numeric(post_covid$PHQ)
+post_covid$GAD <- as.numeric(post_covid$GAD)
+post_covid$fincur.2 <- as.numeric(post_covid$fincur.2)
+post_covid$age <- as.numeric(post_covid$age)
+
+combined <- bind_rows(
+  pre_covid,
+  post_covid
+)
+
+combined$Period <- factor(
+  combined$Period,
+  levels = c(
+    "2017-2018 Pre-COVID",
+    "2022-2023 Post-COVID"
+  )
+)
+```
+
+# Pre-COVID vs Post-COVID Hypothesis Tests
+
+## Depression
+
+```{r}
+phq_test <- t.test(
+  PHQ ~ Period,
+  data = combined
+)
+
+phq_test
+```
+
+**Interpretation:** Average depression was higher after COVID. The mean PHQ score increased from about 1.89 before COVID to 1.99 after COVID, and this difference was statistically significant.
+
+## Anxiety
+
+```{r}
+gad_test <- t.test(
+  GAD ~ Period,
+  data = combined
+)
+
+gad_test
+```
+
+**Interpretation:** Average anxiety was higher after COVID. The mean GAD score increased from about 1.98 before COVID to 2.15 after COVID, and this difference was statistically significant.
+
+# Student Characteristic Differences
+
+## Age
+
+```{r}
+age_test <- t.test(
+  age ~ Period,
+  data = combined
+)
+
+age_test
+```
+
+**Interpretation:** Students in the post-COVID sample were younger on average. The average age decreased from about 22.96 before COVID to 20.97 after COVID, and the difference was statistically significant.
+
+## Financial Stress
+
+```{r}
+financial_test <- t.test(
+  fincur.2 ~ Period,
+  data = combined
+)
+
+financial_test
+```
+
+**Interpretation:** Financial stress was higher after COVID. The average score increased from about 2.88 before COVID to 3.13 after COVID, and the difference was statistically significant.
+
+## Gender
+
+```{r}
+gender_table <- table(
+  combined$Period,
+  combined$gender
+)
+
+gender_table
+
+gender_test <- chisq.test(
+  gender_table
+)
+
+gender_test
+```
+
+**Interpretation:** The gender distribution was significantly different between the two periods. Women made up a larger share of the post-COVID sample than the pre-COVID sample.
+
+## STEM Status
+
+```{r}
+stem_table <- table(
+  combined$Period,
+  combined$field
+)
+
+stem_table
+
+stem_test <- chisq.test(
+  stem_table
+)
+
+stem_test
+```
+
+**Interpretation:** The STEM distribution was significantly different between the two periods. STEM students made up a larger share of the post-COVID sample.
+
+## Race
+
+```{r}
+race_table <- table(
+  combined$Period,
+  combined$race.2
+)
+
+race_table
+
+race_test <- chisq.test(
+  race_table
+)
+
+race_test
+```
+
+**Interpretation:** The racial distribution was significantly different between the pre-COVID and post-COVID samples.
+
+## Year in School
+
+```{r}
+year_table <- table(
+  combined$Period,
+  combined$yr_sch.2
+)
+
+year_table
+
+year_test <- chisq.test(
+  year_table
+)
+
+year_test
+```
+
+**Interpretation:** The distribution of students by year in school was significantly different between the pre-COVID and post-COVID samples.
+
+# Depression Changes by Gender
+
+```{r}
+men_phq <- t.test(
+  PHQ ~ Period,
+  data = combined %>%
+    filter(gender == "Men")
+)
+
+women_phq <- t.test(
+  PHQ ~ Period,
+  data = combined %>%
+    filter(gender == "Women")
+)
+
+men_phq
+women_phq
+```
+
+**Interpretation:** Depression increased significantly after COVID for both men and women. The mean increased from about 1.78 to 1.86 for men and from about 1.92 to 2.04 for women, with a larger increase among women.
+
+# Anxiety Changes by Gender
+
+```{r}
+men_gad <- t.test(
+  GAD ~ Period,
+  data = combined %>%
+    filter(gender == "Men")
+)
+
+women_gad <- t.test(
+  GAD ~ Period,
+  data = combined %>%
+    filter(gender == "Women")
+)
+
+men_gad
+women_gad
+```
+
+**Interpretation:** Anxiety increased significantly after COVID for both men and women. The mean increased from about 1.78 to 1.91 for men and from about 2.05 to 2.25 for women, with a larger increase among women.
+
+# Depression Changes by STEM Status
+
+```{r}
+nonstem_phq <- t.test(
+  PHQ ~ Period,
+  data = combined %>%
+    filter(field == "Non-STEM")
+)
+
+stem_phq <- t.test(
+  PHQ ~ Period,
+  data = combined %>%
+    filter(field == "STEM")
+)
+
+nonstem_phq
+stem_phq
+```
+
+**Interpretation:** Depression increased significantly after COVID for both groups. The increase was small for non-STEM students, from about 1.94 to 1.98, but much larger for STEM students, from about 1.84 to 2.00.
+
+# Anxiety Changes by STEM Status
+
+```{r}
+nonstem_gad <- t.test(
+  GAD ~ Period,
+  data = combined %>%
+    filter(field == "Non-STEM")
+)
+
+stem_gad <- t.test(
+  GAD ~ Period,
+  data = combined %>%
+    filter(field == "STEM")
+)
+
+nonstem_gad
+stem_gad
+```
+
+**Interpretation:** Anxiety increased significantly after COVID for both groups. The mean increased from about 2.03 to 2.14 for non-STEM students and from about 1.92 to 2.16 for STEM students, so the increase was larger for STEM students.
+
+# Did Relationships Change After COVID?
+
+## Depression and Gender
+
+```{r}
+phq_gender_interaction <- lm(
+  PHQ ~ Period * gender,
+  data = combined
+)
+
+summary(phq_gender_interaction)
+```
+
+**Interpretation:** The significant interaction shows that the gender difference in depression changed after COVID. Depression increased by about 0.09 points for men, while the increase for women was about 0.04 points larger.
+
+## Depression and STEM Status
+
+```{r}
+phq_stem_interaction <- lm(
+  PHQ ~ Period * field,
+  data = combined
+)
+
+summary(phq_stem_interaction)
+```
+
+**Interpretation:** The significant interaction shows that the change in depression was different for STEM and non-STEM students. Depression increased by about 0.04 points for non-STEM students, while the increase for STEM students was about 0.12 points larger.
+
+## Anxiety and Gender
+
+```{r}
+gad_gender_interaction <- lm(
+  GAD ~ Period * gender,
+  data = combined
+)
+
+summary(gad_gender_interaction)
+```
+
+**Interpretation:** The significant interaction shows that the gender difference in anxiety changed after COVID. Anxiety increased by about 0.12 points for men, while the increase for women was about 0.08 points larger.
+
+## Anxiety and STEM Status
+
+```{r}
+gad_stem_interaction <- lm(
+  GAD ~ Period * field,
+  data = combined
+)
+
+summary(gad_stem_interaction)
+```
+
+**Interpretation:** The significant interaction shows that the change in anxiety was different for STEM and non-STEM students. Anxiety increased by about 0.11 points for non-STEM students, while the increase for STEM students was about 0.13 points larger.
+
+# Adjusted Pre/Post Models
+
+## Adjusted Depression Model
+
+```{r}
+adjusted_phq <- lm(
+  PHQ ~ Period +
+    gender +
+    field +
+    race.2 +
+    yr_sch.2 +
+    fincur.2 +
+    age,
+  data = combined
+)
+
+summary(adjusted_phq)
+```
+
+**Interpretation:** Depression remained significantly higher in the post-COVID period even after controlling for gender, STEM status, race, year in school, financial stress, and age. This means the post-COVID difference was still present after accounting for these other student characteristics.
+
+## Adjusted Anxiety Model
+
+```{r}
+adjusted_gad <- lm(
+  GAD ~ Period +
+    gender +
+    field +
+    race.2 +
+    yr_sch.2 +
+    fincur.2 +
+    age,
+  data = combined
+)
+
+summary(adjusted_gad)
+```
+
+**Interpretation:** Anxiety also remained significantly higher after COVID after controlling for the other student characteristics. The adjusted post-COVID difference was larger for anxiety than it was for depression.
+
+# Prepare Predictive Modeling Data
+
+```{r}
+train <- training_data %>%
+  select(
+    PHQ,
+    GAD,
+    gender,
+    field,
+    race.2,
+    yr_sch.2,
+    fincur.2,
+    age
+  ) %>%
+  drop_na()
+
+test <- testing_data %>%
+  select(
+    PHQ,
+    GAD,
+    gender,
+    field,
+    race.2,
+    yr_sch.2,
+    fincur.2,
+    age
+  ) %>%
+  drop_na()
+
+validation <- validation_data %>%
+  select(
+    PHQ,
+    GAD,
+    gender,
+    field,
+    race.2,
+    yr_sch.2,
+    fincur.2,
+    age
+  ) %>%
+  drop_na()
+```
+
+# Set Factor Levels
+
+```{r}
+train$gender <- factor(
+  train$gender,
+  levels = c("Men", "Women")
+)
+
+test$gender <- factor(
+  test$gender,
+  levels = c("Men", "Women")
+)
+
+validation$gender <- factor(
+  validation$gender,
+  levels = c("Men", "Women")
+)
+
+train$field <- factor(
+  train$field,
+  levels = c("Non-STEM", "STEM")
+)
+
+test$field <- factor(
+  test$field,
+  levels = c("Non-STEM", "STEM")
+)
+
+validation$field <- factor(
+  validation$field,
+  levels = c("Non-STEM", "STEM")
+)
+
+train$race.2 <- factor(
+  train$race.2,
+  levels = race_levels
+)
+
+test$race.2 <- factor(
+  test$race.2,
+  levels = race_levels
+)
+
+validation$race.2 <- factor(
+  validation$race.2,
+  levels = race_levels
+)
+
+train$yr_sch.2 <- factor(
+  train$yr_sch.2,
+  levels = year_levels
+)
+
+test$yr_sch.2 <- factor(
+  test$yr_sch.2,
+  levels = year_levels
+)
+
+validation$yr_sch.2 <- factor(
+  validation$yr_sch.2,
+  levels = year_levels
+)
+```
+
+# Check Dataset Sizes
+
+```{r}
+dim(train)
+dim(test)
+dim(validation)
+```
+
+**Interpretation:** The models are built using the official training dataset. The testing dataset is used to compare the different approaches, while the validation dataset is kept separate to check how the strongest models perform on new observations.
+
+# Depression Prediction Models
+
+## Depression Baseline Model
+
+```{r}
+phq_baseline_value <- mean(
+  train$PHQ
+)
+
+phq_baseline_pred <- rep(
+  phq_baseline_value,
+  nrow(test)
+)
+
+phq_baseline_rmse <- sqrt(
+  mean(
+    (test$PHQ - phq_baseline_pred)^2
+  )
+)
+
+phq_baseline_mae <- mean(
+  abs(
+    test$PHQ - phq_baseline_pred
+  )
+)
+
+phq_baseline_r2 <- 0
+```
+
+**Interpretation:** The baseline model predicts the same average depression score for every student. It gives us a simple starting point to compare the other models against.
+
+## Depression Linear Regression
+
+```{r}
+phq_lm <- lm(
+  PHQ ~ GAD +
+    gender +
+    field +
+    race.2 +
+    yr_sch.2 +
+    fincur.2 +
+    age,
+  data = train
+)
+
+summary(phq_lm)
+
+phq_lm_pred <- predict(
+  phq_lm,
+  newdata = test
+)
+
+phq_lm_rmse <- sqrt(
+  mean(
+    (test$PHQ - phq_lm_pred)^2
+  )
+)
+
+phq_lm_mae <- mean(
+  abs(
+    test$PHQ - phq_lm_pred
+  )
+)
+
+phq_lm_r2 <- cor(
+  test$PHQ,
+  phq_lm_pred
+)^2
+```
+
+**Interpretation:** The linear regression uses anxiety and the student characteristics together to predict depression. This model performed much better than simply predicting the average depression score for every student.
+
+## Depression Gender x STEM Regression
+
+```{r}
+phq_interaction <- lm(
+  PHQ ~ GAD +
+    gender * field +
+    race.2 +
+    yr_sch.2 +
+    fincur.2 +
+    age,
+  data = train
+)
+
+summary(phq_interaction)
+
+phq_interaction_pred <- predict(
+  phq_interaction,
+  newdata = test
+)
+
+phq_interaction_rmse <- sqrt(
+  mean(
+    (test$PHQ - phq_interaction_pred)^2
+  )
+)
+
+phq_interaction_mae <- mean(
+  abs(
+    test$PHQ - phq_interaction_pred
+  )
+)
+
+phq_interaction_r2 <- cor(
+  test$PHQ,
+  phq_interaction_pred
+)^2
+```
+
+**Interpretation:** This model allows the relationship between gender and depression to depend on whether a student is in STEM. It performed almost exactly the same as the regular linear regression.
+
+## Depression Regression Tree
+
+```{r}
+phq_tree <- rpart(
+  PHQ ~ GAD +
+    gender +
+    field +
+    race.2 +
+    yr_sch.2 +
+    fincur.2 +
+    age,
+  data = train,
+  method = "anova"
+)
+
+phq_tree_pred <- predict(
+  phq_tree,
+  newdata = test
+)
+
+phq_tree_rmse <- sqrt(
+  mean(
+    (test$PHQ - phq_tree_pred)^2
+  )
+)
+
+phq_tree_mae <- mean(
+  abs(
+    test$PHQ - phq_tree_pred
+  )
+)
+
+phq_tree_r2 <- cor(
+  test$PHQ,
+  phq_tree_pred
+)^2
+```
+
+**Interpretation:** The regression tree was able to predict depression better than the baseline, but it had more prediction error than the regression-based models.
+
+## Depression Random Forest
+
+```{r}
+set.seed(415)
+
+phq_rf <- randomForest(
+  PHQ ~ GAD +
+    gender +
+    field +
+    race.2 +
+    yr_sch.2 +
+    fincur.2 +
+    age,
+  data = train,
+  ntree = 500
+)
+
+phq_rf_pred <- predict(
+  phq_rf,
+  newdata = test
+)
+
+phq_rf_rmse <- sqrt(
+  mean(
+    (test$PHQ - phq_rf_pred)^2
+  )
+)
+
+phq_rf_mae <- mean(
+  abs(
+    test$PHQ - phq_rf_pred
+  )
+)
+
+phq_rf_r2 <- cor(
+  test$PHQ,
+  phq_rf_pred
+)^2
+```
+
+**Interpretation:** Random Forest predicted depression fairly well, but it did not improve prediction compared with the simpler regression models.
+
+## Prepare Depression Data for Ridge and LASSO
+
+```{r}
+phq_x_train <- model.matrix(
+  PHQ ~ GAD +
+    gender +
+    field +
+    race.2 +
+    yr_sch.2 +
+    fincur.2 +
+    age,
+  data = train
+)[, -1]
+
+phq_x_test <- model.matrix(
+  PHQ ~ GAD +
+    gender +
+    field +
+    race.2 +
+    yr_sch.2 +
+    fincur.2 +
+    age,
+  data = test
+)[, -1]
+
+phq_x_validation <- model.matrix(
+  PHQ ~ GAD +
+    gender +
+    field +
+    race.2 +
+    yr_sch.2 +
+    fincur.2 +
+    age,
+  data = validation
+)[, -1]
+```
+
+## Depression Ridge Regression
+
+```{r}
+set.seed(415)
+
+phq_ridge <- cv.glmnet(
+  x = phq_x_train,
+  y = train$PHQ,
+  alpha = 0
+)
+
+phq_ridge_pred <- predict(
+  phq_ridge,
+  newx = phq_x_test,
+  s = "lambda.min"
+)
+
+phq_ridge_pred <- as.numeric(
+  phq_ridge_pred
+)
+
+phq_ridge_rmse <- sqrt(
+  mean(
+    (test$PHQ - phq_ridge_pred)^2
+  )
+)
+
+phq_ridge_mae <- mean(
+  abs(
+    test$PHQ - phq_ridge_pred
+  )
+)
+
+phq_ridge_r2 <- cor(
+  test$PHQ,
+  phq_ridge_pred
+)^2
+```
+
+**Interpretation:** Ridge regression performed well, but its prediction error was slightly higher than the ordinary linear regression.
+
+## Depression LASSO Regression
+
+```{r}
+set.seed(415)
+
+phq_lasso <- cv.glmnet(
+  x = phq_x_train,
+  y = train$PHQ,
+  alpha = 1
+)
+
+phq_lasso_pred <- predict(
+  phq_lasso,
+  newx = phq_x_test,
+  s = "lambda.min"
+)
+
+phq_lasso_pred <- as.numeric(
+  phq_lasso_pred
+)
+
+phq_lasso_rmse <- sqrt(
+  mean(
+    (test$PHQ - phq_lasso_pred)^2
+  )
+)
+
+phq_lasso_mae <- mean(
+  abs(
+    test$PHQ - phq_lasso_pred
+  )
+)
+
+phq_lasso_r2 <- cor(
+  test$PHQ,
+  phq_lasso_pred
+)^2
+```
+
+**Interpretation:** LASSO was also one of the strongest depression models. Its results were almost identical to the ordinary linear regression and Gender x STEM regression.
+
+## Depression XGBoost
+
+```{r}
+phq_xgb_train <- model.matrix(
+  PHQ ~ GAD +
+    gender +
+    field +
+    race.2 +
+    yr_sch.2 +
+    fincur.2 +
+    age,
+  data = train
+)[, -1]
+
+phq_xgb_test <- model.matrix(
+  PHQ ~ GAD +
+    gender +
+    field +
+    race.2 +
+    yr_sch.2 +
+    fincur.2 +
+    age,
+  data = test
+)[, -1]
+
+phq_xgb_validation <- model.matrix(
+  PHQ ~ GAD +
+    gender +
+    field +
+    race.2 +
+    yr_sch.2 +
+    fincur.2 +
+    age,
+  data = validation
+)[, -1]
+
+set.seed(415)
+
+phq_xgb <- xgboost(
+  x = phq_xgb_train,
+  y = train$PHQ,
+  nrounds = 100,
+  objective = "reg:squarederror"
+)
+
+phq_xgb_pred <- predict(
+  phq_xgb,
+  phq_xgb_test
+)
+
+phq_xgb_rmse <- sqrt(
+  mean(
+    (test$PHQ - phq_xgb_pred)^2
+  )
+)
+
+phq_xgb_mae <- mean(
+  abs(
+    test$PHQ - phq_xgb_pred
+  )
+)
+
+phq_xgb_r2 <- cor(
+  test$PHQ,
+  phq_xgb_pred
+)^2
+```
+
+**Interpretation:** XGBoost predicted depression fairly well, with a testing RMSE of about 0.471 and an R-squared of about 0.555. However, it did not outperform the simpler regression models.
+
+# Depression Test-Set Comparison
+
+```{r}
+depression_results <- data.frame(
+
+  Model = c(
+    "Baseline",
+    "Linear Regression",
+    "Gender x STEM Regression",
+    "Regression Tree",
+    "Random Forest",
+    "Ridge Regression",
+    "LASSO Regression",
+    "XGBoost"
+  ),
+
+  RMSE = c(
+    phq_baseline_rmse,
+    phq_lm_rmse,
+    phq_interaction_rmse,
+    phq_tree_rmse,
+    phq_rf_rmse,
+    phq_ridge_rmse,
+    phq_lasso_rmse,
+    phq_xgb_rmse
+  ),
+
+  MAE = c(
+    phq_baseline_mae,
+    phq_lm_mae,
+    phq_interaction_mae,
+    phq_tree_mae,
+    phq_rf_mae,
+    phq_ridge_mae,
+    phq_lasso_mae,
+    phq_xgb_mae
+  ),
+
+  R2 = c(
+    phq_baseline_r2,
+    phq_lm_r2,
+    phq_interaction_r2,
+    phq_tree_r2,
+    phq_rf_r2,
+    phq_ridge_r2,
+    phq_lasso_r2,
+    phq_xgb_r2
+  )
+)
+
+depression_results <- depression_results[
+  order(depression_results$RMSE),
+]
+
+depression_results
+```
+
+**Interpretation:** The Gender x STEM regression had the lowest depression testing RMSE at 0.4630, but regular linear regression and LASSO were almost identical. Random Forest and XGBoost performed a little worse, so the more complicated machine learning methods did not improve depression prediction.
+
+```{r}
+ggplot(
+  depression_results,
+  aes(
+    x = reorder(Model, RMSE),
+    y = RMSE
+  )
+) +
+  geom_col() +
+  coord_flip() +
+  labs(
+    title = "Depression Model Comparison on Testing Data",
+    x = NULL,
+    y = "RMSE"
+  )
+```
+
+**Interpretation:** The regression-based models had the lowest depression prediction error. Random Forest and XGBoost were still much better than the baseline, but they did not beat the simpler regression approaches.
+
+# Anxiety Prediction Models
+
+## Anxiety Baseline Model
+
+```{r}
+gad_baseline_value <- mean(
+  train$GAD
+)
+
+gad_baseline_pred <- rep(
+  gad_baseline_value,
+  nrow(test)
+)
+
+gad_baseline_rmse <- sqrt(
+  mean(
+    (test$GAD - gad_baseline_pred)^2
+  )
+)
+
+gad_baseline_mae <- mean(
+  abs(
+    test$GAD - gad_baseline_pred
+  )
+)
+
+gad_baseline_r2 <- 0
+```
+
+**Interpretation:** The baseline anxiety model predicts the same average anxiety score for every student and gives us a starting point for comparing the other models.
+
+## Anxiety Linear Regression
+
+```{r}
+gad_lm <- lm(
+  GAD ~ PHQ +
+    gender +
+    field +
+    race.2 +
+    yr_sch.2 +
+    fincur.2 +
+    age,
+  data = train
+)
+
+summary(gad_lm)
+
+gad_lm_pred <- predict(
+  gad_lm,
+  newdata = test
+)
+
+gad_lm_rmse <- sqrt(
+  mean(
+    (test$GAD - gad_lm_pred)^2
+  )
+)
+
+gad_lm_mae <- mean(
+  abs(
+    test$GAD - gad_lm_pred
+  )
+)
+
+gad_lm_r2 <- cor(
+  test$GAD,
+  gad_lm_pred
+)^2
+```
+
+**Interpretation:** The linear regression predicted anxiety much better than the baseline model. Depression was especially useful for predicting anxiety.
+
+## Anxiety Gender x STEM Regression
+
+```{r}
+gad_interaction <- lm(
+  GAD ~ PHQ +
+    gender * field +
+    race.2 +
+    yr_sch.2 +
+    fincur.2 +
+    age,
+  data = train
+)
+
+summary(gad_interaction)
+
+gad_interaction_pred <- predict(
+  gad_interaction,
+  newdata = test
+)
+
+gad_interaction_rmse <- sqrt(
+  mean(
+    (test$GAD - gad_interaction_pred)^2
+  )
+)
+
+gad_interaction_mae <- mean(
+  abs(
+    test$GAD - gad_interaction_pred
+  )
+)
+
+gad_interaction_r2 <- cor(
+  test$GAD,
+  gad_interaction_pred
+)^2
+```
+
+**Interpretation:** Adding the Gender x STEM interaction produced almost the same anxiety prediction performance as regular linear regression.
+
+## Anxiety Regression Tree
+
+```{r}
+gad_tree <- rpart(
+  GAD ~ PHQ +
+    gender +
+    field +
+    race.2 +
+    yr_sch.2 +
+    fincur.2 +
+    age,
+  data = train,
+  method = "anova"
+)
+
+gad_tree_pred <- predict(
+  gad_tree,
+  newdata = test
+)
+
+gad_tree_rmse <- sqrt(
+  mean(
+    (test$GAD - gad_tree_pred)^2
+  )
+)
+
+gad_tree_mae <- mean(
+  abs(
+    test$GAD - gad_tree_pred
+  )
+)
+
+gad_tree_r2 <- cor(
+  test$GAD,
+  gad_tree_pred
+)^2
+```
+
+**Interpretation:** The regression tree predicted anxiety better than the baseline, but it had more prediction error than the regression-based models.
+
+## Anxiety Random Forest
+
+```{r}
+set.seed(415)
+
+gad_rf <- randomForest(
+  GAD ~ PHQ +
+    gender +
+    field +
+    race.2 +
+    yr_sch.2 +
+    fincur.2 +
+    age,
+  data = train,
+  ntree = 500
+)
+
+gad_rf_pred <- predict(
+  gad_rf,
+  newdata = test
+)
+
+gad_rf_rmse <- sqrt(
+  mean(
+    (test$GAD - gad_rf_pred)^2
+  )
+)
+
+gad_rf_mae <- mean(
+  abs(
+    test$GAD - gad_rf_pred
+  )
+)
+
+gad_rf_r2 <- cor(
+  test$GAD,
+  gad_rf_pred
+)^2
+```
+
+**Interpretation:** Random Forest predicted anxiety fairly well, but it did not improve prediction compared with the strongest regression models.
+
+## Prepare Anxiety Data for Ridge and LASSO
+
+```{r}
+gad_x_train <- model.matrix(
+  GAD ~ PHQ +
+    gender +
+    field +
+    race.2 +
+    yr_sch.2 +
+    fincur.2 +
+    age,
+  data = train
+)[, -1]
+
+gad_x_test <- model.matrix(
+  GAD ~ PHQ +
+    gender +
+    field +
+    race.2 +
+    yr_sch.2 +
+    fincur.2 +
+    age,
+  data = test
+)[, -1]
+
+gad_x_validation <- model.matrix(
+  GAD ~ PHQ +
+    gender +
+    field +
+    race.2 +
+    yr_sch.2 +
+    fincur.2 +
+    age,
+  data = validation
+)[, -1]
+```
+
+## Anxiety Ridge Regression
+
+```{r}
+set.seed(415)
+
+gad_ridge <- cv.glmnet(
+  x = gad_x_train,
+  y = train$GAD,
+  alpha = 0
+)
+
+gad_ridge_pred <- predict(
+  gad_ridge,
+  newx = gad_x_test,
+  s = "lambda.min"
+)
+
+gad_ridge_pred <- as.numeric(
+  gad_ridge_pred
+)
+
+gad_ridge_rmse <- sqrt(
+  mean(
+    (test$GAD - gad_ridge_pred)^2
+  )
+)
+
+gad_ridge_mae <- mean(
+  abs(
+    test$GAD - gad_ridge_pred
+  )
+)
+
+gad_ridge_r2 <- cor(
+  test$GAD,
+  gad_ridge_pred
+)^2
+```
+
+**Interpretation:** Ridge regression performed well for anxiety, but it did not clearly improve prediction compared with the simpler regression models.
+
+## Anxiety LASSO Regression
+
+```{r}
+set.seed(415)
+
+gad_lasso <- cv.glmnet(
+  x = gad_x_train,
+  y = train$GAD,
+  alpha = 1
+)
+
+gad_lasso_pred <- predict(
+  gad_lasso,
+  newx = gad_x_test,
+  s = "lambda.min"
+)
+
+gad_lasso_pred <- as.numeric(
+  gad_lasso_pred
+)
+
+gad_lasso_rmse <- sqrt(
+  mean(
+    (test$GAD - gad_lasso_pred)^2
+  )
+)
+
+gad_lasso_mae <- mean(
+  abs(
+    test$GAD - gad_lasso_pred
+  )
+)
+
+gad_lasso_r2 <- cor(
+  test$GAD,
+  gad_lasso_pred
+)^2
+```
+
+**Interpretation:** LASSO had the lowest testing RMSE for anxiety, although its performance was almost identical to the ordinary linear regression and Gender x STEM regression.
+
+## Anxiety XGBoost
+
+```{r}
+gad_xgb_train <- model.matrix(
+  GAD ~ PHQ +
+    gender +
+    field +
+    race.2 +
+    yr_sch.2 +
+    fincur.2 +
+    age,
+  data = train
+)[, -1]
+
+gad_xgb_test <- model.matrix(
+  GAD ~ PHQ +
+    gender +
+    field +
+    race.2 +
+    yr_sch.2 +
+    fincur.2 +
+    age,
+  data = test
+)[, -1]
+
+gad_xgb_validation <- model.matrix(
+  GAD ~ PHQ +
+    gender +
+    field +
+    race.2 +
+    yr_sch.2 +
+    fincur.2 +
+    age,
+  data = validation
+)[, -1]
+
+set.seed(415)
+
+gad_xgb <- xgboost(
+  x = gad_xgb_train,
+  y = train$GAD,
+  nrounds = 100,
+  objective = "reg:squarederror"
+)
+
+gad_xgb_pred <- predict(
+  gad_xgb,
+  gad_xgb_test
+)
+
+gad_xgb_rmse <- sqrt(
+  mean(
+    (test$GAD - gad_xgb_pred)^2
+  )
+)
+
+gad_xgb_mae <- mean(
+  abs(
+    test$GAD - gad_xgb_pred
+  )
+)
+
+gad_xgb_r2 <- cor(
+  test$GAD,
+  gad_xgb_pred
+)^2
+```
+
+**Interpretation:** XGBoost predicted anxiety fairly well, with a testing RMSE of about 0.552 and an R-squared of about 0.555. However, it did not outperform LASSO or the simpler regression models.
+
+# Anxiety Test-Set Comparison
+
+```{r}
+anxiety_results <- data.frame(
+
+  Model = c(
+    "Baseline",
+    "Linear Regression",
+    "Gender x STEM Regression",
+    "Regression Tree",
+    "Random Forest",
+    "Ridge Regression",
+    "LASSO Regression",
+    "XGBoost"
+  ),
+
+  RMSE = c(
+    gad_baseline_rmse,
+    gad_lm_rmse,
+    gad_interaction_rmse,
+    gad_tree_rmse,
+    gad_rf_rmse,
+    gad_ridge_rmse,
+    gad_lasso_rmse,
+    gad_xgb_rmse
+  ),
+
+  MAE = c(
+    gad_baseline_mae,
+    gad_lm_mae,
+    gad_interaction_mae,
+    gad_tree_mae,
+    gad_rf_mae,
+    gad_ridge_mae,
+    gad_lasso_mae,
+    gad_xgb_mae
+  ),
+
+  R2 = c(
+    gad_baseline_r2,
+    gad_lm_r2,
+    gad_interaction_r2,
+    gad_tree_r2,
+    gad_rf_r2,
+    gad_ridge_r2,
+    gad_lasso_r2,
+    gad_xgb_r2
+  )
+)
+
+anxiety_results <- anxiety_results[
+  order(anxiety_results$RMSE),
+]
+
+anxiety_results
+```
+
+**Interpretation:** LASSO had the lowest anxiety testing RMSE at about 0.543, but the Gender x STEM regression and regular linear regression were almost identical. Random Forest and XGBoost performed a little worse, so the more complicated machine learning methods did not improve anxiety prediction.
+
+```{r}
+ggplot(
+  anxiety_results,
+  aes(
+    x = reorder(Model, RMSE),
+    y = RMSE
+  )
+) +
+  geom_col() +
+  coord_flip() +
+  labs(
+    title = "Anxiety Model Comparison on Testing Data",
+    x = NULL,
+    y = "RMSE"
+  )
+```
+
+**Interpretation:** The regression-based models had the lowest anxiety prediction error. The differences between the strongest models were very small.
+
+# Student Characteristics Only
+
+These models remove the other mental health score to see how well the student characteristics predict depression and anxiety on their own.
+
+## Depression Using Student Characteristics Only
+
+```{r}
+phq_student <- lm(
+  PHQ ~ gender +
+    field +
+    race.2 +
+    yr_sch.2 +
+    fincur.2 +
+    age,
+  data = train
+)
+
+summary(phq_student)
+
+phq_student_pred <- predict(
+  phq_student,
+  newdata = test
+)
+
+phq_student_rmse <- sqrt(
+  mean(
+    (test$PHQ - phq_student_pred)^2
+  )
+)
+
+phq_student_mae <- mean(
+  abs(
+    test$PHQ - phq_student_pred
+  )
+)
+
+phq_student_r2 <- cor(
+  test$PHQ,
+  phq_student_pred
+)^2
+```
+
+**Interpretation:** Using only student characteristics, the model explained about 13% of the variation in depression and had an RMSE of about 0.657. This was much weaker than the models that also included anxiety.
+
+## Anxiety Using Student Characteristics Only
+
+```{r}
+gad_student <- lm(
+  GAD ~ gender +
+    field +
+    race.2 +
+    yr_sch.2 +
+    fincur.2 +
+    age,
+  data = train
+)
+
+summary(gad_student)
+
+gad_student_pred <- predict(
+  gad_student,
+  newdata = test
+)
+
+gad_student_rmse <- sqrt(
+  mean(
+    (test$GAD - gad_student_pred)^2
+  )
+)
+
+gad_student_mae <- mean(
+  abs(
+    test$GAD - gad_student_pred
+  )
+)
+
+gad_student_r2 <- cor(
+  test$GAD,
+  gad_student_pred
+)^2
+```
+
+**Interpretation:** Using only student characteristics, the model explained about 13% of the variation in anxiety and had an RMSE of about 0.770. This was much weaker than the models that also included depression.
+
+# Full vs Student-Only Model Comparison
+
+```{r}
+predictor_comparison <- data.frame(
+
+  Outcome = c(
+    "Depression",
+    "Depression",
+    "Anxiety",
+    "Anxiety"
+  ),
+
+  Predictors = c(
+    "Student Characteristics + Anxiety",
+    "Student Characteristics Only",
+    "Student Characteristics + Depression",
+    "Student Characteristics Only"
+  ),
+
+  RMSE = c(
+    phq_lm_rmse,
+    phq_student_rmse,
+    gad_lm_rmse,
+    gad_student_rmse
+  ),
+
+  R2 = c(
+    phq_lm_r2,
+    phq_student_r2,
+    gad_lm_r2,
+    gad_student_r2
+  )
+)
+
+predictor_comparison
+```
+
+**Interpretation:** Including the other mental health score greatly improved prediction. Depression R-squared increased from about 0.13 with student characteristics alone to about 0.57 when anxiety was included. Anxiety showed the same pattern, increasing from about 0.13 to about 0.57 when depression was included.
+
+# Final Validation
+
+The validation data were not used to build the models. They are used here to check whether the strongest approaches from the testing stage continue to perform similarly on new data.
+
+# Depression Validation
+
+## Validate Depression Linear Regression
+
+```{r}
+phq_lm_validation_pred <- predict(
+  phq_lm,
+  newdata = validation
+)
+
+phq_lm_validation_rmse <- sqrt(
+  mean(
+    (validation$PHQ - phq_lm_validation_pred)^2
+  )
+)
+
+phq_lm_validation_mae <- mean(
+  abs(
+    validation$PHQ - phq_lm_validation_pred
+  )
+)
+
+phq_lm_validation_r2 <- cor(
+  validation$PHQ,
+  phq_lm_validation_pred
+)^2
+```
+
+**Interpretation:** The depression linear regression performed very similarly on the validation data, showing that its performance held up on new observations.
+
+## Validate Depression Gender x STEM Regression
+
+```{r}
+phq_interaction_validation_pred <- predict(
+  phq_interaction,
+  newdata = validation
+)
+
+phq_interaction_validation_rmse <- sqrt(
+  mean(
+    (validation$PHQ -
+       phq_interaction_validation_pred)^2
+  )
+)
+
+phq_interaction_validation_mae <- mean(
+  abs(
+    validation$PHQ -
+      phq_interaction_validation_pred
+  )
+)
+
+phq_interaction_validation_r2 <- cor(
+  validation$PHQ,
+  phq_interaction_validation_pred
+)^2
+```
+
+**Interpretation:** The Gender x STEM depression regression also maintained very similar performance on the validation data.
+
+## Validate Depression LASSO
+
+```{r}
+phq_lasso_validation_pred <- predict(
+  phq_lasso,
+  newx = phq_x_validation,
+  s = "lambda.min"
+)
+
+phq_lasso_validation_pred <- as.numeric(
+  phq_lasso_validation_pred
+)
+
+phq_lasso_validation_rmse <- sqrt(
+  mean(
+    (validation$PHQ -
+       phq_lasso_validation_pred)^2
+  )
+)
+
+phq_lasso_validation_mae <- mean(
+  abs(
+    validation$PHQ -
+      phq_lasso_validation_pred
+  )
+)
+
+phq_lasso_validation_r2 <- cor(
+  validation$PHQ,
+  phq_lasso_validation_pred
+)^2
+```
+
+**Interpretation:** LASSO also maintained very similar depression prediction performance on the validation data.
+
+## Validate Depression XGBoost
+
+```{r}
+phq_xgb_validation_pred <- predict(
+  phq_xgb,
+  phq_xgb_validation
+)
+
+phq_xgb_validation_rmse <- sqrt(
+  mean(
+    (validation$PHQ -
+       phq_xgb_validation_pred)^2
+  )
+)
+
+phq_xgb_validation_mae <- mean(
+  abs(
+    validation$PHQ -
+      phq_xgb_validation_pred
+  )
+)
+
+phq_xgb_validation_r2 <- cor(
+  validation$PHQ,
+  phq_xgb_validation_pred
+)^2
+```
+
+**Interpretation:** XGBoost continued to predict depression fairly well on the validation data, but its prediction error was higher than the simpler regression models.
+
+# Depression Validation Comparison
+
+```{r}
+depression_validation <- data.frame(
+
+  Model = c(
+    "Linear Regression",
+    "Gender x STEM Regression",
+    "LASSO Regression",
+    "XGBoost"
+  ),
+
+  RMSE = c(
+    phq_lm_validation_rmse,
+    phq_interaction_validation_rmse,
+    phq_lasso_validation_rmse,
+    phq_xgb_validation_rmse
+  ),
+
+  MAE = c(
+    phq_lm_validation_mae,
+    phq_interaction_validation_mae,
+    phq_lasso_validation_mae,
+    phq_xgb_validation_mae
+  ),
+
+  R2 = c(
+    phq_lm_validation_r2,
+    phq_interaction_validation_r2,
+    phq_lasso_validation_r2,
+    phq_xgb_validation_r2
+  )
+)
+
+depression_validation <- depression_validation[
+  order(depression_validation$RMSE),
+]
+
+depression_validation
+```
+
+**Interpretation:** The Gender x STEM regression had the lowest depression validation RMSE at 0.4591 and an R-squared of about 0.575. Linear regression and LASSO were nearly identical, while XGBoost was worse with an RMSE of 0.4732 and an R-squared of about 0.548.
+
+# Anxiety Validation
+
+## Validate Anxiety Linear Regression
+
+```{r}
+gad_lm_validation_pred <- predict(
+  gad_lm,
+  newdata = validation
+)
+
+gad_lm_validation_rmse <- sqrt(
+  mean(
+    (validation$GAD - gad_lm_validation_pred)^2
+  )
+)
+
+gad_lm_validation_mae <- mean(
+  abs(
+    validation$GAD - gad_lm_validation_pred
+  )
+)
+
+gad_lm_validation_r2 <- cor(
+  validation$GAD,
+  gad_lm_validation_pred
+)^2
+```
+
+**Interpretation:** The anxiety linear regression maintained very similar performance on the validation data.
+
+## Validate Anxiety Gender x STEM Regression
+
+```{r}
+gad_interaction_validation_pred <- predict(
+  gad_interaction,
+  newdata = validation
+)
+
+gad_interaction_validation_rmse <- sqrt(
+  mean(
+    (validation$GAD -
+       gad_interaction_validation_pred)^2
+  )
+)
+
+gad_interaction_validation_mae <- mean(
+  abs(
+    validation$GAD -
+      gad_interaction_validation_pred
+  )
+)
+
+gad_interaction_validation_r2 <- cor(
+  validation$GAD,
+  gad_interaction_validation_pred
+)^2
+```
+
+**Interpretation:** The Gender x STEM anxiety model also maintained very similar performance on the validation data.
+
+## Validate Anxiety LASSO
+
+```{r}
+gad_lasso_validation_pred <- predict(
+  gad_lasso,
+  newx = gad_x_validation,
+  s = "lambda.min"
+)
+
+gad_lasso_validation_pred <- as.numeric(
+  gad_lasso_validation_pred
+)
+
+gad_lasso_validation_rmse <- sqrt(
+  mean(
+    (validation$GAD -
+       gad_lasso_validation_pred)^2
+  )
+)
+
+gad_lasso_validation_mae <- mean(
+  abs(
+    validation$GAD -
+      gad_lasso_validation_pred
+  )
+)
+
+gad_lasso_validation_r2 <- cor(
+  validation$GAD,
+  gad_lasso_validation_pred
+)^2
+```
+
+**Interpretation:** LASSO also maintained very similar anxiety prediction performance on the validation data.
+
+## Validate Anxiety XGBoost
+
+```{r}
+gad_xgb_validation_pred <- predict(
+  gad_xgb,
+  gad_xgb_validation
+)
+
+gad_xgb_validation_rmse <- sqrt(
+  mean(
+    (validation$GAD -
+       gad_xgb_validation_pred)^2
+  )
+)
+
+gad_xgb_validation_mae <- mean(
+  abs(
+    validation$GAD -
+      gad_xgb_validation_pred
+  )
+)
+
+gad_xgb_validation_r2 <- cor(
+  validation$GAD,
+  gad_xgb_validation_pred
+)^2
+```
+
+**Interpretation:** XGBoost continued to predict anxiety fairly well on the validation data, but it did not outperform the simpler regression approaches.
+
+# Anxiety Validation Comparison
+
+```{r}
+anxiety_validation <- data.frame(
+
+  Model = c(
+    "Linear Regression",
+    "Gender x STEM Regression",
+    "LASSO Regression",
+    "XGBoost"
+  ),
+
+  RMSE = c(
+    gad_lm_validation_rmse,
+    gad_interaction_validation_rmse,
+    gad_lasso_validation_rmse,
+    gad_xgb_validation_rmse
+  ),
+
+  MAE = c(
+    gad_lm_validation_mae,
+    gad_interaction_validation_mae,
+    gad_lasso_validation_mae,
+    gad_xgb_validation_mae
+  ),
+
+  R2 = c(
+    gad_lm_validation_r2,
+    gad_interaction_validation_r2,
+    gad_lasso_validation_r2,
+    gad_xgb_validation_r2
+  )
+)
+
+anxiety_validation <- anxiety_validation[
+  order(anxiety_validation$RMSE),
+]
+
+anxiety_validation
+```
+
+**Interpretation:** The Gender x STEM regression had the lowest anxiety validation RMSE at 0.5330, with LASSO and regular linear regression almost identical. XGBoost was worse with an RMSE of 0.5456 and an R-squared of about 0.557.
+
+# Testing vs Validation Performance
+
+```{r}
+final_comparison <- data.frame(
+
+  Outcome = c(
+    "Depression",
+    "Depression",
+    "Depression",
+    "Depression",
+    "Anxiety",
+    "Anxiety",
+    "Anxiety",
+    "Anxiety"
+  ),
+
+  Model = c(
+    "Linear Regression",
+    "Gender x STEM Regression",
+    "LASSO Regression",
+    "XGBoost",
+    "Linear Regression",
+    "Gender x STEM Regression",
+    "LASSO Regression",
+    "XGBoost"
+  ),
+
+  Test_RMSE = c(
+    phq_lm_rmse,
+    phq_interaction_rmse,
+    phq_lasso_rmse,
+    phq_xgb_rmse,
+    gad_lm_rmse,
+    gad_interaction_rmse,
+    gad_lasso_rmse,
+    gad_xgb_rmse
+  ),
+
+  Validation_RMSE = c(
+    phq_lm_validation_rmse,
+    phq_interaction_validation_rmse,
+    phq_lasso_validation_rmse,
+    phq_xgb_validation_rmse,
+    gad_lm_validation_rmse,
+    gad_interaction_validation_rmse,
+    gad_lasso_validation_rmse,
+    gad_xgb_validation_rmse
+  ),
+
+  Test_R2 = c(
+    phq_lm_r2,
+    phq_interaction_r2,
+    phq_lasso_r2,
+    phq_xgb_r2,
+    gad_lm_r2,
+    gad_interaction_r2,
+    gad_lasso_r2,
+    gad_xgb_r2
+  ),
+
+  Validation_R2 = c(
+    phq_lm_validation_r2,
+    phq_interaction_validation_r2,
+    phq_lasso_validation_r2,
+    phq_xgb_validation_r2,
+    gad_lm_validation_r2,
+    gad_interaction_validation_r2,
+    gad_lasso_validation_r2,
+    gad_xgb_validation_r2
+  )
+)
+
+final_comparison
+```
+
+**Interpretation:** Testing and validation results were very similar for the strongest models. For depression, the Gender x STEM regression had RMSE values of 0.4630 on testing and 0.4591 on validation. For anxiety, LASSO was best on testing at about 0.543, while the Gender x STEM regression was slightly best on validation at 0.5330. These differences were extremely small, showing that the simpler regression models were very consistent.
+
+# Observed vs Predicted Depression
+
+```{r}
+phq_plot_data <- data.frame(
+  Observed = validation$PHQ,
+  Predicted = phq_lm_validation_pred
+)
+
+ggplot(
+  phq_plot_data,
+  aes(
+    x = Observed,
+    y = Predicted
+  )
+) +
+  geom_point(
+    alpha = 0.2
+  ) +
+  geom_smooth(
+    method = "lm",
+    se = FALSE
+  ) +
+  labs(
+    title = "Observed vs Predicted Depression",
+    subtitle = "Validation Data",
+    x = "Observed PHQ",
+    y = "Predicted PHQ"
+  )
+```
+
+**Interpretation:** There is a clear positive relationship between observed and predicted depression scores in the validation data. The model follows the overall pattern well, although the predictions are not exact for every student.
+
+# Observed vs Predicted Anxiety
+
+```{r}
+gad_plot_data <- data.frame(
+  Observed = validation$GAD,
+  Predicted = gad_lm_validation_pred
+)
+
+ggplot(
+  gad_plot_data,
+  aes(
+    x = Observed,
+    y = Predicted
+  )
+) +
+  geom_point(
+    alpha = 0.2
+  ) +
+  geom_smooth(
+    method = "lm",
+    se = FALSE
+  ) +
+  labs(
+    title = "Observed vs Predicted Anxiety",
+    subtitle = "Validation Data",
+    x = "Observed GAD",
+    y = "Predicted GAD"
+  )
+```
+
+**Interpretation:** There is a clear positive relationship between observed and predicted anxiety scores in the validation data. The model follows the overall pattern well, although the predictions are not exact for every student.
+
+# Final Summary
+
+Depression and anxiety were both significantly higher in the post-COVID sample. Depression increased from about 1.89 to 1.99, while anxiety increased from about 1.98 to 2.15. The subgroup results also showed that the increases were present for both men and women and for both STEM and non-STEM students. The interaction models showed that the increases were larger for women and for STEM students.
+
+For prediction, the simpler regression models performed the best overall. For depression, the Gender x STEM regression had the lowest testing RMSE at 0.4630, although regular linear regression and LASSO were almost exactly the same. For anxiety, LASSO had the lowest testing RMSE at about 0.543, again with the Gender x STEM and regular linear regression models extremely close.
+
+Random Forest and XGBoost did not improve prediction compared with the simpler regression approaches. XGBoost had a testing RMSE of about 0.471 for depression and about 0.552 for anxiety. It also had higher prediction error than the strongest regression models on the validation data.
+
+The validation results were very close to the testing results, which shows that the strongest models continued to perform well on new observations. The Gender x STEM regression had the lowest validation RMSE for both depression and anxiety, although its performance was almost identical to linear regression and LASSO.
+
+The other mental health score was the most useful part of prediction. Student characteristics alone explained only about 13% of the variation in depression or anxiety, while including anxiety when predicting depression or depression when predicting anxiety increased R-squared to about 57%. Overall, the results suggest that simpler regression models were enough for these data and that the more complicated machine learning models did not add meaningful predictive improvement.
