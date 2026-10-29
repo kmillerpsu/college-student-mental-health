@@ -1,467 +1,80 @@
 ---
-title: "Pre/Post-COVID Hypothesis Tests and Predictive Modeling"
-author: "Kate Miller and Caylee Collins"
+title: "04 - Predictive Modeling"
+author: "Caylee Collins and Kate Miller"
 output:
   html_document:
     toc: true
-    toc_depth: 2
+    toc_depth: 3
     number_sections: true
 ---
 
-```{r setup, message=FALSE, warning=FALSE}
+# Setup
+
+```{r setup, message = FALSE, warning = FALSE}
+# Load the modeling packages, set chunk display options, and fix the random seed for reproducibility.
+# Load packages and set a reproducible random seed.
+knitr::opts_chunk$set(echo = TRUE, message = FALSE, warning = FALSE)
+required_packages <- c("tidyverse", "rpart", "randomForest", "glmnet", "xgboost")
+missing_packages <- required_packages[
+  !vapply(required_packages, requireNamespace, logical(1), quietly = TRUE)
+]
+if (length(missing_packages) > 0) {
+  stop("Install these packages first: ", paste(missing_packages, collapse = ", "))
+}
 library(tidyverse)
-library(here)
 library(rpart)
 library(randomForest)
 library(glmnet)
 library(xgboost)
-
 set.seed(415)
-
 theme_set(theme_minimal())
 ```
 
-# Load Data
+# Load Training, Testing, and Validation Data
 
-The pre-COVID and post-COVID datasets are used for the hypothesis testing portion of the analysis.
+```{r load_model_data}
+# Locate the project data folder, load the existing train/test/validation splits, and verify required variables.
+# Find the repository data directory from the root or code/ folder.
+project_root <- if (file.exists("data/split/training_data.csv")) {
+  "."
+} else if (file.exists("../data/split/training_data.csv")) {
+  ".."
+} else {
+  stop("Cannot find data/split/training_data.csv. Open the project .Rproj first.")
+}
 
-```{r}
-pre_covid <- read_csv(
-  here("data", "processed", "pre_covid_clean.csv"),
-  show_col_types = FALSE
-)
+# Load the original split datasets without overwriting them.
+split_dir <- file.path(project_root, "data", "split")
+required_files <- c("training_data.csv", "test_data.csv", "validation_data.csv")
+for (filename in required_files) {
+  if (!file.exists(file.path(split_dir, filename))) {
+    stop("Missing required data file: ", file.path(split_dir, filename))
+  }
+}
+training_data <- read.csv(file.path(split_dir, "training_data.csv"))
+testing_data <- read.csv(file.path(split_dir, "test_data.csv"))
+validation_data <- read.csv(file.path(split_dir, "validation_data.csv"))
 
-post_covid <- read.csv(
-  here("data", "raw", "original_data.csv")
-)
-```
+# Check the predictor and outcome columns before modeling.
+model_columns <- c("PHQ", "GAD", "gender", "field", "race.2",
+                   "yr_sch.2", "fincur.2", "age")
+for (dataset_name in c("training_data", "testing_data", "validation_data")) {
+  missing_columns <- setdiff(model_columns, names(get(dataset_name)))
+  if (length(missing_columns) > 0) {
+    stop(dataset_name, " is missing: ", paste(missing_columns, collapse = ", "))
+  }
+}
 
-The already-created training, testing, and validation datasets are used for the predictive modeling portion.
-
-```{r}
-training_data <- read.csv(
-  here("data", "split", "training_data.csv")
-)
-
-testing_data <- read.csv(
-  here("data", "split", "test_data.csv")
-)
-
-validation_data <- read.csv(
-  here("data", "split", "validation_data.csv")
-)
-
+# Confirm the three dataset sizes.
 dim(training_data)
 dim(testing_data)
 dim(validation_data)
 ```
 
-**Interpretation:** The predictive analysis uses three separate datasets. The training data are used to build the models, the testing data are used to compare the models, and the validation data are saved for the final evaluation.
-
-# Clean Pre-COVID and Post-COVID Data
-
-```{r}
-pre_covid$Period <- "2017-2018 Pre-COVID"
-post_covid$Period <- "2022-2023 Post-COVID"
-
-post_covid$field <- as.character(post_covid$field)
-
-post_covid$field[
-  post_covid$field == "NotSTEM"
-] <- "Non-STEM"
-
-pre_covid$gender <- factor(
-  pre_covid$gender,
-  levels = c("Men", "Women")
-)
-
-post_covid$gender <- factor(
-  post_covid$gender,
-  levels = c("Men", "Women")
-)
-
-pre_covid$field <- factor(
-  pre_covid$field,
-  levels = c("Non-STEM", "STEM")
-)
-
-post_covid$field <- factor(
-  post_covid$field,
-  levels = c("Non-STEM", "STEM")
-)
-
-race_levels <- c(
-  "White",
-  "Asian",
-  "Black",
-  "Hispanic",
-  "Middle Eastern"
-)
-
-pre_covid$race.2 <- factor(
-  pre_covid$race.2,
-  levels = race_levels
-)
-
-post_covid$race.2 <- factor(
-  post_covid$race.2,
-  levels = race_levels
-)
-
-year_levels <- c(
-  "firstyear",
-  "secondyear",
-  "thirdyear",
-  "fourthyear+"
-)
-
-pre_covid$yr_sch.2 <- factor(
-  pre_covid$yr_sch.2,
-  levels = year_levels
-)
-
-post_covid$yr_sch.2 <- factor(
-  post_covid$yr_sch.2,
-  levels = year_levels
-)
-
-pre_covid$PHQ <- as.numeric(pre_covid$PHQ)
-pre_covid$GAD <- as.numeric(pre_covid$GAD)
-pre_covid$fincur.2 <- as.numeric(pre_covid$fincur.2)
-pre_covid$age <- as.numeric(pre_covid$age)
-
-post_covid$PHQ <- as.numeric(post_covid$PHQ)
-post_covid$GAD <- as.numeric(post_covid$GAD)
-post_covid$fincur.2 <- as.numeric(post_covid$fincur.2)
-post_covid$age <- as.numeric(post_covid$age)
-
-combined <- bind_rows(
-  pre_covid,
-  post_covid
-)
-
-combined$Period <- factor(
-  combined$Period,
-  levels = c(
-    "2017-2018 Pre-COVID",
-    "2022-2023 Post-COVID"
-  )
-)
-```
-
-# Pre-COVID vs Post-COVID Hypothesis Tests
-
-## Depression
-
-```{r}
-phq_test <- t.test(
-  PHQ ~ Period,
-  data = combined
-)
-
-phq_test
-```
-
-**Interpretation:** Average depression was higher after COVID. The mean PHQ score increased from about 1.89 before COVID to 1.99 after COVID, and this difference was statistically significant.
-
-## Anxiety
-
-```{r}
-gad_test <- t.test(
-  GAD ~ Period,
-  data = combined
-)
-
-gad_test
-```
-
-**Interpretation:** Average anxiety was higher after COVID. The mean GAD score increased from about 1.98 before COVID to 2.15 after COVID, and this difference was statistically significant.
-
-# Student Characteristic Differences
-
-## Age
-
-```{r}
-age_test <- t.test(
-  age ~ Period,
-  data = combined
-)
-
-age_test
-```
-
-**Interpretation:** Students in the post-COVID sample were younger on average. The average age decreased from about 22.96 before COVID to 20.97 after COVID, and the difference was statistically significant.
-
-## Financial Stress
-
-```{r}
-financial_test <- t.test(
-  fincur.2 ~ Period,
-  data = combined
-)
-
-financial_test
-```
-
-**Interpretation:** Financial stress was higher after COVID. The average score increased from about 2.88 before COVID to 3.13 after COVID, and the difference was statistically significant.
-
-## Gender
-
-```{r}
-gender_table <- table(
-  combined$Period,
-  combined$gender
-)
-
-gender_table
-
-gender_test <- chisq.test(
-  gender_table
-)
-
-gender_test
-```
-
-**Interpretation:** The gender distribution was significantly different between the two periods. Women made up a larger share of the post-COVID sample than the pre-COVID sample.
-
-## STEM Status
-
-```{r}
-stem_table <- table(
-  combined$Period,
-  combined$field
-)
-
-stem_table
-
-stem_test <- chisq.test(
-  stem_table
-)
-
-stem_test
-```
-
-**Interpretation:** The STEM distribution was significantly different between the two periods. STEM students made up a larger share of the post-COVID sample.
-
-## Race
-
-```{r}
-race_table <- table(
-  combined$Period,
-  combined$race.2
-)
-
-race_table
-
-race_test <- chisq.test(
-  race_table
-)
-
-race_test
-```
-
-**Interpretation:** The racial distribution was significantly different between the pre-COVID and post-COVID samples.
-
-## Year in School
-
-```{r}
-year_table <- table(
-  combined$Period,
-  combined$yr_sch.2
-)
-
-year_table
-
-year_test <- chisq.test(
-  year_table
-)
-
-year_test
-```
-
-**Interpretation:** The distribution of students by year in school was significantly different between the pre-COVID and post-COVID samples.
-
-# Depression Changes by Gender
-
-```{r}
-men_phq <- t.test(
-  PHQ ~ Period,
-  data = combined %>%
-    filter(gender == "Men")
-)
-
-women_phq <- t.test(
-  PHQ ~ Period,
-  data = combined %>%
-    filter(gender == "Women")
-)
-
-men_phq
-women_phq
-```
-
-**Interpretation:** Depression increased significantly after COVID for both men and women. The mean increased from about 1.78 to 1.86 for men and from about 1.92 to 2.04 for women, with a larger increase among women.
-
-# Anxiety Changes by Gender
-
-```{r}
-men_gad <- t.test(
-  GAD ~ Period,
-  data = combined %>%
-    filter(gender == "Men")
-)
-
-women_gad <- t.test(
-  GAD ~ Period,
-  data = combined %>%
-    filter(gender == "Women")
-)
-
-men_gad
-women_gad
-```
-
-**Interpretation:** Anxiety increased significantly after COVID for both men and women. The mean increased from about 1.78 to 1.91 for men and from about 2.05 to 2.25 for women, with a larger increase among women.
-
-# Depression Changes by STEM Status
-
-```{r}
-nonstem_phq <- t.test(
-  PHQ ~ Period,
-  data = combined %>%
-    filter(field == "Non-STEM")
-)
-
-stem_phq <- t.test(
-  PHQ ~ Period,
-  data = combined %>%
-    filter(field == "STEM")
-)
-
-nonstem_phq
-stem_phq
-```
-
-**Interpretation:** Depression increased significantly after COVID for both groups. The increase was small for non-STEM students, from about 1.94 to 1.98, but much larger for STEM students, from about 1.84 to 2.00.
-
-# Anxiety Changes by STEM Status
-
-```{r}
-nonstem_gad <- t.test(
-  GAD ~ Period,
-  data = combined %>%
-    filter(field == "Non-STEM")
-)
-
-stem_gad <- t.test(
-  GAD ~ Period,
-  data = combined %>%
-    filter(field == "STEM")
-)
-
-nonstem_gad
-stem_gad
-```
-
-**Interpretation:** Anxiety increased significantly after COVID for both groups. The mean increased from about 2.03 to 2.14 for non-STEM students and from about 1.92 to 2.16 for STEM students, so the increase was larger for STEM students.
-
-# Did Relationships Change After COVID?
-
-## Depression and Gender
-
-```{r}
-phq_gender_interaction <- lm(
-  PHQ ~ Period * gender,
-  data = combined
-)
-
-summary(phq_gender_interaction)
-```
-
-**Interpretation:** The significant interaction shows that the gender difference in depression changed after COVID. Depression increased by about 0.09 points for men, while the increase for women was about 0.04 points larger.
-
-## Depression and STEM Status
-
-```{r}
-phq_stem_interaction <- lm(
-  PHQ ~ Period * field,
-  data = combined
-)
-
-summary(phq_stem_interaction)
-```
-
-**Interpretation:** The significant interaction shows that the change in depression was different for STEM and non-STEM students. Depression increased by about 0.04 points for non-STEM students, while the increase for STEM students was about 0.12 points larger.
-
-## Anxiety and Gender
-
-```{r}
-gad_gender_interaction <- lm(
-  GAD ~ Period * gender,
-  data = combined
-)
-
-summary(gad_gender_interaction)
-```
-
-**Interpretation:** The significant interaction shows that the gender difference in anxiety changed after COVID. Anxiety increased by about 0.12 points for men, while the increase for women was about 0.08 points larger.
-
-## Anxiety and STEM Status
-
-```{r}
-gad_stem_interaction <- lm(
-  GAD ~ Period * field,
-  data = combined
-)
-
-summary(gad_stem_interaction)
-```
-
-**Interpretation:** The significant interaction shows that the change in anxiety was different for STEM and non-STEM students. Anxiety increased by about 0.11 points for non-STEM students, while the increase for STEM students was about 0.13 points larger.
-
-# Adjusted Pre/Post Models
-
-## Adjusted Depression Model
-
-```{r}
-adjusted_phq <- lm(
-  PHQ ~ Period +
-    gender +
-    field +
-    race.2 +
-    yr_sch.2 +
-    fincur.2 +
-    age,
-  data = combined
-)
-
-summary(adjusted_phq)
-```
-
-**Interpretation:** Depression remained significantly higher in the post-COVID period even after controlling for gender, STEM status, race, year in school, financial stress, and age. This means the post-COVID difference was still present after accounting for these other student characteristics.
-
-## Adjusted Anxiety Model
-
-```{r}
-adjusted_gad <- lm(
-  GAD ~ Period +
-    gender +
-    field +
-    race.2 +
-    yr_sch.2 +
-    fincur.2 +
-    age,
-  data = combined
-)
-
-summary(adjusted_gad)
-```
-
-**Interpretation:** Anxiety also remained significantly higher after COVID after controlling for the other student characteristics. The adjusted post-COVID difference was larger for anxiety than it was for depression.
-
 # Prepare Predictive Modeling Data
 
-```{r}
+```{r model_01_prepare_predictive_modeling_data}
+# Keep complete cases for the outcomes and demographic predictors in each data split.
 train <- training_data %>%
   select(
     PHQ,
@@ -504,7 +117,23 @@ validation <- validation_data %>%
 
 # Set Factor Levels
 
-```{r}
+```{r normalize_stem_labels}
+# Standardize STEM and non-STEM labels across all three datasets before fitting models.
+# Match the STEM labels used in the earlier analysis.
+for (dataset_name in c("train", "test", "validation")) {
+  dataset <- get(dataset_name)
+  dataset$field <- as.character(dataset$field)
+  dataset$field[dataset$field == "NotSTEM"] <- "Non-STEM"
+  assign(dataset_name, dataset)
+}
+```
+
+
+```{r model_02_set_factor_levels}
+# Set consistent factor categories and reference levels so predictions use the same coding across datasets.
+race_levels <- c("White", "Asian", "Black", "Hispanic", "Middle Eastern")
+year_levels <- c("firstyear", "secondyear", "thirdyear", "fourthyear+")
+
 train$gender <- factor(
   train$gender,
   levels = c("Men", "Women")
@@ -568,7 +197,8 @@ validation$yr_sch.2 <- factor(
 
 # Check Dataset Sizes
 
-```{r}
+```{r model_03_check_dataset_sizes}
+# Confirm the number of complete observations available for training, testing, and validation.
 dim(train)
 dim(test)
 dim(validation)
@@ -580,7 +210,8 @@ dim(validation)
 
 ## Depression Baseline Model
 
-```{r}
+```{r model_04_depression_baseline_model}
+# Predict test-set depression scores using the mean PHQ score in the training data as a baseline.
 phq_baseline_value <- mean(
   train$PHQ
 )
@@ -609,7 +240,8 @@ phq_baseline_r2 <- 0
 
 ## Depression Linear Regression
 
-```{r}
+```{r model_05_depression_linear_regression}
+# Fit a multiple linear regression predicting PHQ from GAD and student characteristics.
 phq_lm <- lm(
   PHQ ~ GAD +
     gender +
@@ -650,7 +282,8 @@ phq_lm_r2 <- cor(
 
 ## Depression Gender x STEM Regression
 
-```{r}
+```{r model_06_depression_gender_x_stem_regression}
+# Add a gender-by-STEM interaction to test whether the PHQ prediction relationship varies across groups.
 phq_interaction <- lm(
   PHQ ~ GAD +
     gender * field +
@@ -690,7 +323,8 @@ phq_interaction_r2 <- cor(
 
 ## Depression Regression Tree
 
-```{r}
+```{r model_07_depression_regression_tree}
+# Fit a regression tree to predict PHQ using anxiety and student characteristics.
 phq_tree <- rpart(
   PHQ ~ GAD +
     gender +
@@ -730,7 +364,8 @@ phq_tree_r2 <- cor(
 
 ## Depression Random Forest
 
-```{r}
+```{r model_08_depression_random_forest}
+# Train a random forest to predict PHQ and generate test-set predictions.
 set.seed(415)
 
 phq_rf <- randomForest(
@@ -772,7 +407,8 @@ phq_rf_r2 <- cor(
 
 ## Prepare Depression Data for Ridge and LASSO
 
-```{r}
+```{r model_09_prepare_depression_data_for_ridge_and_lass}
+# Convert depression predictors into numeric design matrices for penalized regression.
 phq_x_train <- model.matrix(
   PHQ ~ GAD +
     gender +
@@ -809,7 +445,8 @@ phq_x_validation <- model.matrix(
 
 ## Depression Ridge Regression
 
-```{r}
+```{r model_10_depression_ridge_regression}
+# Use cross-validation to tune a ridge regression model for PHQ prediction.
 set.seed(415)
 
 phq_ridge <- cv.glmnet(
@@ -850,7 +487,8 @@ phq_ridge_r2 <- cor(
 
 ## Depression LASSO Regression
 
-```{r}
+```{r model_11_depression_lasso_regression}
+# Use cross-validation to select the LASSO penalty for PHQ prediction.
 set.seed(415)
 
 phq_lasso <- cv.glmnet(
@@ -891,7 +529,8 @@ phq_lasso_r2 <- cor(
 
 ## Depression XGBoost
 
-```{r}
+```{r model_12_depression_xgboost}
+# Fit an XGBoost model for PHQ and predict depression scores in the test set.
 phq_xgb_train <- model.matrix(
   PHQ ~ GAD +
     gender +
@@ -961,7 +600,8 @@ phq_xgb_r2 <- cor(
 
 # Depression Test-Set Comparison
 
-```{r}
+```{r model_13_depression_test_set_comparison}
+# Compare depression models on the held-out test data using the performance metrics defined below.
 depression_results <- data.frame(
 
   Model = c(
@@ -1018,7 +658,8 @@ depression_results
 
 **Interpretation:** The Gender x STEM regression had the lowest depression testing RMSE at 0.4630, but regular linear regression and LASSO were almost identical. Random Forest and XGBoost performed a little worse, so the more complicated machine learning methods did not improve depression prediction.
 
-```{r}
+```{r model_14_depression_test_set_comparison}
+# Plot test-set performance across the depression prediction models.
 ggplot(
   depression_results,
   aes(
@@ -1041,7 +682,8 @@ ggplot(
 
 ## Anxiety Baseline Model
 
-```{r}
+```{r model_15_anxiety_baseline_model}
+# Predict test-set anxiety scores using the mean training-set GAD score as a baseline.
 gad_baseline_value <- mean(
   train$GAD
 )
@@ -1070,7 +712,8 @@ gad_baseline_r2 <- 0
 
 ## Anxiety Linear Regression
 
-```{r}
+```{r model_16_anxiety_linear_regression}
+# Fit a multiple linear regression predicting GAD from PHQ and student characteristics.
 gad_lm <- lm(
   GAD ~ PHQ +
     gender +
@@ -1111,7 +754,8 @@ gad_lm_r2 <- cor(
 
 ## Anxiety Gender x STEM Regression
 
-```{r}
+```{r model_17_anxiety_gender_x_stem_regression}
+# Include a gender-by-STEM interaction in the anxiety regression model.
 gad_interaction <- lm(
   GAD ~ PHQ +
     gender * field +
@@ -1151,7 +795,8 @@ gad_interaction_r2 <- cor(
 
 ## Anxiety Regression Tree
 
-```{r}
+```{r model_18_anxiety_regression_tree}
+# Fit a regression tree to predict GAD from depression and student characteristics.
 gad_tree <- rpart(
   GAD ~ PHQ +
     gender +
@@ -1191,7 +836,8 @@ gad_tree_r2 <- cor(
 
 ## Anxiety Random Forest
 
-```{r}
+```{r model_19_anxiety_random_forest}
+# Train a random forest for anxiety prediction and evaluate it on the test set.
 set.seed(415)
 
 gad_rf <- randomForest(
@@ -1233,7 +879,8 @@ gad_rf_r2 <- cor(
 
 ## Prepare Anxiety Data for Ridge and LASSO
 
-```{r}
+```{r model_20_prepare_anxiety_data_for_ridge_and_lasso}
+# Create numeric predictor matrices for ridge and LASSO models of GAD.
 gad_x_train <- model.matrix(
   GAD ~ PHQ +
     gender +
@@ -1270,7 +917,8 @@ gad_x_validation <- model.matrix(
 
 ## Anxiety Ridge Regression
 
-```{r}
+```{r model_21_anxiety_ridge_regression}
+# Cross-validate the ridge penalty and predict GAD scores in the test data.
 set.seed(415)
 
 gad_ridge <- cv.glmnet(
@@ -1311,7 +959,8 @@ gad_ridge_r2 <- cor(
 
 ## Anxiety LASSO Regression
 
-```{r}
+```{r model_22_anxiety_lasso_regression}
+# Cross-validate the LASSO penalty and predict GAD scores in the test data.
 set.seed(415)
 
 gad_lasso <- cv.glmnet(
@@ -1352,7 +1001,8 @@ gad_lasso_r2 <- cor(
 
 ## Anxiety XGBoost
 
-```{r}
+```{r model_23_anxiety_xgboost}
+# Train an XGBoost anxiety model and obtain test-set predictions.
 gad_xgb_train <- model.matrix(
   GAD ~ PHQ +
     gender +
@@ -1422,7 +1072,8 @@ gad_xgb_r2 <- cor(
 
 # Anxiety Test-Set Comparison
 
-```{r}
+```{r model_24_anxiety_test_set_comparison}
+# Calculate and compare test-set performance metrics for the anxiety models.
 anxiety_results <- data.frame(
 
   Model = c(
@@ -1479,7 +1130,8 @@ anxiety_results
 
 **Interpretation:** LASSO had the lowest anxiety testing RMSE at about 0.543, but the Gender x STEM regression and regular linear regression were almost identical. Random Forest and XGBoost performed a little worse, so the more complicated machine learning methods did not improve anxiety prediction.
 
-```{r}
+```{r model_25_anxiety_test_set_comparison}
+# Visualize the test-set performance of the anxiety prediction models.
 ggplot(
   anxiety_results,
   aes(
@@ -1504,7 +1156,8 @@ These models remove the other mental health score to see how well the student ch
 
 ## Depression Using Student Characteristics Only
 
-```{r}
+```{r model_26_depression_using_student_characteristics_o}
+# Fit a PHQ regression using only student characteristics, without GAD as a predictor.
 phq_student <- lm(
   PHQ ~ gender +
     field +
@@ -1544,7 +1197,8 @@ phq_student_r2 <- cor(
 
 ## Anxiety Using Student Characteristics Only
 
-```{r}
+```{r model_27_anxiety_using_student_characteristics_only}
+# Fit a GAD regression using only student characteristics, without PHQ as a predictor.
 gad_student <- lm(
   GAD ~ gender +
     field +
@@ -1584,7 +1238,8 @@ gad_student_r2 <- cor(
 
 # Full vs Student-Only Model Comparison
 
-```{r}
+```{r model_28_full_vs_student_only_model_comparison}
+# Compare full models against student-characteristics-only models for both outcomes.
 predictor_comparison <- data.frame(
 
   Outcome = c(
@@ -1629,7 +1284,8 @@ The validation data were not used to build the models. They are used here to che
 
 ## Validate Depression Linear Regression
 
-```{r}
+```{r model_29_validate_depression_linear_regression}
+# Apply the fitted depression linear regression to the untouched validation data.
 phq_lm_validation_pred <- predict(
   phq_lm,
   newdata = validation
@@ -1657,7 +1313,8 @@ phq_lm_validation_r2 <- cor(
 
 ## Validate Depression Gender x STEM Regression
 
-```{r}
+```{r model_30_validate_depression_gender_x_stem_regressi}
+# Generate validation predictions from the depression gender-by-STEM interaction model.
 phq_interaction_validation_pred <- predict(
   phq_interaction,
   newdata = validation
@@ -1687,7 +1344,8 @@ phq_interaction_validation_r2 <- cor(
 
 ## Validate Depression LASSO
 
-```{r}
+```{r model_31_validate_depression_lasso}
+# Use the trained depression LASSO model to predict validation-set PHQ scores.
 phq_lasso_validation_pred <- predict(
   phq_lasso,
   newx = phq_x_validation,
@@ -1722,7 +1380,8 @@ phq_lasso_validation_r2 <- cor(
 
 ## Validate Depression XGBoost
 
-```{r}
+```{r model_32_validate_depression_xgboost}
+# Use the trained depression XGBoost model to predict validation-set PHQ scores.
 phq_xgb_validation_pred <- predict(
   phq_xgb,
   phq_xgb_validation
@@ -1752,7 +1411,8 @@ phq_xgb_validation_r2 <- cor(
 
 # Depression Validation Comparison
 
-```{r}
+```{r model_33_depression_validation_comparison}
+# Compare the selected depression models on the independent validation set.
 depression_validation <- data.frame(
 
   Model = c(
@@ -1797,7 +1457,8 @@ depression_validation
 
 ## Validate Anxiety Linear Regression
 
-```{r}
+```{r model_34_validate_anxiety_linear_regression}
+# Generate validation predictions from the fitted anxiety linear regression.
 gad_lm_validation_pred <- predict(
   gad_lm,
   newdata = validation
@@ -1825,7 +1486,8 @@ gad_lm_validation_r2 <- cor(
 
 ## Validate Anxiety Gender x STEM Regression
 
-```{r}
+```{r model_35_validate_anxiety_gender_x_stem_regression}
+# Evaluate the anxiety gender-by-STEM interaction model on validation data.
 gad_interaction_validation_pred <- predict(
   gad_interaction,
   newdata = validation
@@ -1855,7 +1517,8 @@ gad_interaction_validation_r2 <- cor(
 
 ## Validate Anxiety LASSO
 
-```{r}
+```{r model_36_validate_anxiety_lasso}
+# Predict validation-set GAD scores using the fitted anxiety LASSO model.
 gad_lasso_validation_pred <- predict(
   gad_lasso,
   newx = gad_x_validation,
@@ -1890,7 +1553,8 @@ gad_lasso_validation_r2 <- cor(
 
 ## Validate Anxiety XGBoost
 
-```{r}
+```{r model_37_validate_anxiety_xgboost}
+# Predict validation-set GAD scores using the trained anxiety XGBoost model.
 gad_xgb_validation_pred <- predict(
   gad_xgb,
   gad_xgb_validation
@@ -1920,7 +1584,8 @@ gad_xgb_validation_r2 <- cor(
 
 # Anxiety Validation Comparison
 
-```{r}
+```{r model_38_anxiety_validation_comparison}
+# Compare the selected anxiety models on the independent validation set.
 anxiety_validation <- data.frame(
 
   Model = c(
@@ -1963,7 +1628,8 @@ anxiety_validation
 
 # Testing vs Validation Performance
 
-```{r}
+```{r model_39_testing_vs_validation_performance}
+# Contrast test-set and validation-set performance to assess generalization.
 final_comparison <- data.frame(
 
   Outcome = c(
@@ -2040,7 +1706,8 @@ final_comparison
 
 # Observed vs Predicted Depression
 
-```{r}
+```{r model_40_observed_vs_predicted_depression}
+# Plot observed versus predicted PHQ scores for the depression linear model on validation data.
 phq_plot_data <- data.frame(
   Observed = validation$PHQ,
   Predicted = phq_lm_validation_pred
@@ -2072,7 +1739,8 @@ ggplot(
 
 # Observed vs Predicted Anxiety
 
-```{r}
+```{r model_41_observed_vs_predicted_anxiety}
+# Plot observed versus predicted GAD scores for the anxiety linear model on validation data.
 gad_plot_data <- data.frame(
   Observed = validation$GAD,
   Predicted = gad_lm_validation_pred

@@ -1,0 +1,569 @@
+---
+title: "03 - Hypothesis Tests and Regression"
+author: "Caylee Collins and Kate Miller"
+output:
+  html_document:
+    toc: true
+    toc_depth: 2
+    number_sections: true
+---
+
+# Setup
+
+```{r setup, include = FALSE}
+# Configure the report and reproducible random seed.
+knitr::opts_chunk$set(echo = TRUE, message = FALSE, warning = FALSE)
+set.seed(415)
+```
+
+```{r packages}
+# Load packages required for statistical comparisons.
+required_packages <- c("dplyr", "tidyr", "ggplot2", "knitr")
+missing_packages <- required_packages[
+  !vapply(required_packages, requireNamespace, logical(1), quietly = TRUE)
+]
+
+if (length(missing_packages) > 0) {
+  stop("Install these packages first: ", paste(missing_packages, collapse = ", "))
+}
+
+library(dplyr)
+library(tidyr)
+library(ggplot2)
+library(knitr)
+```
+
+# Load Data
+
+```{r load_data}
+# Find the project root whether knitting from code/ or the project root.
+project_root <- if (file.exists("data/processed/pre_covid_clean.csv")) {
+  "."
+} else if (file.exists("../data/processed/pre_covid_clean.csv")) {
+  ".."
+} else {
+  stop("Cannot locate data/processed/pre_covid_clean.csv. Open the project .Rproj first.")
+}
+
+# Read the two processed datasets without modifying the originals.
+pre_path <- file.path(project_root, "data", "processed", "pre_covid_clean.csv")
+post_path <- file.path(project_root, "data", "processed", "post_covid_clean.csv")
+
+if (!file.exists(post_path)) {
+  stop("Missing processed post-COVID dataset: ", post_path)
+}
+
+pre_covid <- read.csv(pre_path, check.names = FALSE)
+post_covid <- read.csv(post_path, check.names = FALSE)
+
+# Check the shared variables needed for comparisons.
+required_columns <- c("PHQ", "GAD", "gender", "field", "race.2",
+                      "yr_sch.2", "fincur.2", "age")
+
+for (dataset_name in c("pre_covid", "post_covid")) {
+  missing_columns <- setdiff(required_columns, names(get(dataset_name)))
+  if (length(missing_columns) > 0) {
+    stop(dataset_name, " is missing: ", paste(missing_columns, collapse = ", "))
+  }
+}
+
+# Confirm sample sizes.
+data.frame(
+  Dataset = c("Pre-COVID (2017–2018)", "Post-COVID (2022–2023)"),
+  N = c(nrow(pre_covid), nrow(post_covid))
+) |> knitr::kable()
+```
+
+# Clean Pre-COVID and Post-COVID Data
+
+```{r analysis_01}
+# Standardize survey periods and demographic categories across datasets.
+# Convert outcomes and numeric predictors to numeric values, then combine the samples.
+pre_covid$Period <- "2017-2018 Pre-COVID"
+post_covid$Period <- "2022-2023 Post-COVID"
+
+post_covid$field <- as.character(post_covid$field)
+pre_covid$field <- as.character(pre_covid$field)
+
+post_covid$field[post_covid$field == "NotSTEM"] <- "Non-STEM"
+pre_covid$field[pre_covid$field == "NotSTEM"] <- "Non-STEM"
+
+pre_covid$gender <- factor(
+  pre_covid$gender,
+  levels = c("Men", "Women")
+)
+
+post_covid$gender <- factor(
+  post_covid$gender,
+  levels = c("Men", "Women")
+)
+
+pre_covid$field <- factor(
+  pre_covid$field,
+  levels = c("Non-STEM", "STEM")
+)
+
+post_covid$field <- factor(
+  post_covid$field,
+  levels = c("Non-STEM", "STEM")
+)
+
+race_levels <- c(
+  "White",
+  "Asian",
+  "Black",
+  "Hispanic",
+  "Middle Eastern"
+)
+
+pre_covid$race.2 <- factor(
+  pre_covid$race.2,
+  levels = race_levels
+)
+
+post_covid$race.2 <- factor(
+  post_covid$race.2,
+  levels = race_levels
+)
+
+year_levels <- c(
+  "firstyear",
+  "secondyear",
+  "thirdyear",
+  "fourthyear+"
+)
+
+pre_covid$yr_sch.2 <- factor(
+  pre_covid$yr_sch.2,
+  levels = year_levels
+)
+
+post_covid$yr_sch.2 <- factor(
+  post_covid$yr_sch.2,
+  levels = year_levels
+)
+
+pre_covid$PHQ <- as.numeric(pre_covid$PHQ)
+pre_covid$GAD <- as.numeric(pre_covid$GAD)
+pre_covid$fincur.2 <- as.numeric(pre_covid$fincur.2)
+pre_covid$age <- as.numeric(pre_covid$age)
+
+post_covid$PHQ <- as.numeric(post_covid$PHQ)
+post_covid$GAD <- as.numeric(post_covid$GAD)
+post_covid$fincur.2 <- as.numeric(post_covid$fincur.2)
+post_covid$age <- as.numeric(post_covid$age)
+
+combined <- bind_rows(
+  pre_covid,
+  post_covid
+)
+
+combined$Period <- factor(
+  combined$Period,
+  levels = c(
+    "2017-2018 Pre-COVID",
+    "2022-2023 Post-COVID"
+  )
+)
+```
+
+# Pre-COVID vs Post-COVID Hypothesis Tests
+
+## Depression
+
+```{r analysis_02}
+# Use a two-sample t-test to compare average depression (PHQ) scores
+# between the pre-COVID and post-COVID survey periods.
+phq_test <- t.test(
+  PHQ ~ Period,
+  data = combined
+)
+
+phq_test
+```
+
+*Interpretation note:* Use the numerical output above when reporting the direction, magnitude, and significance of this comparison.
+
+## Anxiety
+
+```{r analysis_03}
+# Use a two-sample t-test to compare average anxiety (GAD) scores
+# between the pre-COVID and post-COVID survey periods.
+gad_test <- t.test(
+  GAD ~ Period,
+  data = combined
+)
+
+gad_test
+```
+
+*Interpretation note:* Use the numerical output above when reporting the direction, magnitude, and significance of this comparison.
+
+# Student Characteristic Differences
+
+## Age
+
+```{r analysis_04}
+# Test whether the average student age differs between survey periods.
+age_test <- t.test(
+  age ~ Period,
+  data = combined
+)
+
+age_test
+```
+
+*Interpretation note:* Use the numerical output above when reporting the direction, magnitude, and significance of this comparison.
+
+## Financial Stress
+
+```{r analysis_05}
+# Compare average current financial stress scores across survey periods.
+financial_test <- t.test(
+  fincur.2 ~ Period,
+  data = combined
+)
+
+financial_test
+```
+
+*Interpretation note:* Use the numerical output above when reporting the direction, magnitude, and significance of this comparison.
+
+## Gender
+
+```{r analysis_06}
+# Create a period-by-gender frequency table and use a chi-square test
+# to examine whether the gender distribution differs across periods.
+gender_table <- table(
+  combined$Period,
+  combined$gender
+)
+
+gender_table
+
+gender_test <- chisq.test(
+  gender_table
+)
+
+gender_test
+```
+
+*Interpretation note:* Use the numerical output above when reporting the direction, magnitude, and significance of this comparison.
+
+## STEM Status
+
+```{r analysis_07}
+# Compare the proportion of STEM and non-STEM students across periods
+# using a contingency table and chi-square test.
+stem_table <- table(
+  combined$Period,
+  combined$field
+)
+
+stem_table
+
+stem_test <- chisq.test(
+  stem_table
+)
+
+stem_test
+```
+
+*Interpretation note:* Use the numerical output above when reporting the direction, magnitude, and significance of this comparison.
+
+## Race
+
+```{r analysis_08}
+# Test whether the distribution of reported race categories
+# differs between the pre-COVID and post-COVID samples.
+race_table <- table(
+  combined$Period,
+  combined$race.2
+)
+
+race_table
+
+race_test <- chisq.test(
+  race_table
+)
+
+race_test
+```
+
+*Interpretation note:* Use the numerical output above when reporting the direction, magnitude, and significance of this comparison.
+
+## Year in School
+
+```{r analysis_09}
+# Use a chi-square test to compare year-in-school distributions
+# across the two survey periods.
+year_table <- table(
+  combined$Period,
+  combined$yr_sch.2
+)
+
+year_table
+
+year_test <- chisq.test(
+  year_table
+)
+
+year_test
+```
+
+*Interpretation note:* Use the numerical output above when reporting the direction, magnitude, and significance of this comparison.
+
+# Depression Changes by Gender
+
+```{r analysis_10}
+# Compare pre- and post-COVID depression scores separately for men
+# and women using two-sample t-tests within each gender group.
+men_phq <- t.test(
+  PHQ ~ Period,
+  data = combined %>%
+    filter(gender == "Men")
+)
+
+women_phq <- t.test(
+  PHQ ~ Period,
+  data = combined %>%
+    filter(gender == "Women")
+)
+
+men_phq
+women_phq
+```
+
+*Interpretation note:* Use the numerical output above when reporting the direction, magnitude, and significance of this comparison.
+
+# Anxiety Changes by Gender
+
+```{r analysis_11}
+# Compare pre- and post-COVID anxiety scores separately for men
+# and women using two-sample t-tests within each gender group.
+men_gad <- t.test(
+  GAD ~ Period,
+  data = combined %>%
+    filter(gender == "Men")
+)
+
+women_gad <- t.test(
+  GAD ~ Period,
+  data = combined %>%
+    filter(gender == "Women")
+)
+
+men_gad
+women_gad
+```
+
+*Interpretation note:* Use the numerical output above when reporting the direction, magnitude, and significance of this comparison.
+
+# Depression Changes by STEM Status
+
+```{r analysis_12}
+# Test changes in depression scores across survey periods separately
+# for STEM and non-STEM students.
+nonstem_phq <- t.test(
+  PHQ ~ Period,
+  data = combined %>%
+    filter(field == "Non-STEM")
+)
+
+stem_phq <- t.test(
+  PHQ ~ Period,
+  data = combined %>%
+    filter(field == "STEM")
+)
+
+nonstem_phq
+stem_phq
+```
+
+*Interpretation note:* Use the numerical output above when reporting the direction, magnitude, and significance of this comparison.
+
+# Anxiety Changes by STEM Status
+
+```{r analysis_13}
+# Test changes in anxiety scores across survey periods separately
+# for STEM and non-STEM students.
+nonstem_gad <- t.test(
+  GAD ~ Period,
+  data = combined %>%
+    filter(field == "Non-STEM")
+)
+
+stem_gad <- t.test(
+  GAD ~ Period,
+  data = combined %>%
+    filter(field == "STEM")
+)
+
+nonstem_gad
+stem_gad
+```
+
+*Interpretation note:* Use the numerical output above when reporting the direction, magnitude, and significance of this comparison.
+
+# Did Relationships Change After COVID?
+
+## Depression and Gender
+
+```{r analysis_14}
+# Fit a period-by-gender interaction model for depression to assess
+# whether the gender difference in PHQ scores varies by survey period.
+phq_gender_interaction <- lm(
+  PHQ ~ Period * gender,
+  data = combined
+)
+
+summary(phq_gender_interaction)
+```
+
+*Interpretation note:* Use the numerical output above when reporting the direction, magnitude, and significance of this comparison.
+
+## Depression and STEM Status
+
+```{r analysis_15}
+# Fit a period-by-STEM interaction model for depression to assess
+# whether the STEM/non-STEM difference varies by survey period.
+phq_stem_interaction <- lm(
+  PHQ ~ Period * field,
+  data = combined
+)
+
+summary(phq_stem_interaction)
+```
+
+*Interpretation note:* Use the numerical output above when reporting the direction, magnitude, and significance of this comparison.
+
+## Anxiety and Gender
+
+```{r analysis_16}
+# Fit a period-by-gender interaction model for anxiety to assess
+# whether the gender difference in GAD scores varies by survey period.
+gad_gender_interaction <- lm(
+  GAD ~ Period * gender,
+  data = combined
+)
+
+summary(gad_gender_interaction)
+```
+
+*Interpretation note:* Use the numerical output above when reporting the direction, magnitude, and significance of this comparison.
+
+## Anxiety and STEM Status
+
+```{r analysis_17}
+# Fit a period-by-STEM interaction model for anxiety to assess
+# whether the STEM/non-STEM difference varies by survey period.
+gad_stem_interaction <- lm(
+  GAD ~ Period * field,
+  data = combined
+)
+
+summary(gad_stem_interaction)
+```
+
+*Interpretation note:* Use the numerical output above when reporting the direction, magnitude, and significance of this comparison.
+
+# Adjusted Pre/Post Models
+
+## Adjusted Depression Model
+
+```{r analysis_18}
+# Estimate the difference in depression scores between survey periods
+# while adjusting for gender, STEM status, race, year, financial stress, and age.
+adjusted_phq <- lm(
+  PHQ ~ Period +
+    gender +
+    field +
+    race.2 +
+    yr_sch.2 +
+    fincur.2 +
+    age,
+  data = combined
+)
+
+summary(adjusted_phq)
+```
+
+*Interpretation note:* Use the numerical output above when reporting the direction, magnitude, and significance of this comparison.
+
+## Adjusted Anxiety Model
+
+```{r analysis_19}
+# Estimate the difference in anxiety scores between survey periods
+# while adjusting for gender, STEM status, race, year, financial stress, and age.
+adjusted_gad <- lm(
+  GAD ~ Period +
+    gender +
+    field +
+    race.2 +
+    yr_sch.2 +
+    fincur.2 +
+    age,
+  data = combined
+)
+
+summary(adjusted_gad)
+```
+
+*Interpretation note:* Use the numerical output above when reporting the direction, magnitude, and significance of this comparison.
+
+
+# Results Tables
+
+```{r comparison_table}
+# Summarize the raw PHQ and GAD differences by period.
+period_summary <- combined %>%
+  group_by(Period) %>%
+  summarise(
+    N = n(),
+    PHQ_N = sum(!is.na(PHQ)),
+    PHQ_Mean = mean(PHQ, na.rm = TRUE),
+    PHQ_SD = sd(PHQ, na.rm = TRUE),
+    GAD_N = sum(!is.na(GAD)),
+    GAD_Mean = mean(GAD, na.rm = TRUE),
+    GAD_SD = sd(GAD, na.rm = TRUE),
+    .groups = "drop"
+  )
+
+knitr::kable(period_summary, digits = 3,
+             caption = "Depression and anxiety by survey period")
+```
+
+```{r regression_tables}
+# Present adjusted regression coefficients in compact tables.
+regression_table <- function(model, outcome) {
+  coef_table <- as.data.frame(summary(model)$coefficients)
+  coef_table$Term <- rownames(coef_table)
+  rownames(coef_table) <- NULL
+  names(coef_table)[1:4] <- c("Estimate", "Std_Error", "T_Value", "P_Value")
+  coef_table$Outcome <- outcome
+  coef_table[, c("Outcome", "Term", "Estimate", "Std_Error", "T_Value", "P_Value")]
+}
+
+adjusted_results <- dplyr::bind_rows(
+  regression_table(adjusted_phq, "PHQ"),
+  regression_table(adjusted_gad, "GAD")
+)
+
+knitr::kable(adjusted_results, digits = 4,
+             caption = "Adjusted PHQ and GAD regression coefficients")
+```
+
+```{r model_diagnostics}
+# Check residual patterns for the two adjusted models.
+par(mfrow = c(1, 2))
+plot(adjusted_phq, which = 1, main = "PHQ residuals")
+plot(adjusted_gad, which = 1, main = "GAD residuals")
+par(mfrow = c(1, 1))
+```
+
+# Reproducibility
+
+```{r session_info}
+# Record package and R versions for reproducibility.
+sessionInfo()
+```

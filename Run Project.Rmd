@@ -1,0 +1,122 @@
+---
+title: "College Student Mental Health: Pre- and Post-COVID-19 Analysis"
+output:
+  html_document:
+    toc: true
+    toc_depth: 3
+    number_sections: true
+---
+
+# Purpose
+
+This document runs the analyses used for our final research project from the existing numbered notebooks. It does **not** introduce new statistical tests, regressions, or predictive models. All analyses remain in their source scripts so that changes can be made in one place.
+
+- **Script 02:** Descriptive analysis of the pre- and post-COVID samples.
+- **Script 03:** Hypothesis tests and regression analyses.
+- **Script 04:** Predictive modeling and evaluation.
+
+Script 01 recreates the parent paper and is retained separately for reference. Its narrative and full output are intentionally excluded here. Relevant replication results can be added to the final report later.
+
+# Setup
+
+```{r install-packages, include=FALSE}
+# Install packages only if they are not already available.
+required_packages = c(
+  "rmarkdown", "knitr", "tidyverse", "dplyr", "tidyr", "ggplot2",
+  "readr", "tibble", "here", "psych", "janitor", "jtools",
+  "interactions", "ggstance", "ggpubr", "cowplot", "reshape2",
+  "scales", "rpart", "randomForest", "glmnet", "xgboost"
+)
+
+missing_packages = required_packages[
+  !vapply(required_packages, requireNamespace, logical(1), quietly = TRUE)
+]
+
+if (length(missing_packages) > 0) {
+  install.packages(missing_packages, repos = "https://cloud.r-project.org")
+}
+
+still_missing = required_packages[
+  !vapply(required_packages, requireNamespace, logical(1), quietly = TRUE)
+]
+
+if (length(still_missing) > 0) {
+  stop("Could not install required packages: ", paste(still_missing, collapse = ", "))
+}
+
+knitr::opts_chunk$set(echo = FALSE, message = FALSE, warning = FALSE)
+set.seed(415)
+```
+
+```{r verify-project, include=FALSE}
+# Check that this document is being knitted from the repository root.
+script_names = c(
+  "02 - Descriptive Analysis.Rmd",
+  "03 - Hypothesis Tests and Regression.Rmd",
+  "04 - Predictive Modeling.Rmd"
+)
+
+script_paths = file.path("code", script_names)
+data_paths = c(
+  "data/processed/pre_covid_clean.csv",
+  "data/processed/post_covid_clean.csv",
+  "data/split/training_data.csv",
+  "data/split/test_data.csv",
+  "data/split/validation_data.csv"
+)
+
+required_files = c(script_paths, data_paths)
+missing_files = required_files[!file.exists(required_files)]
+
+if (length(missing_files) > 0) {
+  stop(
+    "Missing project files. Open the project .Rproj and check:\n",
+    paste(missing_files, collapse = "\n")
+  )
+}
+
+# Keep generated reports separate from source code and input datasets.
+project_root = normalizePath(getwd(), mustWork = TRUE)
+output_dir = file.path(project_root, "outputs", "reports")
+dir.create(output_dir, recursive = TRUE, showWarnings = FALSE)
+```
+
+# Reproduce the Final-Paper Analyses
+
+The three notebooks below are rendered in order from the `code/` folder. Each notebook runs in a fresh R environment, using its own original code, tables, figures, and models. This avoids copying or modifying the underlying analysis inside the master document.
+
+```{r run-analysis-scripts, results='asis'}
+# Run Scripts 02, 03, and 04 from their existing source files.
+report_titles = c(
+  "Descriptive Analysis",
+  "Hypothesis Tests and Regression",
+  "Predictive Modeling"
+)
+
+report_paths = character(length(script_paths))
+
+for (i in seq_along(script_paths)) {
+  # Render each script independently to prevent objects from carrying over.
+  report_paths[i] = rmarkdown::render(
+    input = file.path(project_root, script_paths[i]),
+    output_format = "html_document",
+    output_dir = output_dir,
+    knit_root_dir = project_root,
+    envir = new.env(parent = globalenv()),
+    quiet = TRUE
+  )
+
+  # Link to the generated HTML report for review.
+  report_link = paste0("outputs/reports/", utils::URLencode(basename(report_paths[i]), reserved = TRUE))
+  cat(sprintf(
+    "\n\n## %s\n\n[Open the generated analysis report](%s)\n\n",
+    report_titles[i], report_link
+  ))
+}
+```
+
+# Notes for the Final Paper
+
+The linked reports are the complete, reproducible source analyses. As we write the final paper, we can add **selected tables, figures, and findings** here, referring directly to the outputs from Scripts 02-04 rather than creating new or inconsistent analyses.
+
+The parent-paper recreation remains in `code/01 - Parent Paper Recreation.Rmd` and is not executed by this draft master report.

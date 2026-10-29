@@ -1,23 +1,41 @@
 ---
-title: "Pre-COVID and Post-COVID Exploratory Data Analysis"
-output: html_document
-date: "2026-10-04"
+title: "02 - Descriptive Analysis: Pre- and Post-COVID"
+author: "Caylee Collins and Kate Miller"
+output:
+  html_document:
+    toc: true
+    toc_depth: 3
+    number_sections: true
 ---
 
-# Pre-COVID and Post-COVID Exploratory Data
-Analysis
+# Pre-COVID and Post-COVID Exploratory Data Analysis
 
 # Setup
 
-```{r}
+```{r setup, message=FALSE, warning=FALSE}
+# Load the packages and set consistent options for the analysis report.
+knitr::opts_chunk$set(echo = TRUE, message = FALSE, warning = FALSE)
+
+required_packages <- c("tidyverse", "here", "scales")
+missing_packages <- required_packages[
+  !vapply(required_packages, requireNamespace, logical(1), quietly = TRUE)
+]
+
+if (length(missing_packages) > 0) {
+  stop("Install required packages: ", paste(missing_packages, collapse = ", "))
+}
+
 library(tidyverse)
 library(here)
 library(scales)
+
+set.seed(415)
 ```
 
 ## Plot Colors and Theme
 
-```{r}
+```{r descriptive-01}
+# Define consistent colors and identify the variables used throughout the comparisons.
 pre_color <- "#377EB8"
 post_color <- "#E69F00"
 
@@ -55,25 +73,48 @@ theme_set(
 
 # Load Data
 
-```{r}
-post_covid <- read.csv(
-  here("data", "raw", "original_data.csv")
+```{r load-data}
+# Load the cleaned pre-COVID and post-COVID datasets from the project folders.
+project_root <- here::here()
+
+pre_path <- file.path(project_root, "data", "processed", "pre_covid_clean.csv")
+post_path <- file.path(project_root, "data", "processed", "post_covid_clean.csv")
+
+# Confirm the project root and both input files.
+if (!file.exists(pre_path) || !file.exists(post_path)) {
+  stop(
+    "Missing processed data files. Open the project's .Rproj file first. ",
+    "Project root: ", project_root, ". ",
+    "Expected: data/processed/pre_covid_clean.csv and ",
+    "data/processed/post_covid_clean.csv"
+  )
+}
+
+pre_covid <- readr::read_csv(pre_path, show_col_types = FALSE)
+post_covid <- readr::read_csv(post_path, show_col_types = FALSE)
+
+# Confirm the variables used throughout the descriptive analysis.
+variables_used <- c(
+  "PHQ", "GAD", "gender", "field", "race.2", "yr_sch.2", "fincur.2", "age"
 )
 
-pre_covid <- read_csv(
-  here("data", "processed", "pre_covid_clean.csv"),
-  show_col_types = FALSE
-)
+for (period_name in c("pre_covid", "post_covid")) {
+  missing_columns <- setdiff(variables_used, names(get(period_name)))
+  if (length(missing_columns) > 0) {
+    stop(period_name, " is missing: ", paste(missing_columns, collapse = ", "))
+  }
+}
 ```
 
 # Make Variables Consistent
 
-```{r}
+```{r descriptive-02}
+# Standardize the post-COVID variable categories so they can be compared with the pre-COVID data.
 post_covid <- post_covid %>%
   mutate(
     field = case_when(
       as.character(field) == "STEM" ~ "STEM",
-      as.character(field) == "NotSTEM" ~ "Non-STEM",
+      as.character(field) %in% c("NotSTEM", "Non-STEM") ~ "Non-STEM",
       TRUE ~ as.character(field)
     ),
     gender = as.character(gender),
@@ -152,26 +193,19 @@ post_covid$yr_sch.2 <- factor(
 
 # Final Data Check
 
-```{r}
+```{r descriptive-03}
+# Check the number of observations and variables in the pre-COVID dataset.
 dim(pre_covid)
 ```
 
-```{r}
+```{r descriptive-04}
+# Check the number of observations and variables in the post-COVID dataset.
 dim(post_covid)
 ```
 
-```{r}
-variables_used <- c(
-  "PHQ",
-  "GAD",
-  "gender",
-  "field",
-  "race.2",
-  "yr_sch.2",
-  "fincur.2",
-  "age"
-)
-
+```{r descriptive-05}
+# Confirm that the variables needed for descriptive analysis exist in both datasets.
+# Verify that both datasets contain the analysis variables.
 variable_check <- data.frame(
   Variable = variables_used,
   Pre_COVID = variables_used %in% names(pre_covid),
@@ -188,17 +222,20 @@ knitr::kable(
 
 ## Dataset Overview
 
-```{r}
+```{r descriptive-06}
+# Report the dimensions of the pre-COVID sample before exploring its characteristics.
 dim(pre_covid)
 ```
 
-```{r}
+```{r descriptive-07}
+# Inspect the pre-COVID variable types and a preview of their values.
 glimpse(pre_covid)
 ```
 
 ## Missing Values
 
-```{r}
+```{r descriptive-08}
+# Count missing values for each selected variable in the pre-COVID sample.
 pre_missing <- data.frame(
   Variable = variables_used,
   Missing = sapply(
@@ -224,15 +261,18 @@ knitr::kable(
 
 ## Depression and Anxiety Scores
 
-```{r}
+```{r descriptive-09}
+# Summarize the distribution of pre-COVID depression (PHQ) scores.
 summary(pre_covid$PHQ)
 ```
 
-```{r}
+```{r descriptive-10}
+# Summarize the distribution of pre-COVID anxiety (GAD) scores.
 summary(pre_covid$GAD)
 ```
 
-```{r}
+```{r descriptive-11}
+# Plot the distribution of depression scores in the pre-COVID sample.
 ggplot(pre_covid, aes(x = PHQ)) +
   geom_histogram(
     binwidth = 1/9,
@@ -248,7 +288,8 @@ ggplot(pre_covid, aes(x = PHQ)) +
 
 Most students had lower depression scores, with fewer students having scores toward the higher end of the scale.
 
-```{r}
+```{r descriptive-12}
+# Plot the distribution of anxiety scores in the pre-COVID sample.
 ggplot(pre_covid, aes(x = GAD)) +
   geom_histogram(
     binwidth = 1/7,
@@ -266,7 +307,8 @@ Most students had lower anxiety scores, although there were still students with 
 
 ## Gender Distribution
 
-```{r}
+```{r descriptive-13}
+# Show the gender composition of the pre-COVID sample.
 ggplot(
   filter(pre_covid, !is.na(gender)),
   aes(x = gender, fill = gender)
@@ -285,7 +327,8 @@ There were more women than men in the pre-COVID sample.
 
 ## STEM and Non-STEM Distribution
 
-```{r}
+```{r descriptive-14}
+# Show the distribution of STEM and non-STEM fields before COVID-19.
 ggplot(
   filter(pre_covid, !is.na(field)),
   aes(x = field)
@@ -302,7 +345,8 @@ The pre-COVID sample included both STEM and non-STEM students, with more student
 
 ## Race Distribution
 
-```{r}
+```{r descriptive-15}
+# Describe the racial composition of the pre-COVID sample.
 ggplot(
   filter(pre_covid, !is.na(race.2)),
   aes(x = race.2)
@@ -328,7 +372,8 @@ White students made up the largest racial group in the pre-COVID sample.
 
 ## Year in School Distribution
 
-```{r}
+```{r descriptive-16}
+# Show the distribution of students by year in school before COVID-19.
 ggplot(
   filter(pre_covid, !is.na(yr_sch.2)),
   aes(x = yr_sch.2)
@@ -353,7 +398,8 @@ Students from all years in school were represented in the pre-COVID sample.
 
 ## Financial Stress Distribution
 
-```{r}
+```{r descriptive-17}
+# Describe current financial circumstances among pre-COVID respondents.
 ggplot(
   filter(pre_covid, !is.na(fincur.2)),
   aes(x = factor(fincur.2))
@@ -370,7 +416,8 @@ Financial stress varied across students, with most students falling around the m
 
 ## Age Distribution
 
-```{r}
+```{r descriptive-18}
+# Plot the age distribution of students in the pre-COVID sample.
 ggplot(
   filter(pre_covid, !is.na(age)),
   aes(x = age)
@@ -391,7 +438,8 @@ Most students were in the typical college-age range, with fewer students at olde
 
 ## Mental Health by Gender
 
-```{r}
+```{r descriptive-19}
+# Compare pre-COVID depression and anxiety scores across gender groups.
 pre_gender_scores <- pre_covid %>%
   select(gender, PHQ, GAD) %>%
   pivot_longer(
@@ -427,7 +475,8 @@ Women generally had higher depression and anxiety scores than men before COVID.
 
 ## Mental Health by STEM Status
 
-```{r}
+```{r descriptive-20}
+# Compare pre-COVID depression and anxiety scores by STEM field status.
 pre_field_scores <- pre_covid %>%
   select(field, PHQ, GAD) %>%
   pivot_longer(
@@ -463,7 +512,8 @@ The pre-COVID sample included both STEM and non-STEM students, with more student
 
 ## Mental Health by Financial Stress
 
-```{r}
+```{r descriptive-21}
+# Examine pre-COVID mental health scores across financial circumstances.
 pre_financial_scores <- pre_covid %>%
   select(fincur.2, PHQ, GAD) %>%
   pivot_longer(
@@ -499,7 +549,8 @@ Financial stress varied across students, with most students falling around the m
 
 ## Mental Health by Race
 
-```{r}
+```{r descriptive-22}
+# Compare pre-COVID depression and anxiety scores across racial groups.
 pre_race_scores <- pre_covid %>%
   select(race.2, PHQ, GAD) %>%
   pivot_longer(
@@ -544,7 +595,8 @@ Depression and anxiety scores varied somewhat across racial groups before COVID.
 
 ## Mental Health by Year in School
 
-```{r}
+```{r descriptive-23}
+# Compare pre-COVID depression and anxiety scores by year in school.
 pre_year_scores <- pre_covid %>%
   select(yr_sch.2, PHQ, GAD) %>%
   pivot_longer(
@@ -588,7 +640,8 @@ Students from all years in school were represented in the pre-COVID sample.
 
 ## Depression and Anxiety Relationship
 
-```{r}
+```{r descriptive-24}
+# Calculate the correlation between pre-COVID depression and anxiety scores.
 pre_correlation <- cor(
   pre_covid$PHQ,
   pre_covid$GAD,
@@ -598,7 +651,8 @@ pre_correlation <- cor(
 pre_correlation
 ```
 
-```{r}
+```{r descriptive-25}
+# Visualize the relationship between pre-COVID depression and anxiety scores.
 ggplot(
   pre_covid,
   aes(x = PHQ, y = GAD)
@@ -625,17 +679,20 @@ Depression and anxiety had a strong positive relationship, meaning students with
 
 ## Dataset Overview
 
-```{r}
+```{r descriptive-26}
+# Check the number of observations and variables in the post-COVID sample.
 dim(post_covid)
 ```
 
-```{r}
+```{r descriptive-27}
+# Inspect the post-COVID variable types and a preview of their values.
 glimpse(post_covid)
 ```
 
 ## Missing Values
 
-```{r}
+```{r descriptive-28}
+# Count missing values for each selected variable in the post-COVID sample.
 post_missing <- data.frame(
   Variable = variables_used,
   Missing = sapply(
@@ -661,15 +718,18 @@ knitr::kable(
 
 ## Depression and Anxiety Scores
 
-```{r}
+```{r descriptive-29}
+# Summarize the distribution of post-COVID depression (PHQ) scores.
 summary(post_covid$PHQ)
 ```
 
-```{r}
+```{r descriptive-30}
+# Summarize the distribution of post-COVID anxiety (GAD) scores.
 summary(post_covid$GAD)
 ```
 
-```{r}
+```{r descriptive-31}
+# Plot the distribution of depression scores in the post-COVID sample.
 ggplot(post_covid, aes(x = PHQ)) +
   geom_histogram(
     binwidth = 1/9,
@@ -685,7 +745,8 @@ ggplot(post_covid, aes(x = PHQ)) +
 
 Most students had lower to moderate depression scores, although scores were spread across the full range.
 
-```{r}
+```{r descriptive-32}
+# Plot the distribution of anxiety scores in the post-COVID sample.
 ggplot(post_covid, aes(x = GAD)) +
   geom_histogram(
     binwidth = 1/7,
@@ -703,7 +764,8 @@ Anxiety scores were spread across the scale, with many students reporting lower 
 
 ## Gender Distribution
 
-```{r}
+```{r descriptive-33}
+# Show the gender composition of the post-COVID sample.
 ggplot(
   filter(post_covid, !is.na(gender)),
   aes(x = gender, fill = gender)
@@ -722,7 +784,8 @@ There were more women than men in the post-COVID sample.
 
 ## STEM and Non-STEM Distribution
 
-```{r}
+```{r descriptive-34}
+# Show the distribution of STEM and non-STEM fields after COVID-19.
 ggplot(
   filter(post_covid, !is.na(field)),
   aes(x = field)
@@ -739,7 +802,8 @@ The post-COVID sample included both STEM and non-STEM students, with more studen
 
 ## Race Distribution
 
-```{r}
+```{r descriptive-35}
+# Describe the racial composition of the post-COVID sample.
 ggplot(
   filter(post_covid, !is.na(race.2)),
   aes(x = race.2)
@@ -765,7 +829,8 @@ White students made up the largest racial group in the post-COVID sample.
 
 ## Year in School Distribution
 
-```{r}
+```{r descriptive-36}
+# Show the distribution of students by year in school after COVID-19.
 ggplot(
   filter(post_covid, !is.na(yr_sch.2)),
   aes(x = yr_sch.2)
@@ -790,7 +855,8 @@ Students from all years in school were represented in the post-COVID sample.
 
 ## Financial Stress Distribution
 
-```{r}
+```{r descriptive-37}
+# Describe current financial circumstances among post-COVID respondents.
 ggplot(
   filter(post_covid, !is.na(fincur.2)),
   aes(x = factor(fincur.2))
@@ -807,7 +873,8 @@ Financial stress varied across students, with many students reporting moderate l
 
 ## Age Distribution
 
-```{r}
+```{r descriptive-38}
+# Plot the age distribution of students in the post-COVID sample.
 ggplot(
   filter(post_covid, !is.na(age)),
   aes(x = age)
@@ -828,7 +895,8 @@ Most students were in the typical college-age range, with fewer students at olde
 
 ## Mental Health by Gender
 
-```{r}
+```{r descriptive-39}
+# Compare post-COVID depression and anxiety scores across gender groups.
 post_gender_scores <- post_covid %>%
   select(gender, PHQ, GAD) %>%
   pivot_longer(
@@ -864,7 +932,8 @@ Women generally had higher depression and anxiety scores than men after COVID.
 
 ## Mental Health by STEM Status
 
-```{r}
+```{r descriptive-40}
+# Compare post-COVID depression and anxiety scores by STEM field status.
 post_field_scores <- post_covid %>%
   select(field, PHQ, GAD) %>%
   pivot_longer(
@@ -900,7 +969,8 @@ The post-COVID sample included both STEM and non-STEM students, with more studen
 
 ## Mental Health by Financial Stress
 
-```{r}
+```{r descriptive-41}
+# Examine post-COVID mental health scores across financial circumstances.
 post_financial_scores <- post_covid %>%
   select(fincur.2, PHQ, GAD) %>%
   pivot_longer(
@@ -936,7 +1006,8 @@ Financial stress varied across students, with many students reporting moderate l
 
 ## Mental Health by Race
 
-```{r}
+```{r descriptive-42}
+# Compare post-COVID depression and anxiety scores across racial groups.
 post_race_scores <- post_covid %>%
   select(race.2, PHQ, GAD) %>%
   pivot_longer(
@@ -981,7 +1052,8 @@ Depression and anxiety scores varied somewhat across racial groups after COVID.
 
 ## Mental Health by Year in School
 
-```{r}
+```{r descriptive-43}
+# Compare post-COVID depression and anxiety scores by year in school.
 post_year_scores <- post_covid %>%
   select(yr_sch.2, PHQ, GAD) %>%
   pivot_longer(
@@ -1025,7 +1097,8 @@ Students from all years in school were represented in the post-COVID sample.
 
 ## Depression and Anxiety Relationship
 
-```{r}
+```{r descriptive-44}
+# Calculate the correlation between post-COVID depression and anxiety scores.
 post_correlation <- cor(
   post_covid$PHQ,
   post_covid$GAD,
@@ -1035,7 +1108,8 @@ post_correlation <- cor(
 post_correlation
 ```
 
-```{r}
+```{r descriptive-45}
+# Visualize the relationship between post-COVID depression and anxiety scores.
 ggplot(
   post_covid,
   aes(x = PHQ, y = GAD)
@@ -1062,7 +1136,8 @@ Depression and anxiety had a strong positive relationship after COVID, so studen
 
 ## Create Combined Dataset
 
-```{r}
+```{r descriptive-46}
+# Combine the two samples and label each observation by COVID period.
 pre_compare <- pre_covid %>%
   select(all_of(variables_used)) %>%
   mutate(
@@ -1091,7 +1166,8 @@ combined$Period <- factor(
 
 ## Sample Sizes
 
-```{r}
+```{r descriptive-47}
+# Compare the total sample sizes for the pre-COVID and post-COVID periods.
 combined %>%
   count(Period) %>%
   knitr::kable(
@@ -1101,7 +1177,8 @@ combined %>%
 
 ## Missing Data Comparison
 
-```{r}
+```{r descriptive-48}
+# Compare missing-data patterns across the two COVID periods.
 missing_comparison <- combined %>%
   group_by(Period) %>%
   summarise(
@@ -1129,7 +1206,8 @@ knitr::kable(
 
 ## Demographic Comparison
 
-```{r}
+```{r descriptive-49}
+# Compare gender distributions between the pre-COVID and post-COVID samples.
 gender_comparison <- combined %>%
   filter(!is.na(gender)) %>%
   count(Period, gender) %>%
@@ -1161,7 +1239,8 @@ ggplot(
 
 The gender makeup was somewhat different between the two time periods, showing why gender should be considered when comparing mental health outcomes.
 
-```{r}
+```{r descriptive-50}
+# Compare STEM and non-STEM representation across COVID periods.
 field_comparison <- combined %>%
   filter(!is.na(field)) %>%
   count(Period, field) %>%
@@ -1193,7 +1272,8 @@ ggplot(
 
 The proportion of STEM and non-STEM students differed somewhat between the pre-COVID and post-COVID samples.
 
-```{r}
+```{r descriptive-51}
+# Compare racial composition across the pre-COVID and post-COVID samples.
 race_comparison <- combined %>%
   filter(!is.na(race.2)) %>%
   count(Period, race.2) %>%
@@ -1234,7 +1314,8 @@ ggplot(
 
 The racial makeup of the samples differed somewhat between the two time periods, which is important to consider when comparing them.
 
-```{r}
+```{r descriptive-52}
+# Compare year-in-school distributions across the two periods.
 year_comparison <- combined %>%
   filter(!is.na(yr_sch.2)) %>%
   count(Period, yr_sch.2) %>%
@@ -1276,7 +1357,8 @@ The distribution of students across years in school was somewhat different betwe
 
 ## Depression Before and After COVID
 
-```{r}
+```{r descriptive-53}
+# Calculate summary statistics for depression scores by COVID period.
 phq_summary <- combined %>%
   group_by(Period) %>%
   summarise(
@@ -1298,7 +1380,8 @@ knitr::kable(
 )
 ```
 
-```{r}
+```{r descriptive-54}
+# Visualize how depression-score distributions differ across COVID periods.
 ggplot(
   filter(combined, !is.na(PHQ)),
   aes(
@@ -1321,7 +1404,8 @@ Depression scores were slightly higher after COVID, with the average PHQ score i
 
 ## Anxiety Before and After COVID
 
-```{r}
+```{r descriptive-55}
+# Calculate summary statistics for anxiety scores by COVID period.
 gad_summary <- combined %>%
   group_by(Period) %>%
   summarise(
@@ -1343,7 +1427,8 @@ knitr::kable(
 )
 ```
 
-```{r}
+```{r descriptive-56}
+# Visualize how anxiety-score distributions differ across COVID periods.
 ggplot(
   filter(combined, !is.na(GAD)),
   aes(
@@ -1366,7 +1451,8 @@ Anxiety scores were higher after COVID, with the average GAD score increasing fr
 
 ## Depression by Gender Before and After COVID
 
-```{r}
+```{r descriptive-57}
+# Compare depression scores by gender across COVID periods.
 ggplot(
   filter(
     combined,
@@ -1393,7 +1479,8 @@ Women had higher depression scores than men in both time periods, and depression
 
 ## Anxiety by Gender Before and After COVID
 
-```{r}
+```{r descriptive-58}
+# Compare anxiety scores by gender across COVID periods.
 ggplot(
   filter(
     combined,
@@ -1420,7 +1507,8 @@ Women had higher anxiety scores than men in both time periods, with anxiety scor
 
 ## Depression by STEM Status Before and After COVID
 
-```{r}
+```{r descriptive-59}
+# Compare depression scores by STEM status across COVID periods.
 ggplot(
   filter(
     combined,
@@ -1447,7 +1535,8 @@ The proportion of STEM and non-STEM students differed somewhat between the pre-C
 
 ## Anxiety by STEM Status Before and After COVID
 
-```{r}
+```{r descriptive-60}
+# Compare anxiety scores by STEM status across COVID periods.
 ggplot(
   filter(
     combined,
@@ -1474,7 +1563,8 @@ The proportion of STEM and non-STEM students differed somewhat between the pre-C
 
 # Gender and STEM Together
 
-```{r}
+```{r descriptive-61}
+# Summarize depression and anxiety scores jointly by period, gender, and STEM status.
 gender_stem_summary <- combined %>%
   filter(
     !is.na(gender),
@@ -1497,7 +1587,8 @@ gender_stem_summary
 
 ## Depression by Gender and STEM Status
 
-```{r}
+```{r descriptive-62}
+# Visualize depression scores across gender and STEM groups in both periods.
 ggplot(
   gender_stem_summary,
   aes(
@@ -1524,7 +1615,8 @@ The gender difference in depression appears in both STEM and non-STEM students, 
 
 ## Anxiety by Gender and STEM Status
 
-```{r}
+```{r descriptive-63}
+# Visualize anxiety scores across gender and STEM groups in both periods.
 ggplot(
   gender_stem_summary,
   aes(
@@ -1551,7 +1643,8 @@ Women generally had higher average anxiety scores than men in both STEM and non-
 
 # Financial Stress and Mental Health Comparison
 
-```{r}
+```{r descriptive-64}
+# Summarize mental health outcomes by financial circumstances and COVID period.
 financial_summary <- combined %>%
   group_by(
     Period,
@@ -1600,7 +1693,8 @@ Higher financial stress was associated with higher average depression and anxiet
 
 # Mental Health by Race Comparison
 
-```{r}
+```{r descriptive-65}
+# Summarize mental health outcomes by racial group and COVID period.
 race_summary <- combined %>%
   group_by(
     Period,
@@ -1662,7 +1756,8 @@ Average depression and anxiety scores differed somewhat across racial groups and
 
 # Mental Health by Year in School Comparison
 
-```{r}
+```{r descriptive-66}
+# Summarize mental health outcomes by year in school and COVID period.
 year_summary <- combined %>%
   group_by(
     Period,
@@ -1723,7 +1818,8 @@ The distribution of students across years in school was somewhat different betwe
 
 # Depression and Anxiety Correlation Comparison
 
-```{r}
+```{r descriptive-67}
+# Compare the depression-anxiety correlation before and after COVID-19.
 correlation_summary <- combined %>%
   group_by(Period) %>%
   summarise(
@@ -1750,7 +1846,8 @@ The relationship between depression and anxiety stayed almost the same across th
 
 # Final EDA Summary
 
-```{r}
+```{r descriptive-68}
+# Create a final descriptive summary of the two samples and their mental health outcomes.
 eda_summary <- combined %>%
   group_by(Period) %>%
   summarise(
