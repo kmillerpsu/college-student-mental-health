@@ -663,3 +663,80 @@ knitr::kable(interaction_publication,
 
 ```
 
+
+## Interaction Plots
+
+```{r final_paper_interaction_plots, fig.width=11, fig.height=7}
+interaction_long <- combined %>%
+  dplyr::select(Period, gender, field, PHQ, GAD) %>%
+  tidyr::pivot_longer(
+    cols = c(PHQ, GAD),
+    names_to = "Outcome",
+    values_to = "Score"
+  ) %>%
+  dplyr::mutate(
+    Outcome = dplyr::recode(
+      Outcome,
+      PHQ = "Depression (PHQ-9)",
+      GAD = "Anxiety (GAD-7)"
+    ),
+    Period = factor(
+      as.character(Period),
+      levels = c("2017-2018 Pre-COVID", "2022-2023 Post-COVID"),
+      labels = c("2017–2018", "2022–2023")
+    )
+  )
+
+gender_means <- interaction_long %>%
+  dplyr::filter(!is.na(Score), !is.na(gender)) %>%
+  dplyr::group_by(Outcome, Period, Group = gender) %>%
+  dplyr::summarise(N = dplyr::n(), Mean = mean(Score), .groups = "drop") %>%
+  dplyr::mutate(Comparison = "Gender", Group = as.character(Group))
+
+stem_means <- interaction_long %>%
+  dplyr::filter(!is.na(Score), !is.na(field)) %>%
+  dplyr::group_by(Outcome, Period, Group = field) %>%
+  dplyr::summarise(N = dplyr::n(), Mean = mean(Score), .groups = "drop") %>%
+  dplyr::mutate(Comparison = "STEM Status", Group = as.character(Group))
+
+interaction_plot_data <- dplyr::bind_rows(gender_means, stem_means) %>%
+  dplyr::mutate(
+    Outcome = factor(Outcome, levels = c("Depression (PHQ-9)", "Anxiety (GAD-7)")),
+    Comparison = factor(Comparison, levels = c("Gender", "STEM Status"))
+  )
+
+figure_interactions <- ggplot2::ggplot(
+  interaction_plot_data,
+  ggplot2::aes(x = Period, y = Mean, color = Group, group = Group)
+) +
+  ggplot2::geom_line(linewidth = 1) +
+  ggplot2::geom_point(size = 2.6) +
+  ggplot2::facet_grid(Outcome ~ Comparison, scales = "free_y") +
+  ggplot2::scale_color_manual(
+    values = c(
+      "Men" = pre_color,
+      "Women" = post_color,
+      "Non-STEM" = pre_color,
+      "STEM" = post_color
+    ),
+    name = "Student group"
+  ) +
+  ggplot2::labs(
+    title = "Depression and Anxiety by Student Group",
+    x = "Survey period",
+    y = "Average score"
+  ) +
+  paper_theme
+
+print(figure_interactions)
+save_paper_figure(
+  figure_interactions,
+  "figure_02_gender_stem_interactions",
+  width = 11,
+  height = 7
+)
+save_paper_table(
+  interaction_plot_data,
+  "table_03c_interaction_group_means"
+)
+```
