@@ -584,6 +584,15 @@ phq_xgb_r2 <- cor(
 ```
 
 
+```{r classification_accuracy_function}
+
+# Percentage classified correctly using a total-score cutoff of 10.
+classification_accuracy <- function(observed, predicted, outcome) {
+  cutoff <- if (outcome == "PHQ") 1 + 10 / 9 else 1 + 10 / 7
+  100 * mean((as.numeric(predicted) >= cutoff) == (observed >= cutoff))
+}
+```
+
 # Depression Test-Set Comparison
 
 ```{r model_13_depression_test_set_comparison}
@@ -634,6 +643,12 @@ depression_results <- data.frame(
   )
 )
 
+depression_results$Accuracy <- round(vapply(
+  list(phq_baseline_pred, phq_lm_pred, phq_interaction_pred,
+       phq_tree_pred, phq_rf_pred, phq_ridge_pred,
+       phq_lasso_pred, phq_xgb_pred),
+  function(pred) classification_accuracy(test$PHQ, pred, "PHQ"), numeric(1)
+), 2)
 depression_results <- depression_results[
   order(depression_results$RMSE),
 ]
@@ -642,23 +657,6 @@ depression_results
 ```
 
 
-```{r model_14_depression_test_set_comparison}
-ggplot(
-  depression_results,
-  aes(
-    x = reorder(Model, RMSE),
-    y = RMSE
-  )
-) +
-  geom_col(fill = phq_color) +
-  scale_x_discrete(labels = c("Baseline" = "Baseline (mean)", "Linear Regression" = "Linear regression", "Gender x STEM Regression" = "Gender × STEM regression", "Regression Tree" = "Regression tree", "Random Forest" = "Random forest", "Ridge Regression" = "Ridge regression", "LASSO Regression" = "LASSO regression", "XGBoost" = "XGBoost")) +
-  coord_flip() +
-  labs(
-    title = "Depression Models",
-    x = NULL,
-    y = "RMSE"
-  )
-```
 
 
 # Anxiety Prediction Models
@@ -1086,6 +1084,12 @@ anxiety_results <- data.frame(
   )
 )
 
+anxiety_results$Accuracy <- round(vapply(
+  list(gad_baseline_pred, gad_lm_pred, gad_interaction_pred,
+       gad_tree_pred, gad_rf_pred, gad_ridge_pred,
+       gad_lasso_pred, gad_xgb_pred),
+  function(pred) classification_accuracy(test$GAD, pred, "GAD"), numeric(1)
+), 2)
 anxiety_results <- anxiety_results[
   order(anxiety_results$RMSE),
 ]
@@ -1094,23 +1098,6 @@ anxiety_results
 ```
 
 
-```{r model_25_anxiety_test_set_comparison}
-ggplot(
-  anxiety_results,
-  aes(
-    x = reorder(Model, RMSE),
-    y = RMSE
-  )
-) +
-  geom_col(fill = gad_color) +
-  scale_x_discrete(labels = c("Baseline" = "Baseline (mean)", "Linear Regression" = "Linear regression", "Gender x STEM Regression" = "Gender × STEM regression", "Regression Tree" = "Regression tree", "Random Forest" = "Random forest", "Ridge Regression" = "Ridge regression", "LASSO Regression" = "LASSO regression", "XGBoost" = "XGBoost")) +
-  coord_flip() +
-  labs(
-    title = "Anxiety Models",
-    x = NULL,
-    y = "RMSE"
-  )
-```
 
 
 # Student Characteristics Only
@@ -1390,6 +1377,11 @@ depression_validation <- data.frame(
   )
 )
 
+depression_validation$Accuracy <- round(vapply(
+  list(phq_lm_validation_pred, phq_interaction_validation_pred,
+       phq_lasso_validation_pred, phq_xgb_validation_pred),
+  function(pred) classification_accuracy(validation$PHQ, pred, "PHQ"), numeric(1)
+), 2)
 depression_validation <- depression_validation[
   order(depression_validation$RMSE),
 ]
@@ -1553,6 +1545,11 @@ anxiety_validation <- data.frame(
   )
 )
 
+anxiety_validation$Accuracy <- round(vapply(
+  list(gad_lm_validation_pred, gad_interaction_validation_pred,
+       gad_lasso_validation_pred, gad_xgb_validation_pred),
+  function(pred) classification_accuracy(validation$GAD, pred, "GAD"), numeric(1)
+), 2)
 anxiety_validation <- anxiety_validation[
   order(anxiety_validation$RMSE),
 ]
@@ -1713,19 +1710,32 @@ ggplot(
 final_paper_dir <- file.path(project_root, "outputs", "final_paper")
 figure_dir <- file.path(final_paper_dir, "figures")
 table_dir <- file.path(final_paper_dir, "tables")
-dir.create(figure_dir, showWarnings = FALSE, recursive = TRUE)
-dir.create(table_dir, showWarnings = FALSE, recursive = TRUE)
+dir.create(figure_dir, recursive = TRUE, showWarnings = FALSE)
+dir.create(table_dir, recursive = TRUE, showWarnings = FALSE)
 
 save_paper_figure <- function(plot, filename, width = 8, height = 5) {
-  ggplot2::ggsave(file.path(figure_dir, paste0(filename, ".png")),
-                  plot = plot, width = width, height = height, dpi = 300, bg = "white")
-  ggplot2::ggsave(file.path(figure_dir, paste0(filename, ".pdf")),
-                  plot = plot, width = width, height = height, bg = "white")
+  for (extension in c("png", "pdf")) {
+    path <- file.path(figure_dir, paste0(filename, ".", extension))
+    tryCatch(
+      ggplot2::ggsave(path, plot = plot, width = width, height = height,
+                      dpi = 300, bg = "white"),
+      error = function(e) message("Figure not saved: ", path)
+    )
+  }
 }
+
 save_paper_table <- function(tab, filename, digits = 4) {
-  utils::write.csv(tab, file.path(table_dir, paste0(filename, ".csv")), row.names = FALSE, na = "")
-  html <- knitr::kable(tab, format = "html", digits = digits, escape = TRUE)
-  writeLines(as.character(html), file.path(table_dir, paste0(filename, ".html")), useBytes = TRUE)
+  csv_path <- file.path(table_dir, paste0(filename, ".csv"))
+  html_path <- file.path(table_dir, paste0(filename, ".html"))
+  tryCatch(
+    utils::write.csv(tab, csv_path, row.names = FALSE, na = ""),
+    error = function(e) message("Table CSV not saved (file in use or folder blocked): ", csv_path)
+  )
+  tryCatch(
+    writeLines(as.character(knitr::kable(tab, format = "html", digits = digits)), html_path),
+    error = function(e) message("Table HTML not saved (file in use or folder blocked): ", html_path)
+  )
+  invisible(tab)
 }
 ```
 
@@ -1735,20 +1745,10 @@ save_paper_table <- function(tab, filename, digits = 4) {
 all_test_metrics <- dplyr::bind_rows(
   dplyr::mutate(depression_results, Outcome = "PHQ"),
   dplyr::mutate(anxiety_results, Outcome = "GAD")
-) %>% dplyr::select(Outcome, Model, RMSE, MAE, R2)
+) %>% dplyr::select(Outcome, Model, RMSE, MAE, R2, Accuracy)
 
 
-figure_03 <- ggplot2::ggplot(all_test_metrics,
-                  ggplot2::aes(x = reorder(Model, RMSE), y = RMSE, fill = Outcome)) +
-  ggplot2::geom_col(show.legend = FALSE, width = 0.7) +
-  ggplot2::scale_fill_manual(values = outcome_colors, labels = c(PHQ = "Depression (PHQ-9)", GAD = "Anxiety (GAD-7)")) +
-  ggplot2::scale_x_discrete(labels = c("Baseline" = "Baseline (mean)", "Linear Regression" = "Linear regression", "Gender x STEM Regression" = "Gender × STEM regression", "Regression Tree" = "Regression tree", "Random Forest" = "Random forest", "Ridge Regression" = "Ridge regression", "LASSO Regression" = "LASSO regression", "XGBoost" = "XGBoost")) +
-  ggplot2::coord_flip() +
-  ggplot2::facet_wrap(~Outcome, labeller = ggplot2::as_labeller(c(PHQ = "Depression (PHQ-9)", GAD = "Anxiety (GAD-7)")), scales = "free_y") +
-  ggplot2::labs(title = "Model Comparison",
-                x = NULL, y = "Root mean squared error")
-print(figure_03)
-save_paper_figure(figure_03, "figure_03_eight_models_test_rmse", width = 10, height = 5.8)
+
 ```
 
 ## Model Features
@@ -1767,23 +1767,15 @@ feature_comparison_table <- data.frame(
 )
 feature_comparison_table$`R²` <- round(c(phq_lm_r2, phq_student_r2, gad_lm_r2, gad_student_r2), 4)
 feature_comparison_table$`Accuracy (%)` <- round(c(
-  100 * mean(abs(test$PHQ - phq_lm_pred) <= 0.5),
-  100 * mean(abs(test$PHQ - phq_student_pred) <= 0.5),
-  100 * mean(abs(test$GAD - gad_lm_pred) <= 0.5),
-  100 * mean(abs(test$GAD - gad_student_pred) <= 0.5)
-), 1)
+  classification_accuracy(test$PHQ, phq_lm_pred, "PHQ"),
+  classification_accuracy(test$PHQ, phq_student_pred, "PHQ"),
+  classification_accuracy(test$GAD, gad_lm_pred, "GAD"),
+  classification_accuracy(test$GAD, gad_student_pred, "GAD")
+), 2)
 save_paper_table(feature_comparison_table, "table_05_full_vs_reduced_models")
 knitr::kable(feature_comparison_table, caption = "Model Features")
 
-figure_04 <- ggplot2::ggplot(full_vs_reduced,
-      ggplot2::aes(x = Outcome, y = RMSE, fill = Feature_Set)) +
-  ggplot2::geom_col(position = ggplot2::position_dodge(width = 0.75), width = 0.65) +
-  ggplot2::scale_fill_manual(values = feature_colors) +
-  ggplot2::scale_x_discrete(labels = c(PHQ = "Depression (PHQ-9)", GAD = "Anxiety (GAD-7)")) +
-  ggplot2::labs(title = "Model Features",
-                x = NULL, y = "RMSE", fill = "Predictors")
-print(figure_04)
-save_paper_figure(figure_04, "figure_04_full_vs_reduced_rmse", 7.5, 5)
+
 ```
 
 ## Validation Results
@@ -1819,224 +1811,93 @@ save_paper_figure(figure_05, "figure_05_validation_observed_vs_predicted", 10, 5
 ```
 
 
-## Accuracy
+## Model Tables
 
 
-```{r final_paper_accuracy_helpers}
-within_half_point <- function(observed, predicted) {
-  observed <- as.numeric(observed)
-  predicted <- as.numeric(predicted)
-  keep <- is.finite(observed) & is.finite(predicted)
-  if (!any(keep)) return(NA_real_)
-  100 * mean(abs(observed[keep] - predicted[keep]) <= 0.5)
-}
-
-classify_symptoms <- function(scores, outcome) {
-  n_items <- switch(outcome, PHQ = 9, GAD = 7,
-                    stop("Expected outcome 'PHQ' or 'GAD'."))
-  total <- (as.numeric(scores) - 1) * n_items
-  factor(ifelse(total >= 10, "10 or higher", "Below 10"),
-         levels = c("Below 10", "10 or higher"))
-}
-
-classification_metrics <- function(observed, predicted, outcome) {
-  keep <- is.finite(as.numeric(observed)) & is.finite(as.numeric(predicted))
-  actual <- classify_symptoms(observed[keep], outcome)
-  estimated <- classify_symptoms(predicted[keep], outcome)
-  tn <- sum(actual == "Below 10" & estimated == "Below 10")
-  fp <- sum(actual == "Below 10" & estimated == "10 or higher")
-  fn <- sum(actual == "10 or higher" & estimated == "Below 10")
-  tp <- sum(actual == "10 or higher" & estimated == "10 or higher")
-  safe_ratio <- function(a, b) if (b > 0) a / b else NA_real_
-  precision <- safe_ratio(tp, tp + fp)
-  recall <- safe_ratio(tp, tp + fn)
-  specificity <- safe_ratio(tn, tn + fp)
-  f1 <- safe_ratio(2 * tp, 2 * tp + fp + fn)
-  data.frame(
-    N = tn + fp + fn + tp,
-    Within_0_5_Pct = within_half_point(observed, predicted),
-    Binary_Accuracy_Pct = 100 * safe_ratio(tp + tn, tn + fp + fn + tp),
-    Balanced_Accuracy_Pct = 100 * mean(c(recall, specificity)),
-    Precision_Pct = 100 * precision,
-    Recall_Pct = 100 * recall,
-    Specificity_Pct = 100 * specificity,
-    F1_Pct = 100 * f1,
-    Actual_Elevated_Pct = 100 * safe_ratio(tp + fn, tn + fp + fn + tp),
-    stringsAsFactors = FALSE
-  )
-}
-
-score_model_set <- function(observed, predictions, outcome, partition) {
-  dplyr::bind_rows(lapply(names(predictions), function(model_name) {
-    cbind(data.frame(Partition = partition, Outcome = outcome,
-                     Model = model_name, stringsAsFactors = FALSE),
-          classification_metrics(observed, predictions[[model_name]], outcome))
-  }))
-}
-```
-
-### Test Accuracy
-
-```{r final_paper_all_models_accuracy, fig.width=9, fig.height=5}
-phq_test_predictions <- list(
-  "Baseline" = phq_baseline_pred,
-  "Linear Regression" = phq_lm_pred,
-  "Gender x STEM Regression" = phq_interaction_pred,
-  "Regression Tree" = phq_tree_pred,
-  "Random Forest" = phq_rf_pred,
-  "Ridge Regression" = phq_ridge_pred,
-  "LASSO Regression" = phq_lasso_pred,
-  "XGBoost" = phq_xgb_pred
-)
-gad_test_predictions <- list(
-  "Baseline" = gad_baseline_pred,
-  "Linear Regression" = gad_lm_pred,
-  "Gender x STEM Regression" = gad_interaction_pred,
-  "Regression Tree" = gad_tree_pred,
-  "Random Forest" = gad_rf_pred,
-  "Ridge Regression" = gad_ridge_pred,
-  "LASSO Regression" = gad_lasso_pred,
-  "XGBoost" = gad_xgb_pred
-)
-
-test_accuracy <- dplyr::bind_rows(
-  score_model_set(test$PHQ, phq_test_predictions, "PHQ", "Test"),
-  score_model_set(test$GAD, gad_test_predictions, "GAD", "Test")
-)
-
-all_test_metrics_with_accuracy <- dplyr::left_join(
-  all_test_metrics, test_accuracy,
-  by = c("Outcome", "Model")
-)
-test_results_table <- all_test_metrics_with_accuracy %>%
+```{r final_paper_model_tables}
+test_results_table <- all_test_metrics %>%
   dplyr::transmute(
     Outcome = dplyr::recode(Outcome, PHQ = "Depression", GAD = "Anxiety"),
     Model = dplyr::recode(Model, "Gender x STEM Regression" = "Gender × STEM Regression"),
     RMSE = round(RMSE, 4),
     MAE = round(MAE, 4),
     `R²` = round(R2, 4),
-    `Accuracy (%)` = round(Within_0_5_Pct, 1)
+    `Accuracy (%)` = round(Accuracy, 2)
   )
 save_paper_table(test_results_table, "table_04_all_eight_models_test_metrics")
-save_paper_table(test_results_table, "table_07_all_eight_models_with_accuracy")
 knitr::kable(test_results_table, caption = "Test Results")
 
-figure_06 <- ggplot2::ggplot(test_accuracy,
-  ggplot2::aes(x = reorder(Model, Within_0_5_Pct),
-               y = Within_0_5_Pct, fill = Outcome)) +
-  ggplot2::geom_col(width = 0.72, show.legend = FALSE) +
-  ggplot2::scale_fill_manual(values = outcome_colors, labels = c(PHQ = "Depression (PHQ-9)", GAD = "Anxiety (GAD-7)")) +
-  ggplot2::facet_wrap(~Outcome, labeller = ggplot2::as_labeller(c(PHQ = "Depression (PHQ-9)", GAD = "Anxiety (GAD-7)")), scales = "free_y") +
-  ggplot2::scale_x_discrete(labels = c("Baseline" = "Baseline (mean)", "Linear Regression" = "Linear regression", "Gender x STEM Regression" = "Gender × STEM regression", "Regression Tree" = "Regression tree", "Random Forest" = "Random forest", "Ridge Regression" = "Ridge regression", "LASSO Regression" = "LASSO regression", "XGBoost" = "XGBoost")) +
-  ggplot2::coord_flip() +
-  ggplot2::labs(title = "Prediction Accuracy",
-                x = NULL, y = "Within-0.5 accuracy (%)")
-print(figure_06)
-save_paper_figure(figure_06, "figure_06_all_models_within_half_point_accuracy", 10, 5.8)
-```
-
-### Validation Accuracy
-
-```{r final_paper_validation_accuracy}
-phq_validation_predictions <- list(
-  "Linear Regression" = phq_lm_validation_pred,
-  "Gender x STEM Regression" = phq_interaction_validation_pred,
-  "LASSO Regression" = phq_lasso_validation_pred,
-  "XGBoost" = phq_xgb_validation_pred
-)
-gad_validation_predictions <- list(
-  "Linear Regression" = gad_lm_validation_pred,
-  "Gender x STEM Regression" = gad_interaction_validation_pred,
-  "LASSO Regression" = gad_lasso_validation_pred,
-  "XGBoost" = gad_xgb_validation_pred
-)
-validation_accuracy <- dplyr::bind_rows(
-  score_model_set(validation$PHQ, phq_validation_predictions,
-                  "PHQ", "Validation"),
-  score_model_set(validation$GAD, gad_validation_predictions,
-                  "GAD", "Validation")
-)
-all_validation_metrics_with_accuracy <- dplyr::left_join(
-  all_validation_metrics, validation_accuracy,
-  by = c("Outcome", "Model")
-)
-validation_results_table <- all_validation_metrics_with_accuracy %>%
+validation_results_table <- all_validation_metrics %>%
   dplyr::transmute(
     Outcome = dplyr::recode(Outcome, PHQ = "Depression", GAD = "Anxiety"),
     Model = dplyr::recode(Model, "Gender x STEM Regression" = "Gender × STEM Regression"),
     RMSE = round(RMSE, 4),
     MAE = round(MAE, 4),
     `R²` = round(R2, 4),
-    `Accuracy (%)` = round(Within_0_5_Pct, 1)
+    `Accuracy (%)` = round(Accuracy, 2)
   )
 save_paper_table(validation_results_table, "table_06_validation_model_metrics")
-save_paper_table(validation_results_table, "table_08_validation_models_with_accuracy")
 knitr::kable(validation_results_table, caption = "Validation Results")
 ```
 
-### Confusion Matrices
+## Residual Plots
 
-
-```{r final_paper_best_model_confusion_matrices, fig.width=9, fig.height=4.5}
-phq_best_name <- as.character(depression_validation$Model[which.min(depression_validation$RMSE)])
-gad_best_name <- as.character(anxiety_validation$Model[which.min(anxiety_validation$RMSE)])
-
-best_validation_predictions <- list(
-  PHQ = phq_validation_predictions[[phq_best_name]],
-  GAD = gad_validation_predictions[[gad_best_name]]
-)
-
-make_confusion_counts <- function(observed, predicted, outcome, model_name) {
-  actual <- classify_symptoms(observed, outcome)
-  estimated <- classify_symptoms(predicted, outcome)
-  count_matrix <- table(Actual = actual, Predicted = estimated)
-  out <- as.data.frame(count_matrix, stringsAsFactors = FALSE)
-  out$Outcome <- outcome
-  out$Model <- model_name
-  out
-}
-
-best_confusions <- dplyr::bind_rows(
-  make_confusion_counts(validation$PHQ, best_validation_predictions$PHQ,
-                        "PHQ", phq_best_name),
-  make_confusion_counts(validation$GAD, best_validation_predictions$GAD,
-                        "GAD", gad_best_name)
-) %>%
-  dplyr::select(Outcome, Model, Actual, Predicted, Freq)
-
-save_paper_table(best_confusions, "table_09_best_validation_confusion_counts")
-knitr::kable(best_confusions, caption = "Confusion Matrices")
-
-best_accuracy_summary <- dplyr::bind_rows(
-  cbind(data.frame(Outcome = "PHQ", Model = phq_best_name),
-        classification_metrics(validation$PHQ, best_validation_predictions$PHQ, "PHQ")),
-  cbind(data.frame(Outcome = "GAD", Model = gad_best_name),
-        classification_metrics(validation$GAD, best_validation_predictions$GAD, "GAD"))
-)
-best_models_table <- validation_results_table %>%
-  dplyr::filter((Outcome == "Depression" & Model ==
-    dplyr::recode(phq_best_name, "Gender x STEM Regression" = "Gender × STEM Regression")) |
-    (Outcome == "Anxiety" & Model ==
-    dplyr::recode(gad_best_name, "Gender x STEM Regression" = "Gender × STEM Regression")))
-save_paper_table(best_models_table, "table_10_best_validation_classification_metrics")
-save_paper_table(best_models_table, "table_11_accuracy_publication_ready")
-knitr::kable(best_models_table, caption = "Best Models")
-
-figure_07 <- ggplot2::ggplot(best_confusions,
-  ggplot2::aes(x = Predicted, y = Actual, fill = Freq)) +
-  ggplot2::geom_tile(color = "white", linewidth = 1) +
-  ggplot2::geom_text(ggplot2::aes(label = scales::comma(Freq)),
-                     size = 4, color = "black") +
-  ggplot2::scale_fill_gradient(low = "white", high = pre_color,
-                               name = "Students") +
-  ggplot2::facet_wrap(~Outcome, labeller = ggplot2::as_labeller(c(PHQ = "Depression (PHQ-9)", GAD = "Anxiety (GAD-7)")), nrow = 1) +
-  ggplot2::coord_equal() +
-  ggplot2::labs(
-    title = "Confusion Matrices",
-    x = "Predicted symptom category", y = "Observed symptom category"
+```{r final_paper_residual_plots, fig.width=10, fig.height=5}
+residual_data <- observed_predicted %>%
+  dplyr::mutate(
+    Residual = Observed - Predicted,
+    Outcome = dplyr::recode(Outcome,
+      PHQ = "Depression (PHQ-9)", GAD = "Anxiety (GAD-7)")
   )
-print(figure_07)
-save_paper_figure(figure_07, "figure_07_best_validation_confusion_matrices", 10, 4.8)
+
+figure_06 <- ggplot2::ggplot(residual_data,
+    ggplot2::aes(x = Predicted, y = Residual, color = Outcome)) +
+  ggplot2::geom_point(alpha = 0.12, size = 0.6) +
+  ggplot2::geom_hline(yintercept = 0, color = "gray40", linetype = "dashed") +
+  ggplot2::facet_wrap(~Outcome, scales = "free_x") +
+  ggplot2::scale_color_manual(values = c(
+    "Depression (PHQ-9)" = phq_color,
+    "Anxiety (GAD-7)" = gad_color), guide = "none") +
+  ggplot2::labs(title = "Residual Plots", x = "Predicted score", y = "Observed − predicted")
+print(figure_06)
+save_paper_figure(figure_06, "figure_06_validation_residuals", 10, 5)
 ```
 
 
+## Confusion Matrices
+
+```{r final_paper_confusion_matrices, fig.width=10, fig.height=5}
+make_confusion <- function(observed, predicted, outcome, cutoff) {
+  labels <- c("Below 10", "10 or higher")
+  observed_group <- factor(ifelse(observed >= cutoff, labels[2], labels[1]), levels = labels)
+  predicted_group <- factor(ifelse(predicted >= cutoff, labels[2], labels[1]), levels = labels)
+  tab <- as.data.frame(table(Observed = observed_group, Predicted = predicted_group))
+  tab$Outcome <- outcome
+  tab
+}
+
+confusion_data <- dplyr::bind_rows(
+  make_confusion(validation$PHQ, phq_interaction_validation_pred, "Depression", 1 + 10 / 9),
+  make_confusion(validation$GAD, gad_interaction_validation_pred, "Anxiety", 1 + 10 / 7)
+)
+
+confusion_table <- confusion_data %>%
+  tidyr::pivot_wider(names_from = Predicted, values_from = Freq) %>%
+  dplyr::rename(`Predicted below 10` = `Below 10`,
+                `Predicted 10 or higher` = `10 or higher`) %>%
+  dplyr::select(Outcome, Observed, `Predicted below 10`, `Predicted 10 or higher`)
+
+save_paper_table(confusion_table, "table_07_confusion_matrices")
+knitr::kable(confusion_table, caption = "Confusion Matrices")
+
+confusion_plot <- ggplot2::ggplot(confusion_data,
+    ggplot2::aes(x = Predicted, y = Observed, fill = Freq)) +
+  ggplot2::geom_tile(color = "white", linewidth = 1) +
+  ggplot2::geom_text(ggplot2::aes(label = scales::comma(Freq)), size = 5) +
+  ggplot2::scale_fill_gradient(low = "white", high = "#377EB8", name = "Students") +
+  ggplot2::facet_wrap(~Outcome, nrow = 1) +
+  ggplot2::coord_equal() +
+  ggplot2::labs(title = "Confusion Matrices", x = "Predicted", y = "Observed")
+print(confusion_plot)
+save_paper_figure(confusion_plot, "figure_07_best_validation_confusion_matrices", 10, 5)
+```

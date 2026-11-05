@@ -1782,19 +1782,32 @@ knitr::kable(
 final_paper_dir <- file.path(project_root, "outputs", "final_paper")
 figure_dir <- file.path(final_paper_dir, "figures")
 table_dir <- file.path(final_paper_dir, "tables")
-dir.create(figure_dir, showWarnings = FALSE, recursive = TRUE)
-dir.create(table_dir, showWarnings = FALSE, recursive = TRUE)
+dir.create(figure_dir, recursive = TRUE, showWarnings = FALSE)
+dir.create(table_dir, recursive = TRUE, showWarnings = FALSE)
 
 save_paper_figure <- function(plot, filename, width = 8, height = 5) {
-  ggplot2::ggsave(file.path(figure_dir, paste0(filename, ".png")),
-                  plot = plot, width = width, height = height, dpi = 300, bg = "white")
-  ggplot2::ggsave(file.path(figure_dir, paste0(filename, ".pdf")),
-                  plot = plot, width = width, height = height, bg = "white")
+  for (extension in c("png", "pdf")) {
+    path <- file.path(figure_dir, paste0(filename, ".", extension))
+    tryCatch(
+      ggplot2::ggsave(path, plot = plot, width = width, height = height,
+                      dpi = 300, bg = "white"),
+      error = function(e) message("Figure not saved: ", path)
+    )
+  }
 }
+
 save_paper_table <- function(tab, filename, digits = 4) {
-  utils::write.csv(tab, file.path(table_dir, paste0(filename, ".csv")), row.names = FALSE, na = "")
-  html <- knitr::kable(tab, format = "html", digits = digits, escape = TRUE)
-  writeLines(as.character(html), file.path(table_dir, paste0(filename, ".html")), useBytes = TRUE)
+  csv_path <- file.path(table_dir, paste0(filename, ".csv"))
+  html_path <- file.path(table_dir, paste0(filename, ".html"))
+  tryCatch(
+    utils::write.csv(tab, csv_path, row.names = FALSE, na = ""),
+    error = function(e) message("Table CSV not saved (file in use or folder blocked): ", csv_path)
+  )
+  tryCatch(
+    writeLines(as.character(knitr::kable(tab, format = "html", digits = digits)), html_path),
+    error = function(e) message("Table HTML not saved (file in use or folder blocked): ", html_path)
+  )
+  invisible(tab)
 }
 ```
 
@@ -1815,16 +1828,15 @@ mean_plot_input <- dplyr::bind_rows(
                 CI_Upper = Mean + stats::qt(0.975, N - 1) * SE,
                 Period = factor(Period, levels = c("2017-2018", "2022-2023")))
 
-figure_01 <- ggplot2::ggplot(mean_plot_input,
-                    ggplot2::aes(x = Outcome, y = Mean, fill = Period)) +
-  ggplot2::geom_col(position = ggplot2::position_dodge(width = 0.75), width = 0.65) +
-  ggplot2::geom_errorbar(ggplot2::aes(ymin = CI_Lower, ymax = CI_Upper),
-      position = ggplot2::position_dodge(width = 0.75), width = 0.16) +
-  ggplot2::scale_fill_manual(values = c("2017-2018" = pre_color, "2022-2023" = post_color)) +
-  ggplot2::scale_x_discrete(labels = c(PHQ = "Depression (PHQ-9)", GAD = "Anxiety (GAD-7)")) +
-  ggplot2::labs(title = "Average Depression and Anxiety",
-       x = NULL, y = "Mean item score (1–4)", fill = "Survey period")
-print(figure_01)
-save_paper_figure(figure_01, "figure_01_mean_phq_gad_by_period", width = 7.5, height = 5)
-save_paper_table(mean_plot_input, "table_01_descriptive_means_and_ci")
+descriptive_table <- mean_plot_input %>%
+  dplyr::transmute(
+    Outcome = dplyr::recode(Outcome, PHQ = "Depression", GAD = "Anxiety"),
+    `Survey Period` = as.character(Period),
+    N = N,
+    Mean = round(Mean, 4),
+    SD = round(SD, 4),
+    `95% CI` = sprintf("(%.4f, %.4f)", CI_Lower, CI_Upper)
+  )
+save_paper_table(descriptive_table, "table_01_descriptive_means_and_ci")
+knitr::kable(descriptive_table, caption = "Average Scores")
 ```

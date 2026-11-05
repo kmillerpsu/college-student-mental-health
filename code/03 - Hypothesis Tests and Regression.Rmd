@@ -527,19 +527,32 @@ sessionInfo()
 final_paper_dir <- file.path(project_root, "outputs", "final_paper")
 figure_dir <- file.path(final_paper_dir, "figures")
 table_dir <- file.path(final_paper_dir, "tables")
-dir.create(figure_dir, showWarnings = FALSE, recursive = TRUE)
-dir.create(table_dir, showWarnings = FALSE, recursive = TRUE)
+dir.create(figure_dir, recursive = TRUE, showWarnings = FALSE)
+dir.create(table_dir, recursive = TRUE, showWarnings = FALSE)
 
 save_paper_figure <- function(plot, filename, width = 8, height = 5) {
-  ggplot2::ggsave(file.path(figure_dir, paste0(filename, ".png")),
-                  plot = plot, width = width, height = height, dpi = 300, bg = "white")
-  ggplot2::ggsave(file.path(figure_dir, paste0(filename, ".pdf")),
-                  plot = plot, width = width, height = height, bg = "white")
+  for (extension in c("png", "pdf")) {
+    path <- file.path(figure_dir, paste0(filename, ".", extension))
+    tryCatch(
+      ggplot2::ggsave(path, plot = plot, width = width, height = height,
+                      dpi = 300, bg = "white"),
+      error = function(e) message("Figure not saved: ", path)
+    )
+  }
 }
+
 save_paper_table <- function(tab, filename, digits = 4) {
-  utils::write.csv(tab, file.path(table_dir, paste0(filename, ".csv")), row.names = FALSE, na = "")
-  html <- knitr::kable(tab, format = "html", digits = digits, escape = TRUE)
-  writeLines(as.character(html), file.path(table_dir, paste0(filename, ".html")), useBytes = TRUE)
+  csv_path <- file.path(table_dir, paste0(filename, ".csv"))
+  html_path <- file.path(table_dir, paste0(filename, ".html"))
+  tryCatch(
+    utils::write.csv(tab, csv_path, row.names = FALSE, na = ""),
+    error = function(e) message("Table CSV not saved (file in use or folder blocked): ", csv_path)
+  )
+  tryCatch(
+    writeLines(as.character(knitr::kable(tab, format = "html", digits = digits)), html_path),
+    error = function(e) message("Table HTML not saved (file in use or folder blocked): ", html_path)
+  )
+  invisible(tab)
 }
 ```
 
@@ -650,23 +663,3 @@ knitr::kable(interaction_publication,
 
 ```
 
-## Regression Coefficients
-
-```{r final_paper_coefficient_plot, fig.width=11, fig.height=7}
-coefficient_plot_data <- regression_ci_results %>%
-  dplyr::filter(Predictor != "(Intercept)") %>%
-  dplyr::mutate(
-    Predictor = vapply(Predictor, paper_predictor_label, character(1)),
-    Predictor = factor(Predictor, levels = rev(unique(Predictor)))
-  )
-figure_02 <- ggplot2::ggplot(coefficient_plot_data,
-                            ggplot2::aes(x = Coefficient, y = Predictor, color = Outcome)) +
-  ggplot2::geom_vline(xintercept = 0, linetype = "dashed", color = "gray50") +
-  ggplot2::geom_pointrange(ggplot2::aes(xmin = CI_Lower, xmax = CI_Upper),
-                          position = ggplot2::position_dodge(width = 0.5)) +
-  ggplot2::scale_color_manual(values = outcome_colors, breaks = c("PHQ", "GAD"), labels = c("Depression (PHQ-9)", "Anxiety (GAD-7)")) +
-  ggplot2::labs(title = "Regression Coefficients",
-                         x = "Regression coefficient", y = NULL)
-print(figure_02)
-save_paper_figure(figure_02, "figure_optional_adjusted_coefficient_plot", 11, 7)
-```
