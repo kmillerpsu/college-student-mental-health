@@ -11,13 +11,11 @@ output:
 # Setup
 
 ```{r setup, include = FALSE}
-# Configure the report and reproducible random seed.
 knitr::opts_chunk$set(echo = TRUE, message = FALSE, warning = FALSE)
 set.seed(415)
 ```
 
 ```{r packages}
-# Load packages required for statistical comparisons.
 required_packages <- c("dplyr", "tidyr", "ggplot2", "knitr")
 missing_packages <- required_packages[
   !vapply(required_packages, requireNamespace, logical(1), quietly = TRUE)
@@ -31,12 +29,28 @@ library(dplyr)
 library(tidyr)
 library(ggplot2)
 library(knitr)
+
+pre_color <- "#377EB8"
+post_color <- "#E69F00"
+phq_color <- pre_color
+gad_color <- post_color
+outcome_colors <- c("PHQ" = phq_color, "GAD" = gad_color)
+period_colors <- c("2017-2018" = pre_color, "2022-2023" = post_color)
+feature_colors <- c("Full features" = pre_color,
+                    "Student characteristics only" = post_color)
+paper_theme <- ggplot2::theme_minimal(base_size = 12) +
+  ggplot2::theme(
+    plot.title = ggplot2::element_text(face = "bold"),
+    axis.text.x = ggplot2::element_text(angle = 0, hjust = 0.5),
+    legend.position = "bottom",
+    panel.grid.minor = ggplot2::element_blank()
+  )
+ggplot2::theme_set(paper_theme)
 ```
 
 # Load Data
 
 ```{r load_data}
-# Find the project root whether knitting from code/ or the project root.
 project_root <- if (file.exists("data/processed/pre_covid_clean.csv")) {
   "."
 } else if (file.exists("../data/processed/pre_covid_clean.csv")) {
@@ -45,7 +59,6 @@ project_root <- if (file.exists("data/processed/pre_covid_clean.csv")) {
   stop("Cannot locate data/processed/pre_covid_clean.csv. Open the project .Rproj first.")
 }
 
-# Read the two processed datasets without modifying the originals.
 pre_path <- file.path(project_root, "data", "processed", "pre_covid_clean.csv")
 post_path <- file.path(project_root, "data", "processed", "post_covid_clean.csv")
 
@@ -56,7 +69,6 @@ if (!file.exists(post_path)) {
 pre_covid <- read.csv(pre_path, check.names = FALSE)
 post_covid <- read.csv(post_path, check.names = FALSE)
 
-# Check the shared variables needed for comparisons.
 required_columns <- c("PHQ", "GAD", "gender", "field", "race.2",
                       "yr_sch.2", "fincur.2", "age")
 
@@ -67,7 +79,6 @@ for (dataset_name in c("pre_covid", "post_covid")) {
   }
 }
 
-# Confirm sample sizes.
 data.frame(
   Dataset = c("Pre-COVID (2017–2018)", "Post-COVID (2022–2023)"),
   N = c(nrow(pre_covid), nrow(post_covid))
@@ -77,8 +88,6 @@ data.frame(
 # Clean Pre-COVID and Post-COVID Data
 
 ```{r analysis_01}
-# Standardize survey periods and demographic categories across datasets.
-# Convert outcomes and numeric predictors to numeric values, then combine the samples.
 pre_covid$Period <- "2017-2018 Pre-COVID"
 post_covid$Period <- "2022-2023 Post-COVID"
 
@@ -172,8 +181,6 @@ combined$Period <- factor(
 ## Depression
 
 ```{r analysis_02}
-# Use a two-sample t-test to compare average depression (PHQ) scores
-# between the pre-COVID and post-COVID survey periods.
 phq_test <- t.test(
   PHQ ~ Period,
   data = combined
@@ -182,13 +189,10 @@ phq_test <- t.test(
 phq_test
 ```
 
-*Interpretation note:* Use the numerical output above when reporting the direction, magnitude, and significance of this comparison.
 
 ## Anxiety
 
 ```{r analysis_03}
-# Use a two-sample t-test to compare average anxiety (GAD) scores
-# between the pre-COVID and post-COVID survey periods.
 gad_test <- t.test(
   GAD ~ Period,
   data = combined
@@ -197,14 +201,12 @@ gad_test <- t.test(
 gad_test
 ```
 
-*Interpretation note:* Use the numerical output above when reporting the direction, magnitude, and significance of this comparison.
 
 # Student Characteristic Differences
 
 ## Age
 
 ```{r analysis_04}
-# Test whether the average student age differs between survey periods.
 age_test <- t.test(
   age ~ Period,
   data = combined
@@ -213,12 +215,10 @@ age_test <- t.test(
 age_test
 ```
 
-*Interpretation note:* Use the numerical output above when reporting the direction, magnitude, and significance of this comparison.
 
 ## Financial Stress
 
 ```{r analysis_05}
-# Compare average current financial stress scores across survey periods.
 financial_test <- t.test(
   fincur.2 ~ Period,
   data = combined
@@ -227,13 +227,10 @@ financial_test <- t.test(
 financial_test
 ```
 
-*Interpretation note:* Use the numerical output above when reporting the direction, magnitude, and significance of this comparison.
 
 ## Gender
 
 ```{r analysis_06}
-# Create a period-by-gender frequency table and use a chi-square test
-# to examine whether the gender distribution differs across periods.
 gender_table <- table(
   combined$Period,
   combined$gender
@@ -248,13 +245,10 @@ gender_test <- chisq.test(
 gender_test
 ```
 
-*Interpretation note:* Use the numerical output above when reporting the direction, magnitude, and significance of this comparison.
 
 ## STEM Status
 
 ```{r analysis_07}
-# Compare the proportion of STEM and non-STEM students across periods
-# using a contingency table and chi-square test.
 stem_table <- table(
   combined$Period,
   combined$field
@@ -269,13 +263,10 @@ stem_test <- chisq.test(
 stem_test
 ```
 
-*Interpretation note:* Use the numerical output above when reporting the direction, magnitude, and significance of this comparison.
 
 ## Race
 
 ```{r analysis_08}
-# Test whether the distribution of reported race categories
-# differs between the pre-COVID and post-COVID samples.
 race_table <- table(
   combined$Period,
   combined$race.2
@@ -290,13 +281,10 @@ race_test <- chisq.test(
 race_test
 ```
 
-*Interpretation note:* Use the numerical output above when reporting the direction, magnitude, and significance of this comparison.
 
 ## Year in School
 
 ```{r analysis_09}
-# Use a chi-square test to compare year-in-school distributions
-# across the two survey periods.
 year_table <- table(
   combined$Period,
   combined$yr_sch.2
@@ -311,13 +299,10 @@ year_test <- chisq.test(
 year_test
 ```
 
-*Interpretation note:* Use the numerical output above when reporting the direction, magnitude, and significance of this comparison.
 
 # Depression Changes by Gender
 
 ```{r analysis_10}
-# Compare pre- and post-COVID depression scores separately for men
-# and women using two-sample t-tests within each gender group.
 men_phq <- t.test(
   PHQ ~ Period,
   data = combined %>%
@@ -334,13 +319,10 @@ men_phq
 women_phq
 ```
 
-*Interpretation note:* Use the numerical output above when reporting the direction, magnitude, and significance of this comparison.
 
 # Anxiety Changes by Gender
 
 ```{r analysis_11}
-# Compare pre- and post-COVID anxiety scores separately for men
-# and women using two-sample t-tests within each gender group.
 men_gad <- t.test(
   GAD ~ Period,
   data = combined %>%
@@ -357,13 +339,10 @@ men_gad
 women_gad
 ```
 
-*Interpretation note:* Use the numerical output above when reporting the direction, magnitude, and significance of this comparison.
 
 # Depression Changes by STEM Status
 
 ```{r analysis_12}
-# Test changes in depression scores across survey periods separately
-# for STEM and non-STEM students.
 nonstem_phq <- t.test(
   PHQ ~ Period,
   data = combined %>%
@@ -380,13 +359,10 @@ nonstem_phq
 stem_phq
 ```
 
-*Interpretation note:* Use the numerical output above when reporting the direction, magnitude, and significance of this comparison.
 
 # Anxiety Changes by STEM Status
 
 ```{r analysis_13}
-# Test changes in anxiety scores across survey periods separately
-# for STEM and non-STEM students.
 nonstem_gad <- t.test(
   GAD ~ Period,
   data = combined %>%
@@ -403,15 +379,12 @@ nonstem_gad
 stem_gad
 ```
 
-*Interpretation note:* Use the numerical output above when reporting the direction, magnitude, and significance of this comparison.
 
 # Did Relationships Change After COVID?
 
 ## Depression and Gender
 
 ```{r analysis_14}
-# Fit a period-by-gender interaction model for depression to assess
-# whether the gender difference in PHQ scores varies by survey period.
 phq_gender_interaction <- lm(
   PHQ ~ Period * gender,
   data = combined
@@ -420,13 +393,10 @@ phq_gender_interaction <- lm(
 summary(phq_gender_interaction)
 ```
 
-*Interpretation note:* Use the numerical output above when reporting the direction, magnitude, and significance of this comparison.
 
 ## Depression and STEM Status
 
 ```{r analysis_15}
-# Fit a period-by-STEM interaction model for depression to assess
-# whether the STEM/non-STEM difference varies by survey period.
 phq_stem_interaction <- lm(
   PHQ ~ Period * field,
   data = combined
@@ -435,13 +405,10 @@ phq_stem_interaction <- lm(
 summary(phq_stem_interaction)
 ```
 
-*Interpretation note:* Use the numerical output above when reporting the direction, magnitude, and significance of this comparison.
 
 ## Anxiety and Gender
 
 ```{r analysis_16}
-# Fit a period-by-gender interaction model for anxiety to assess
-# whether the gender difference in GAD scores varies by survey period.
 gad_gender_interaction <- lm(
   GAD ~ Period * gender,
   data = combined
@@ -450,13 +417,10 @@ gad_gender_interaction <- lm(
 summary(gad_gender_interaction)
 ```
 
-*Interpretation note:* Use the numerical output above when reporting the direction, magnitude, and significance of this comparison.
 
 ## Anxiety and STEM Status
 
 ```{r analysis_17}
-# Fit a period-by-STEM interaction model for anxiety to assess
-# whether the STEM/non-STEM difference varies by survey period.
 gad_stem_interaction <- lm(
   GAD ~ Period * field,
   data = combined
@@ -465,15 +429,12 @@ gad_stem_interaction <- lm(
 summary(gad_stem_interaction)
 ```
 
-*Interpretation note:* Use the numerical output above when reporting the direction, magnitude, and significance of this comparison.
 
 # Adjusted Pre/Post Models
 
 ## Adjusted Depression Model
 
 ```{r analysis_18}
-# Estimate the difference in depression scores between survey periods
-# while adjusting for gender, STEM status, race, year, financial stress, and age.
 adjusted_phq <- lm(
   PHQ ~ Period +
     gender +
@@ -488,13 +449,10 @@ adjusted_phq <- lm(
 summary(adjusted_phq)
 ```
 
-*Interpretation note:* Use the numerical output above when reporting the direction, magnitude, and significance of this comparison.
 
 ## Adjusted Anxiety Model
 
 ```{r analysis_19}
-# Estimate the difference in anxiety scores between survey periods
-# while adjusting for gender, STEM status, race, year, financial stress, and age.
 adjusted_gad <- lm(
   GAD ~ Period +
     gender +
@@ -509,13 +467,10 @@ adjusted_gad <- lm(
 summary(adjusted_gad)
 ```
 
-*Interpretation note:* Use the numerical output above when reporting the direction, magnitude, and significance of this comparison.
-
 
 # Results Tables
 
 ```{r comparison_table}
-# Summarize the raw PHQ and GAD differences by period.
 period_summary <- combined %>%
   group_by(Period) %>%
   summarise(
@@ -534,7 +489,6 @@ knitr::kable(period_summary, digits = 3,
 ```
 
 ```{r regression_tables}
-# Present adjusted regression coefficients in compact tables.
 regression_table <- function(model, outcome) {
   coef_table <- as.data.frame(summary(model)$coefficients)
   coef_table$Term <- rownames(coef_table)
@@ -550,11 +504,10 @@ adjusted_results <- dplyr::bind_rows(
 )
 
 knitr::kable(adjusted_results, digits = 4,
-             caption = "Adjusted PHQ and GAD regression coefficients")
+             caption = "Regression Results")
 ```
 
 ```{r model_diagnostics}
-# Check residual patterns for the two adjusted models.
 par(mfrow = c(1, 2))
 plot(adjusted_phq, which = 1, main = "PHQ residuals")
 plot(adjusted_gad, which = 1, main = "GAD residuals")
@@ -564,6 +517,156 @@ par(mfrow = c(1, 1))
 # Reproducibility
 
 ```{r session_info}
-# Record package and R versions for reproducibility.
 sessionInfo()
+```
+
+# Paper Figures and Tables
+
+
+```{r final_paper_export_setup}
+final_paper_dir <- file.path(project_root, "outputs", "final_paper")
+figure_dir <- file.path(final_paper_dir, "figures")
+table_dir <- file.path(final_paper_dir, "tables")
+dir.create(figure_dir, showWarnings = FALSE, recursive = TRUE)
+dir.create(table_dir, showWarnings = FALSE, recursive = TRUE)
+
+save_paper_figure <- function(plot, filename, width = 8, height = 5) {
+  ggplot2::ggsave(file.path(figure_dir, paste0(filename, ".png")),
+                  plot = plot, width = width, height = height, dpi = 300, bg = "white")
+  ggplot2::ggsave(file.path(figure_dir, paste0(filename, ".pdf")),
+                  plot = plot, width = width, height = height, bg = "white")
+}
+save_paper_table <- function(tab, filename, digits = 4) {
+  utils::write.csv(tab, file.path(table_dir, paste0(filename, ".csv")), row.names = FALSE, na = "")
+  html <- knitr::kable(tab, format = "html", digits = digits, escape = TRUE)
+  writeLines(as.character(html), file.path(table_dir, paste0(filename, ".html")), useBytes = TRUE)
+}
+```
+
+## Regression Results
+
+```{r final_paper_regression_ci_table}
+model_ci_table <- function(model, outcome) {
+  coefficients <- as.data.frame(summary(model)$coefficients)
+  confidence_intervals <- stats::confint(model, level = 0.95)
+  data.frame(
+    Outcome = outcome, Predictor = rownames(coefficients),
+    Coefficient = coefficients[, 1], Standard_Error = coefficients[, 2],
+    CI_Lower = confidence_intervals[, 1], CI_Upper = confidence_intervals[, 2],
+    T_Value = coefficients[, 3], P_Value = coefficients[, 4],
+    row.names = NULL, check.names = FALSE
+  )
+}
+regression_ci_results <- dplyr::bind_rows(
+  model_ci_table(adjusted_phq, "PHQ"),
+  model_ci_table(adjusted_gad, "GAD")
+)
+save_paper_table(regression_ci_results, "table_02_adjusted_phq_gad_regression_ci")
+knitr::kable(regression_ci_results, digits = 4,
+             caption = "Regression Results")
+
+paper_predictor_label <- function(term) {
+  if (term == "(Intercept)") return("Intercept")
+  if (grepl("^Period", term)) return("Survey period: 2022–2023 vs 2017–2018")
+  if (grepl("^gender", term)) return("Gender: women vs men")
+  if (grepl("^field", term)) return("Major: STEM vs non-STEM")
+  if (grepl("^race\\.2", term)) {
+    category <- sub("^race\\.2", "", term)
+    return(paste0("Race: ", category, " vs White"))
+  }
+  if (grepl("^yr_sch\\.2", term)) {
+    category <- sub("^yr_sch\\.2", "", term)
+    category <- switch(category,
+                       "secondyear" = "second year", "thirdyear" = "third year",
+                       "fourthyear+" = "fourth year or later", category)
+    return(paste0("Year in school: ", category, " vs first year"))
+  }
+  if (term == "fincur.2") return("Financial stress (per category)")
+  if (term == "age") return("Age (per year)")
+  term
+}
+paper_p_value <- function(p) {
+  ifelse(is.na(p), "NA", ifelse(p < 0.0001, "<0.0001", sprintf("%.4f", p)))
+}
+
+regression_ci_publication <- regression_ci_results %>%
+  dplyr::mutate(
+    Outcome = dplyr::recode(Outcome, PHQ = "Depression (PHQ-9)", GAD = "Anxiety (GAD-7)"),
+    Predictor = vapply(Predictor, paper_predictor_label, character(1)),
+    Coefficient = sprintf("%.4f", Coefficient),
+    Standard_Error = sprintf("%.4f", Standard_Error),
+    `95% CI` = sprintf("(%.4f, %.4f)", CI_Lower, CI_Upper),
+    `p-value` = paper_p_value(P_Value)
+  ) %>%
+  dplyr::select(Outcome, Predictor, Coefficient, Standard_Error, `95% CI`, `p-value`)
+save_paper_table(regression_ci_publication, "table_02b_regression_publication_ready")
+knitr::kable(regression_ci_publication, caption =
+             "Regression Results")
+
+```
+
+## Interactions
+
+```{r final_paper_interaction_table}
+extract_interaction <- function(model, outcome, comparison) {
+  coefficient_matrix <- summary(model)$coefficients
+  interaction_index <- grep(":", rownames(coefficient_matrix), fixed = TRUE)
+  if (length(interaction_index) != 1L) {
+    stop("Expected exactly one interaction coefficient for ", comparison, " / ", outcome)
+  }
+  confidence_interval <- stats::confint(model)[interaction_index, ]
+  data.frame(
+    Outcome = outcome, Interaction = comparison,
+    Coefficient = coefficient_matrix[interaction_index, 1],
+    Standard_Error = coefficient_matrix[interaction_index, 2],
+    CI_Lower = confidence_interval[1], CI_Upper = confidence_interval[2],
+    T_Value = coefficient_matrix[interaction_index, 3],
+    P_Value = coefficient_matrix[interaction_index, 4]
+  )
+}
+interaction_results <- dplyr::bind_rows(
+  extract_interaction(phq_gender_interaction, "PHQ", "Period × Gender"),
+  extract_interaction(phq_stem_interaction, "PHQ", "Period × STEM"),
+  extract_interaction(gad_gender_interaction, "GAD", "Period × Gender"),
+  extract_interaction(gad_stem_interaction, "GAD", "Period × STEM")
+)
+save_paper_table(interaction_results, "table_03_period_interaction_results")
+knitr::kable(interaction_results, digits = 4,
+             caption = "Interactions")
+
+interaction_publication <- interaction_results %>%
+  dplyr::mutate(
+    Outcome = dplyr::recode(Outcome, PHQ = "Depression (PHQ-9)", GAD = "Anxiety (GAD-7)"),
+    Coefficient = sprintf("%.4f", Coefficient),
+    Standard_Error = sprintf("%.4f", Standard_Error),
+    `95% CI` = sprintf("(%.4f, %.4f)", CI_Lower, CI_Upper),
+    `t-value` = sprintf("%.2f", T_Value),
+    `p-value` = paper_p_value(P_Value)
+  ) %>%
+  dplyr::select(Outcome, Interaction, Coefficient, Standard_Error, `95% CI`, `t-value`, `p-value`)
+save_paper_table(interaction_publication, "table_03b_interactions_publication_ready")
+knitr::kable(interaction_publication,
+             caption = "Interactions")
+
+```
+
+## Regression Coefficients
+
+```{r final_paper_coefficient_plot, fig.width=11, fig.height=7}
+coefficient_plot_data <- regression_ci_results %>%
+  dplyr::filter(Predictor != "(Intercept)") %>%
+  dplyr::mutate(
+    Predictor = vapply(Predictor, paper_predictor_label, character(1)),
+    Predictor = factor(Predictor, levels = rev(unique(Predictor)))
+  )
+figure_02 <- ggplot2::ggplot(coefficient_plot_data,
+                            ggplot2::aes(x = Coefficient, y = Predictor, color = Outcome)) +
+  ggplot2::geom_vline(xintercept = 0, linetype = "dashed", color = "gray50") +
+  ggplot2::geom_pointrange(ggplot2::aes(xmin = CI_Lower, xmax = CI_Upper),
+                          position = ggplot2::position_dodge(width = 0.5)) +
+  ggplot2::scale_color_manual(values = outcome_colors, breaks = c("PHQ", "GAD"), labels = c("Depression (PHQ-9)", "Anxiety (GAD-7)")) +
+  ggplot2::labs(title = "Regression Coefficients",
+                         x = "Regression coefficient", y = NULL)
+print(figure_02)
+save_paper_figure(figure_02, "figure_optional_adjusted_coefficient_plot", 11, 7)
 ```

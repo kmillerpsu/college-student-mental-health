@@ -1,0 +1,5 @@
+"Outcome","Model","RMSE","MAE","R²","Accuracy (%)"
+"Depression","With anxiety",0.463,0.3539,0.5692,75
+"Depression","Student characteristics",0.6568,0.525,0.1324,55
+"Anxiety","With depression",0.5427,0.4187,0.5681,67.9
+"Anxiety","Student characteristics",0.7698,0.6331,0.1302,44.4

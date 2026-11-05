@@ -1,0 +1,3 @@
+"Outcome","Model","RMSE","MAE","R²","Accuracy (%)"
+"Depression","Gender × STEM Regression",0.4591,0.3525,0.5746,75.8
+"Anxiety","Gender × STEM Regression",0.533,0.4092,0.5762,69.3
