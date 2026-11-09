@@ -8,11 +8,31 @@ output:
     number_sections: true
 ---
 
+
+<style>
+/* A little extra space makes the tables and plots easier to read. */
+.main-container { max-width: 1100px !important; }
+h1 { margin-top: 44px; margin-bottom: 18px; }
+h2 { margin-top: 30px; margin-bottom: 15px; }
+.paper-table-title { font-weight: 700; margin: 30px 0 10px; font-size: 15px; color: #283c54; line-height: 1.5; }
+.paper-figure-title { font-weight: 700; font-size: 15px; color: #283c54; margin: 38px 0 16px; line-height: 1.5; }
+.paper-table-wrap { margin: 0 0 38px; overflow-x: auto; }
+.paper-figure-wrap { margin: 0 auto 42px; padding: 12px 0 4px; text-align: center; }
+.paper-table-wrap table, table.paper-table { border-collapse: collapse !important; width: 100%; margin: 0 !important; font-size: 13px; line-height: 1.5; }
+.paper-table-wrap th, table.paper-table th { background: #eaf0f7 !important; color: #243951; border-bottom: 2px solid #b4c5d9 !important; padding: 10px 12px !important; text-align: left !important; white-space: nowrap; }
+.paper-table-wrap td, table.paper-table td { padding: 9px 12px !important; border-bottom: 1px solid #e2e8f0 !important; vertical-align: top; }
+.paper-table-wrap tbody tr:nth-child(even), table.paper-table tbody tr:nth-child(even) { background: #f6f8fb !important; }
+.paper-table-wrap tbody tr:hover, table.paper-table tbody tr:hover { background: #ecf3fa !important; }
+.paper-figure-wrap img { display: block; margin: 0 auto; max-width: 100%; height: auto; }
+@media print { .paper-table-wrap { overflow: visible; } .paper-table-wrap tr { break-inside: avoid; } .paper-figure-wrap { break-inside: avoid; } }
+</style>
+
 # Pre-COVID and Post-COVID Exploratory Data Analysis
 
 # Setup
 
 ```{r setup, message=FALSE, warning=FALSE}
+# Load the packages and set consistent options for the analysis report.
 knitr::opts_chunk$set(echo = TRUE, message = FALSE, warning = FALSE)
 
 required_packages <- c("tidyverse", "here", "scales")
@@ -34,6 +54,7 @@ set.seed(415)
 ## Plot Colors and Theme
 
 ```{r descriptive-01}
+# Define consistent colors and identify the variables used throughout the comparisons.
 pre_color <- "#377EB8"
 post_color <- "#E69F00"
 
@@ -72,11 +93,13 @@ theme_set(
 # Load Data
 
 ```{r load-data}
+# Load the cleaned pre-COVID and post-COVID datasets from the project folders.
 project_root <- here::here()
 
 pre_path <- file.path(project_root, "data", "processed", "pre_covid_clean.csv")
 post_path <- file.path(project_root, "data", "processed", "post_covid_clean.csv")
 
+# Confirm the project root and both input files.
 if (!file.exists(pre_path) || !file.exists(post_path)) {
   stop(
     "Missing processed data files. Open the project's .Rproj file first. ",
@@ -89,6 +112,7 @@ if (!file.exists(pre_path) || !file.exists(post_path)) {
 pre_covid <- readr::read_csv(pre_path, show_col_types = FALSE)
 post_covid <- readr::read_csv(post_path, show_col_types = FALSE)
 
+# Confirm the variables used throughout the descriptive analysis.
 variables_used <- c(
   "PHQ", "GAD", "gender", "field", "race.2", "yr_sch.2", "fincur.2", "age"
 )
@@ -104,6 +128,7 @@ for (period_name in c("pre_covid", "post_covid")) {
 # Make Variables Consistent
 
 ```{r descriptive-02}
+# Standardize the post-COVID variable categories so they can be compared with the pre-COVID data.
 post_covid <- post_covid %>%
   mutate(
     field = case_when(
@@ -188,14 +213,18 @@ post_covid$yr_sch.2 <- factor(
 # Final Data Check
 
 ```{r descriptive-03}
+# Check the number of observations and variables in the pre-COVID dataset.
 dim(pre_covid)
 ```
 
 ```{r descriptive-04}
+# Check the number of observations and variables in the post-COVID dataset.
 dim(post_covid)
 ```
 
 ```{r descriptive-05}
+# Confirm that the variables needed for descriptive analysis exist in both datasets.
+# Verify that both datasets contain the analysis variables.
 variable_check <- data.frame(
   Variable = variables_used,
   Pre_COVID = variables_used %in% names(pre_covid),
@@ -213,16 +242,19 @@ knitr::kable(
 ## Dataset Overview
 
 ```{r descriptive-06}
+# Report the dimensions of the pre-COVID sample before exploring its characteristics.
 dim(pre_covid)
 ```
 
 ```{r descriptive-07}
+# Inspect the pre-COVID variable types and a preview of their values.
 glimpse(pre_covid)
 ```
 
 ## Missing Values
 
 ```{r descriptive-08}
+# Count missing values for each selected variable in the pre-COVID sample.
 pre_missing <- data.frame(
   Variable = variables_used,
   Missing = sapply(
@@ -249,14 +281,17 @@ knitr::kable(
 ## Depression and Anxiety Scores
 
 ```{r descriptive-09}
+# Summarize the distribution of pre-COVID depression (PHQ) scores.
 summary(pre_covid$PHQ)
 ```
 
 ```{r descriptive-10}
+# Summarize the distribution of pre-COVID anxiety (GAD) scores.
 summary(pre_covid$GAD)
 ```
 
 ```{r descriptive-11}
+# Plot the distribution of depression scores in the pre-COVID sample.
 ggplot(pre_covid, aes(x = PHQ)) +
   geom_histogram(
     binwidth = 1/9,
@@ -272,6 +307,7 @@ ggplot(pre_covid, aes(x = PHQ)) +
 
 
 ```{r descriptive-12}
+# Plot the distribution of anxiety scores in the pre-COVID sample.
 ggplot(pre_covid, aes(x = GAD)) +
   geom_histogram(
     binwidth = 1/7,
@@ -289,6 +325,7 @@ ggplot(pre_covid, aes(x = GAD)) +
 ## Gender Distribution
 
 ```{r descriptive-13}
+# Show the gender composition of the pre-COVID sample.
 ggplot(
   filter(pre_covid, !is.na(gender)),
   aes(x = gender, fill = gender)
@@ -307,6 +344,7 @@ ggplot(
 ## STEM and Non-STEM Distribution
 
 ```{r descriptive-14}
+# Show the distribution of STEM and non-STEM fields before COVID-19.
 ggplot(
   filter(pre_covid, !is.na(field)),
   aes(x = field)
@@ -323,6 +361,7 @@ ggplot(
 ## Race Distribution
 
 ```{r descriptive-15}
+# Describe the racial composition of the pre-COVID sample.
 ggplot(
   filter(pre_covid, !is.na(race.2)),
   aes(x = race.2)
@@ -348,6 +387,7 @@ ggplot(
 ## Year in School Distribution
 
 ```{r descriptive-16}
+# Show the distribution of students by year in school before COVID-19.
 ggplot(
   filter(pre_covid, !is.na(yr_sch.2)),
   aes(x = yr_sch.2)
@@ -372,6 +412,7 @@ ggplot(
 ## Financial Stress Distribution
 
 ```{r descriptive-17}
+# Describe current financial circumstances among pre-COVID respondents.
 ggplot(
   filter(pre_covid, !is.na(fincur.2)),
   aes(x = factor(fincur.2))
@@ -389,6 +430,7 @@ ggplot(
 ## Age Distribution
 
 ```{r descriptive-18}
+# Plot the age distribution of students in the pre-COVID sample.
 ggplot(
   filter(pre_covid, !is.na(age)),
   aes(x = age)
@@ -409,6 +451,7 @@ ggplot(
 ## Mental Health by Gender
 
 ```{r descriptive-19}
+# Compare pre-COVID depression and anxiety scores across gender groups.
 pre_gender_scores <- pre_covid %>%
   select(gender, PHQ, GAD) %>%
   pivot_longer(
@@ -444,6 +487,7 @@ ggplot(
 ## Mental Health by STEM Status
 
 ```{r descriptive-20}
+# Compare pre-COVID depression and anxiety scores by STEM field status.
 pre_field_scores <- pre_covid %>%
   select(field, PHQ, GAD) %>%
   pivot_longer(
@@ -479,6 +523,7 @@ ggplot(
 ## Mental Health by Financial Stress
 
 ```{r descriptive-21}
+# Examine pre-COVID mental health scores across financial circumstances.
 pre_financial_scores <- pre_covid %>%
   select(fincur.2, PHQ, GAD) %>%
   pivot_longer(
@@ -515,6 +560,7 @@ ggplot(
 ## Mental Health by Race
 
 ```{r descriptive-22}
+# Compare pre-COVID depression and anxiety scores across racial groups.
 pre_race_scores <- pre_covid %>%
   select(race.2, PHQ, GAD) %>%
   pivot_longer(
@@ -559,6 +605,7 @@ ggplot(
 ## Mental Health by Year in School
 
 ```{r descriptive-23}
+# Compare pre-COVID depression and anxiety scores by year in school.
 pre_year_scores <- pre_covid %>%
   select(yr_sch.2, PHQ, GAD) %>%
   pivot_longer(
@@ -602,6 +649,7 @@ ggplot(
 ## Depression and Anxiety Relationship
 
 ```{r descriptive-24}
+# Calculate the correlation between pre-COVID depression and anxiety scores.
 pre_correlation <- cor(
   pre_covid$PHQ,
   pre_covid$GAD,
@@ -612,6 +660,7 @@ pre_correlation
 ```
 
 ```{r descriptive-25}
+# Visualize the relationship between pre-COVID depression and anxiety scores.
 ggplot(
   pre_covid,
   aes(x = PHQ, y = GAD)
@@ -638,16 +687,19 @@ ggplot(
 ## Dataset Overview
 
 ```{r descriptive-26}
+# Check the number of observations and variables in the post-COVID sample.
 dim(post_covid)
 ```
 
 ```{r descriptive-27}
+# Inspect the post-COVID variable types and a preview of their values.
 glimpse(post_covid)
 ```
 
 ## Missing Values
 
 ```{r descriptive-28}
+# Count missing values for each selected variable in the post-COVID sample.
 post_missing <- data.frame(
   Variable = variables_used,
   Missing = sapply(
@@ -674,14 +726,17 @@ knitr::kable(
 ## Depression and Anxiety Scores
 
 ```{r descriptive-29}
+# Summarize the distribution of post-COVID depression (PHQ) scores.
 summary(post_covid$PHQ)
 ```
 
 ```{r descriptive-30}
+# Summarize the distribution of post-COVID anxiety (GAD) scores.
 summary(post_covid$GAD)
 ```
 
 ```{r descriptive-31}
+# Plot the distribution of depression scores in the post-COVID sample.
 ggplot(post_covid, aes(x = PHQ)) +
   geom_histogram(
     binwidth = 1/9,
@@ -697,6 +752,7 @@ ggplot(post_covid, aes(x = PHQ)) +
 
 
 ```{r descriptive-32}
+# Plot the distribution of anxiety scores in the post-COVID sample.
 ggplot(post_covid, aes(x = GAD)) +
   geom_histogram(
     binwidth = 1/7,
@@ -714,6 +770,7 @@ ggplot(post_covid, aes(x = GAD)) +
 ## Gender Distribution
 
 ```{r descriptive-33}
+# Show the gender composition of the post-COVID sample.
 ggplot(
   filter(post_covid, !is.na(gender)),
   aes(x = gender, fill = gender)
@@ -732,6 +789,7 @@ ggplot(
 ## STEM and Non-STEM Distribution
 
 ```{r descriptive-34}
+# Show the distribution of STEM and non-STEM fields after COVID-19.
 ggplot(
   filter(post_covid, !is.na(field)),
   aes(x = field)
@@ -748,6 +806,7 @@ ggplot(
 ## Race Distribution
 
 ```{r descriptive-35}
+# Describe the racial composition of the post-COVID sample.
 ggplot(
   filter(post_covid, !is.na(race.2)),
   aes(x = race.2)
@@ -773,6 +832,7 @@ ggplot(
 ## Year in School Distribution
 
 ```{r descriptive-36}
+# Show the distribution of students by year in school after COVID-19.
 ggplot(
   filter(post_covid, !is.na(yr_sch.2)),
   aes(x = yr_sch.2)
@@ -797,6 +857,7 @@ ggplot(
 ## Financial Stress Distribution
 
 ```{r descriptive-37}
+# Describe current financial circumstances among post-COVID respondents.
 ggplot(
   filter(post_covid, !is.na(fincur.2)),
   aes(x = factor(fincur.2))
@@ -814,6 +875,7 @@ ggplot(
 ## Age Distribution
 
 ```{r descriptive-38}
+# Plot the age distribution of students in the post-COVID sample.
 ggplot(
   filter(post_covid, !is.na(age)),
   aes(x = age)
@@ -834,6 +896,7 @@ ggplot(
 ## Mental Health by Gender
 
 ```{r descriptive-39}
+# Compare post-COVID depression and anxiety scores across gender groups.
 post_gender_scores <- post_covid %>%
   select(gender, PHQ, GAD) %>%
   pivot_longer(
@@ -869,6 +932,7 @@ ggplot(
 ## Mental Health by STEM Status
 
 ```{r descriptive-40}
+# Compare post-COVID depression and anxiety scores by STEM field status.
 post_field_scores <- post_covid %>%
   select(field, PHQ, GAD) %>%
   pivot_longer(
@@ -904,6 +968,7 @@ ggplot(
 ## Mental Health by Financial Stress
 
 ```{r descriptive-41}
+# Examine post-COVID mental health scores across financial circumstances.
 post_financial_scores <- post_covid %>%
   select(fincur.2, PHQ, GAD) %>%
   pivot_longer(
@@ -940,6 +1005,7 @@ ggplot(
 ## Mental Health by Race
 
 ```{r descriptive-42}
+# Compare post-COVID depression and anxiety scores across racial groups.
 post_race_scores <- post_covid %>%
   select(race.2, PHQ, GAD) %>%
   pivot_longer(
@@ -984,6 +1050,7 @@ ggplot(
 ## Mental Health by Year in School
 
 ```{r descriptive-43}
+# Compare post-COVID depression and anxiety scores by year in school.
 post_year_scores <- post_covid %>%
   select(yr_sch.2, PHQ, GAD) %>%
   pivot_longer(
@@ -1027,6 +1094,7 @@ ggplot(
 ## Depression and Anxiety Relationship
 
 ```{r descriptive-44}
+# Calculate the correlation between post-COVID depression and anxiety scores.
 post_correlation <- cor(
   post_covid$PHQ,
   post_covid$GAD,
@@ -1037,6 +1105,7 @@ post_correlation
 ```
 
 ```{r descriptive-45}
+# Visualize the relationship between post-COVID depression and anxiety scores.
 ggplot(
   post_covid,
   aes(x = PHQ, y = GAD)
@@ -1063,6 +1132,7 @@ ggplot(
 ## Create Combined Dataset
 
 ```{r descriptive-46}
+# Combine the two samples and label each observation by COVID period.
 pre_compare <- pre_covid %>%
   select(all_of(variables_used)) %>%
   mutate(
@@ -1092,6 +1162,7 @@ combined$Period <- factor(
 ## Sample Sizes
 
 ```{r descriptive-47}
+# Compare the total sample sizes for the pre-COVID and post-COVID periods.
 combined %>%
   count(Period) %>%
   knitr::kable(
@@ -1102,6 +1173,7 @@ combined %>%
 ## Missing Data Comparison
 
 ```{r descriptive-48}
+# Compare missing-data patterns across the two COVID periods.
 missing_comparison <- combined %>%
   group_by(Period) %>%
   summarise(
@@ -1130,6 +1202,7 @@ knitr::kable(
 ## Demographic Comparison
 
 ```{r descriptive-49}
+# Compare gender distributions between the pre-COVID and post-COVID samples.
 gender_comparison <- combined %>%
   filter(!is.na(gender)) %>%
   count(Period, gender) %>%
@@ -1161,6 +1234,7 @@ ggplot(
 
 
 ```{r descriptive-50}
+# Compare STEM and non-STEM representation across COVID periods.
 field_comparison <- combined %>%
   filter(!is.na(field)) %>%
   count(Period, field) %>%
@@ -1192,6 +1266,7 @@ ggplot(
 
 
 ```{r descriptive-51}
+# Compare racial composition across the pre-COVID and post-COVID samples.
 race_comparison <- combined %>%
   filter(!is.na(race.2)) %>%
   count(Period, race.2) %>%
@@ -1232,6 +1307,7 @@ ggplot(
 
 
 ```{r descriptive-52}
+# Compare year-in-school distributions across the two periods.
 year_comparison <- combined %>%
   filter(!is.na(yr_sch.2)) %>%
   count(Period, yr_sch.2) %>%
@@ -1273,6 +1349,7 @@ ggplot(
 ## Depression Before and After COVID
 
 ```{r descriptive-53}
+# Calculate summary statistics for depression scores by COVID period.
 phq_summary <- combined %>%
   group_by(Period) %>%
   summarise(
@@ -1295,6 +1372,7 @@ knitr::kable(
 ```
 
 ```{r descriptive-54}
+# Visualize how depression-score distributions differ across COVID periods.
 ggplot(
   filter(combined, !is.na(PHQ)),
   aes(
@@ -1317,6 +1395,7 @@ ggplot(
 ## Anxiety Before and After COVID
 
 ```{r descriptive-55}
+# Calculate summary statistics for anxiety scores by COVID period.
 gad_summary <- combined %>%
   group_by(Period) %>%
   summarise(
@@ -1339,6 +1418,7 @@ knitr::kable(
 ```
 
 ```{r descriptive-56}
+# Visualize how anxiety-score distributions differ across COVID periods.
 ggplot(
   filter(combined, !is.na(GAD)),
   aes(
@@ -1361,6 +1441,7 @@ ggplot(
 ## Depression by Gender Before and After COVID
 
 ```{r descriptive-57}
+# Compare depression scores by gender across COVID periods.
 ggplot(
   filter(
     combined,
@@ -1387,6 +1468,7 @@ ggplot(
 ## Anxiety by Gender Before and After COVID
 
 ```{r descriptive-58}
+# Compare anxiety scores by gender across COVID periods.
 ggplot(
   filter(
     combined,
@@ -1413,6 +1495,7 @@ ggplot(
 ## Depression by STEM Status Before and After COVID
 
 ```{r descriptive-59}
+# Compare depression scores by STEM status across COVID periods.
 ggplot(
   filter(
     combined,
@@ -1439,6 +1522,7 @@ ggplot(
 ## Anxiety by STEM Status Before and After COVID
 
 ```{r descriptive-60}
+# Compare anxiety scores by STEM status across COVID periods.
 ggplot(
   filter(
     combined,
@@ -1465,6 +1549,7 @@ ggplot(
 # Gender and STEM Together
 
 ```{r descriptive-61}
+# Summarize depression and anxiety scores jointly by period, gender, and STEM status.
 gender_stem_summary <- combined %>%
   filter(
     !is.na(gender),
@@ -1488,6 +1573,7 @@ gender_stem_summary
 ## Depression by Gender and STEM Status
 
 ```{r descriptive-62}
+# Visualize depression scores across gender and STEM groups in both periods.
 ggplot(
   gender_stem_summary,
   aes(
@@ -1514,6 +1600,7 @@ ggplot(
 ## Anxiety by Gender and STEM Status
 
 ```{r descriptive-63}
+# Visualize anxiety scores across gender and STEM groups in both periods.
 ggplot(
   gender_stem_summary,
   aes(
@@ -1540,6 +1627,7 @@ ggplot(
 # Financial Stress and Mental Health Comparison
 
 ```{r descriptive-64}
+# Summarize mental health outcomes by financial circumstances and COVID period.
 financial_summary <- combined %>%
   group_by(
     Period,
@@ -1588,6 +1676,7 @@ ggplot(
 # Mental Health by Race Comparison
 
 ```{r descriptive-65}
+# Summarize mental health outcomes by racial group and COVID period.
 race_summary <- combined %>%
   group_by(
     Period,
@@ -1649,6 +1738,7 @@ ggplot(
 # Mental Health by Year in School Comparison
 
 ```{r descriptive-66}
+# Summarize mental health outcomes by year in school and COVID period.
 year_summary <- combined %>%
   group_by(
     Period,
@@ -1709,6 +1799,7 @@ ggplot(
 # Depression and Anxiety Correlation Comparison
 
 ```{r descriptive-67}
+# Compare the depression-anxiety correlation before and after COVID-19.
 correlation_summary <- combined %>%
   group_by(Period) %>%
   summarise(
@@ -1735,6 +1826,7 @@ knitr::kable(
 # Final EDA Summary
 
 ```{r descriptive-68}
+# Create a final descriptive summary of the two samples and their mental health outcomes.
 eda_summary <- combined %>%
   group_by(Period) %>%
   summarise(
@@ -1804,7 +1896,8 @@ save_paper_table <- function(tab, filename, digits = 4) {
     error = function(e) message("Table CSV not saved (file in use or folder blocked): ", csv_path)
   )
   tryCatch(
-    writeLines(as.character(knitr::kable(tab, format = "html", digits = digits)), html_path),
+    writeLines(sub("<table", "<table class=\"paper-table\"",
+                   as.character(knitr::kable(tab, format = "html", digits = digits)), fixed = TRUE), html_path),
     error = function(e) message("Table HTML not saved (file in use or folder blocked): ", html_path)
   )
   invisible(tab)

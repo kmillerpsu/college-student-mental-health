@@ -450,9 +450,27 @@ Performance</a></li>
 </ul>
 </div>
 
+<style>
+
+.main-container { max-width: 1100px !important; }
+h1 { margin-top: 44px; margin-bottom: 18px; }
+h2 { margin-top: 30px; margin-bottom: 15px; }
+.paper-table-title { font-weight: 700; margin: 30px 0 10px; font-size: 15px; color: #283c54; line-height: 1.5; }
+.paper-figure-title { font-weight: 700; font-size: 15px; color: #283c54; margin: 38px 0 16px; line-height: 1.5; }
+.paper-table-wrap { margin: 0 0 38px; overflow-x: auto; }
+.paper-figure-wrap { margin: 0 auto 42px; padding: 12px 0 4px; text-align: center; }
+.paper-table-wrap table, table.paper-table { border-collapse: collapse !important; width: 100%; margin: 0 !important; font-size: 13px; line-height: 1.5; }
+.paper-table-wrap th, table.paper-table th { background: #eaf0f7 !important; color: #243951; border-bottom: 2px solid #b4c5d9 !important; padding: 10px 12px !important; text-align: left !important; white-space: nowrap; }
+.paper-table-wrap td, table.paper-table td { padding: 9px 12px !important; border-bottom: 1px solid #e2e8f0 !important; vertical-align: top; }
+.paper-table-wrap tbody tr:nth-child(even), table.paper-table tbody tr:nth-child(even) { background: #f6f8fb !important; }
+.paper-table-wrap tbody tr:hover, table.paper-table tbody tr:hover { background: #ecf3fa !important; }
+.paper-figure-wrap img { display: block; margin: 0 auto; max-width: 100%; height: auto; }
+@media print { .paper-table-wrap { overflow: visible; } .paper-table-wrap tr { break-inside: avoid; } .paper-figure-wrap { break-inside: avoid; } }
+</style>
 <div id="setup" class="section level1" number="1">
 <h1><span class="header-section-number">1</span> Setup</h1>
-<pre class="r"><code>knitr::opts_chunk$set(echo = TRUE, message = FALSE, warning = FALSE)
+<pre class="r"><code># Load the modeling packages, set chunk display options, and fix the random seed for reproducibility.
+knitr::opts_chunk$set(echo = TRUE, message = FALSE, warning = FALSE)
 required_packages &lt;- c(&quot;tidyverse&quot;, &quot;rpart&quot;, &quot;randomForest&quot;, &quot;glmnet&quot;, &quot;xgboost&quot;)
 missing_packages &lt;- required_packages[
   !vapply(required_packages, requireNamespace, logical(1), quietly = TRUE)
@@ -486,7 +504,8 @@ ggplot2::theme_set(paper_theme)</code></pre>
 <div id="load-training-testing-and-validation-data" class="section level1" number="2">
 <h1><span class="header-section-number">2</span> Load Training, Testing,
 and Validation Data</h1>
-<pre class="r"><code>project_root &lt;- if (file.exists(&quot;data/split/training_data.csv&quot;)) {
+<pre class="r"><code># Locate the project data folder, load the existing train/test/validation splits, and verify required variables.
+project_root &lt;- if (file.exists(&quot;data/split/training_data.csv&quot;)) {
   &quot;.&quot;
 } else if (file.exists(&quot;../data/split/training_data.csv&quot;)) {
   &quot;..&quot;
@@ -494,6 +513,7 @@ and Validation Data</h1>
   stop(&quot;Cannot find data/split/training_data.csv. Open the project .Rproj first.&quot;)
 }
 
+# Load the original split datasets without overwriting them.
 split_dir &lt;- file.path(project_root, &quot;data&quot;, &quot;split&quot;)
 required_files &lt;- c(&quot;training_data.csv&quot;, &quot;test_data.csv&quot;, &quot;validation_data.csv&quot;)
 for (filename in required_files) {
@@ -505,6 +525,7 @@ training_data &lt;- read.csv(file.path(split_dir, &quot;training_data.csv&quot;)
 testing_data &lt;- read.csv(file.path(split_dir, &quot;test_data.csv&quot;))
 validation_data &lt;- read.csv(file.path(split_dir, &quot;validation_data.csv&quot;))
 
+# Check the predictor and outcome columns before modeling.
 model_columns &lt;- c(&quot;PHQ&quot;, &quot;GAD&quot;, &quot;gender&quot;, &quot;field&quot;, &quot;race.2&quot;,
                    &quot;yr_sch.2&quot;, &quot;fincur.2&quot;, &quot;age&quot;)
 for (dataset_name in c(&quot;training_data&quot;, &quot;testing_data&quot;, &quot;validation_data&quot;)) {
@@ -514,6 +535,7 @@ for (dataset_name in c(&quot;training_data&quot;, &quot;testing_data&quot;, &quo
   }
 }
 
+# Confirm the three dataset sizes.
 dim(training_data)</code></pre>
 <pre><code>## [1] 30736    46</code></pre>
 <pre class="r"><code>dim(testing_data)</code></pre>
@@ -524,7 +546,8 @@ dim(training_data)</code></pre>
 <div id="prepare-predictive-modeling-data" class="section level1" number="3">
 <h1><span class="header-section-number">3</span> Prepare Predictive
 Modeling Data</h1>
-<pre class="r"><code>train &lt;- training_data %&gt;%
+<pre class="r"><code># Keep complete cases for the outcomes and demographic predictors in each data split.
+train &lt;- training_data %&gt;%
   select(
     PHQ,
     GAD,
@@ -565,13 +588,15 @@ validation &lt;- validation_data %&gt;%
 </div>
 <div id="set-factor-levels" class="section level1" number="4">
 <h1><span class="header-section-number">4</span> Set Factor Levels</h1>
-<pre class="r"><code>for (dataset_name in c(&quot;train&quot;, &quot;test&quot;, &quot;validation&quot;)) {
+<pre class="r"><code># Standardize STEM and non-STEM labels across all three datasets before fitting models.
+for (dataset_name in c(&quot;train&quot;, &quot;test&quot;, &quot;validation&quot;)) {
   dataset &lt;- get(dataset_name)
   dataset$field &lt;- as.character(dataset$field)
   dataset$field[dataset$field == &quot;NotSTEM&quot;] &lt;- &quot;Non-STEM&quot;
   assign(dataset_name, dataset)
 }</code></pre>
-<pre class="r"><code>race_levels &lt;- c(&quot;White&quot;, &quot;Asian&quot;, &quot;Black&quot;, &quot;Hispanic&quot;, &quot;Middle Eastern&quot;)
+<pre class="r"><code># Set consistent factor categories and reference levels so predictions use the same coding across datasets.
+race_levels &lt;- c(&quot;White&quot;, &quot;Asian&quot;, &quot;Black&quot;, &quot;Hispanic&quot;, &quot;Middle Eastern&quot;)
 year_levels &lt;- c(&quot;firstyear&quot;, &quot;secondyear&quot;, &quot;thirdyear&quot;, &quot;fourthyear+&quot;)
 
 train$gender &lt;- factor(
@@ -637,7 +662,8 @@ validation$yr_sch.2 &lt;- factor(
 <div id="check-dataset-sizes" class="section level1" number="5">
 <h1><span class="header-section-number">5</span> Check Dataset
 Sizes</h1>
-<pre class="r"><code>dim(train)</code></pre>
+<pre class="r"><code># Confirm the number of complete observations available for training, testing, and validation.
+dim(train)</code></pre>
 <pre><code>## [1] 24032     8</code></pre>
 <pre class="r"><code>dim(test)</code></pre>
 <pre><code>## [1] 6865    8</code></pre>
@@ -650,7 +676,8 @@ Models</h1>
 <div id="depression-baseline-model" class="section level2" number="6.1">
 <h2><span class="header-section-number">6.1</span> Depression Baseline
 Model</h2>
-<pre class="r"><code>phq_baseline_value &lt;- mean(
+<pre class="r"><code># Predict test-set depression scores using the mean PHQ score in the training data as a baseline.
+phq_baseline_value &lt;- mean(
   train$PHQ
 )
 
@@ -676,7 +703,8 @@ phq_baseline_r2 &lt;- 0</code></pre>
 <div id="depression-linear-regression" class="section level2" number="6.2">
 <h2><span class="header-section-number">6.2</span> Depression Linear
 Regression</h2>
-<pre class="r"><code>phq_lm &lt;- lm(
+<pre class="r"><code># Fit a multiple linear regression predicting PHQ from GAD and student characteristics.
+phq_lm &lt;- lm(
   PHQ ~ GAD +
     gender +
     field +
@@ -743,7 +771,8 @@ phq_lm_r2 &lt;- cor(
 <div id="depression-gender-x-stem-regression" class="section level2" number="6.3">
 <h2><span class="header-section-number">6.3</span> Depression Gender x
 STEM Regression</h2>
-<pre class="r"><code>phq_interaction &lt;- lm(
+<pre class="r"><code># Add a gender-by-STEM interaction to test whether the PHQ prediction relationship varies across groups.
+phq_interaction &lt;- lm(
   PHQ ~ GAD +
     gender * field +
     race.2 +
@@ -810,7 +839,8 @@ phq_interaction_r2 &lt;- cor(
 <div id="depression-regression-tree" class="section level2" number="6.4">
 <h2><span class="header-section-number">6.4</span> Depression Regression
 Tree</h2>
-<pre class="r"><code>phq_tree &lt;- rpart(
+<pre class="r"><code># Fit a regression tree to predict PHQ using anxiety and student characteristics.
+phq_tree &lt;- rpart(
   PHQ ~ GAD +
     gender +
     field +
@@ -847,7 +877,8 @@ phq_tree_r2 &lt;- cor(
 <div id="depression-random-forest" class="section level2" number="6.5">
 <h2><span class="header-section-number">6.5</span> Depression Random
 Forest</h2>
-<pre class="r"><code>set.seed(415)
+<pre class="r"><code># Train a random forest to predict PHQ and generate test-set predictions.
+set.seed(415)
 
 phq_rf &lt;- randomForest(
   PHQ ~ GAD +
@@ -886,7 +917,8 @@ phq_rf_r2 &lt;- cor(
 <div id="prepare-depression-data-for-ridge-and-lasso" class="section level2" number="6.6">
 <h2><span class="header-section-number">6.6</span> Prepare Depression
 Data for Ridge and LASSO</h2>
-<pre class="r"><code>phq_x_train &lt;- model.matrix(
+<pre class="r"><code># Convert depression predictors into numeric design matrices for penalized regression.
+phq_x_train &lt;- model.matrix(
   PHQ ~ GAD +
     gender +
     field +
@@ -922,7 +954,8 @@ phq_x_validation &lt;- model.matrix(
 <div id="depression-ridge-regression" class="section level2" number="6.7">
 <h2><span class="header-section-number">6.7</span> Depression Ridge
 Regression</h2>
-<pre class="r"><code>set.seed(415)
+<pre class="r"><code># Use cross-validation to tune a ridge regression model for PHQ prediction.
+set.seed(415)
 
 phq_ridge &lt;- cv.glmnet(
   x = phq_x_train,
@@ -960,7 +993,8 @@ phq_ridge_r2 &lt;- cor(
 <div id="depression-lasso-regression" class="section level2" number="6.8">
 <h2><span class="header-section-number">6.8</span> Depression LASSO
 Regression</h2>
-<pre class="r"><code>set.seed(415)
+<pre class="r"><code># Use cross-validation to select the LASSO penalty for PHQ prediction.
+set.seed(415)
 
 phq_lasso &lt;- cv.glmnet(
   x = phq_x_train,
@@ -998,7 +1032,8 @@ phq_lasso_r2 &lt;- cor(
 <div id="depression-xgboost" class="section level2" number="6.9">
 <h2><span class="header-section-number">6.9</span> Depression
 XGBoost</h2>
-<pre class="r"><code>phq_xgb_train &lt;- model.matrix(
+<pre class="r"><code># Fit an XGBoost model for PHQ and predict depression scores in the test set.
+phq_xgb_train &lt;- model.matrix(
   PHQ ~ GAD +
     gender +
     field +
@@ -1071,7 +1106,8 @@ classification_accuracy &lt;- function(observed, predicted, outcome) {
 <div id="depression-test-set-comparison" class="section level1" number="7">
 <h1><span class="header-section-number">7</span> Depression Test-Set
 Comparison</h1>
-<pre class="r"><code>depression_results &lt;- data.frame(
+<pre class="r"><code># Compare depression models on the held-out test data using the performance metrics defined below.
+depression_results &lt;- data.frame(
 
   Model = c(
     &quot;Baseline&quot;,
@@ -1145,7 +1181,8 @@ Models</h1>
 <div id="anxiety-baseline-model" class="section level2" number="8.1">
 <h2><span class="header-section-number">8.1</span> Anxiety Baseline
 Model</h2>
-<pre class="r"><code>gad_baseline_value &lt;- mean(
+<pre class="r"><code># Predict test-set anxiety scores using the mean training-set GAD score as a baseline.
+gad_baseline_value &lt;- mean(
   train$GAD
 )
 
@@ -1171,7 +1208,8 @@ gad_baseline_r2 &lt;- 0</code></pre>
 <div id="anxiety-linear-regression" class="section level2" number="8.2">
 <h2><span class="header-section-number">8.2</span> Anxiety Linear
 Regression</h2>
-<pre class="r"><code>gad_lm &lt;- lm(
+<pre class="r"><code># Fit a multiple linear regression predicting GAD from PHQ and student characteristics.
+gad_lm &lt;- lm(
   GAD ~ PHQ +
     gender +
     field +
@@ -1238,7 +1276,8 @@ gad_lm_r2 &lt;- cor(
 <div id="anxiety-gender-x-stem-regression" class="section level2" number="8.3">
 <h2><span class="header-section-number">8.3</span> Anxiety Gender x STEM
 Regression</h2>
-<pre class="r"><code>gad_interaction &lt;- lm(
+<pre class="r"><code># Include a gender-by-STEM interaction in the anxiety regression model.
+gad_interaction &lt;- lm(
   GAD ~ PHQ +
     gender * field +
     race.2 +
@@ -1305,7 +1344,8 @@ gad_interaction_r2 &lt;- cor(
 <div id="anxiety-regression-tree" class="section level2" number="8.4">
 <h2><span class="header-section-number">8.4</span> Anxiety Regression
 Tree</h2>
-<pre class="r"><code>gad_tree &lt;- rpart(
+<pre class="r"><code># Fit a regression tree to predict GAD from depression and student characteristics.
+gad_tree &lt;- rpart(
   GAD ~ PHQ +
     gender +
     field +
@@ -1342,7 +1382,8 @@ gad_tree_r2 &lt;- cor(
 <div id="anxiety-random-forest" class="section level2" number="8.5">
 <h2><span class="header-section-number">8.5</span> Anxiety Random
 Forest</h2>
-<pre class="r"><code>set.seed(415)
+<pre class="r"><code># Train a random forest for anxiety prediction and evaluate it on the test set.
+set.seed(415)
 
 gad_rf &lt;- randomForest(
   GAD ~ PHQ +
@@ -1381,7 +1422,8 @@ gad_rf_r2 &lt;- cor(
 <div id="prepare-anxiety-data-for-ridge-and-lasso" class="section level2" number="8.6">
 <h2><span class="header-section-number">8.6</span> Prepare Anxiety Data
 for Ridge and LASSO</h2>
-<pre class="r"><code>gad_x_train &lt;- model.matrix(
+<pre class="r"><code># Create numeric predictor matrices for ridge and LASSO models of GAD.
+gad_x_train &lt;- model.matrix(
   GAD ~ PHQ +
     gender +
     field +
@@ -1417,7 +1459,8 @@ gad_x_validation &lt;- model.matrix(
 <div id="anxiety-ridge-regression" class="section level2" number="8.7">
 <h2><span class="header-section-number">8.7</span> Anxiety Ridge
 Regression</h2>
-<pre class="r"><code>set.seed(415)
+<pre class="r"><code># Cross-validate the ridge penalty and predict GAD scores in the test data.
+set.seed(415)
 
 gad_ridge &lt;- cv.glmnet(
   x = gad_x_train,
@@ -1455,7 +1498,8 @@ gad_ridge_r2 &lt;- cor(
 <div id="anxiety-lasso-regression" class="section level2" number="8.8">
 <h2><span class="header-section-number">8.8</span> Anxiety LASSO
 Regression</h2>
-<pre class="r"><code>set.seed(415)
+<pre class="r"><code># Cross-validate the LASSO penalty and predict GAD scores in the test data.
+set.seed(415)
 
 gad_lasso &lt;- cv.glmnet(
   x = gad_x_train,
@@ -1492,7 +1536,8 @@ gad_lasso_r2 &lt;- cor(
 </div>
 <div id="anxiety-xgboost" class="section level2" number="8.9">
 <h2><span class="header-section-number">8.9</span> Anxiety XGBoost</h2>
-<pre class="r"><code>gad_xgb_train &lt;- model.matrix(
+<pre class="r"><code># Train an XGBoost anxiety model and obtain test-set predictions.
+gad_xgb_train &lt;- model.matrix(
   GAD ~ PHQ +
     gender +
     field +
@@ -1560,7 +1605,8 @@ gad_xgb_r2 &lt;- cor(
 <div id="anxiety-test-set-comparison" class="section level1" number="9">
 <h1><span class="header-section-number">9</span> Anxiety Test-Set
 Comparison</h1>
-<pre class="r"><code>anxiety_results &lt;- data.frame(
+<pre class="r"><code># Calculate and compare test-set performance metrics for the anxiety models.
+anxiety_results &lt;- data.frame(
 
   Model = c(
     &quot;Baseline&quot;,
@@ -1634,7 +1680,8 @@ Characteristics Only</h1>
 <div id="depression-using-student-characteristics-only" class="section level2" number="10.1">
 <h2><span class="header-section-number">10.1</span> Depression Using
 Student Characteristics Only</h2>
-<pre class="r"><code>phq_student &lt;- lm(
+<pre class="r"><code># Fit a PHQ regression using only student characteristics, without GAD as a predictor.
+phq_student &lt;- lm(
   PHQ ~ gender +
     field +
     race.2 +
@@ -1699,7 +1746,8 @@ phq_student_r2 &lt;- cor(
 <div id="anxiety-using-student-characteristics-only" class="section level2" number="10.2">
 <h2><span class="header-section-number">10.2</span> Anxiety Using
 Student Characteristics Only</h2>
-<pre class="r"><code>gad_student &lt;- lm(
+<pre class="r"><code># Fit a GAD regression using only student characteristics, without PHQ as a predictor.
+gad_student &lt;- lm(
   GAD ~ gender +
     field +
     race.2 +
@@ -1765,7 +1813,8 @@ gad_student_r2 &lt;- cor(
 <div id="full-vs-student-only-model-comparison" class="section level1" number="11">
 <h1><span class="header-section-number">11</span> Full vs Student-Only
 Model Comparison</h1>
-<pre class="r"><code>predictor_comparison &lt;- data.frame(
+<pre class="r"><code># Compare full models against student-characteristics-only models for both outcomes.
+predictor_comparison &lt;- data.frame(
 
   Outcome = c(
     &quot;Depression&quot;,
@@ -1812,7 +1861,8 @@ Validation</h1>
 <div id="validate-depression-linear-regression" class="section level2" number="13.1">
 <h2><span class="header-section-number">13.1</span> Validate Depression
 Linear Regression</h2>
-<pre class="r"><code>phq_lm_validation_pred &lt;- predict(
+<pre class="r"><code># Apply the fitted depression linear regression to the untouched validation data.
+phq_lm_validation_pred &lt;- predict(
   phq_lm,
   newdata = validation
 )
@@ -1837,7 +1887,8 @@ phq_lm_validation_r2 &lt;- cor(
 <div id="validate-depression-gender-x-stem-regression" class="section level2" number="13.2">
 <h2><span class="header-section-number">13.2</span> Validate Depression
 Gender x STEM Regression</h2>
-<pre class="r"><code>phq_interaction_validation_pred &lt;- predict(
+<pre class="r"><code># Generate validation predictions from the depression gender-by-STEM interaction model.
+phq_interaction_validation_pred &lt;- predict(
   phq_interaction,
   newdata = validation
 )
@@ -1864,7 +1915,8 @@ phq_interaction_validation_r2 &lt;- cor(
 <div id="validate-depression-lasso" class="section level2" number="13.3">
 <h2><span class="header-section-number">13.3</span> Validate Depression
 LASSO</h2>
-<pre class="r"><code>phq_lasso_validation_pred &lt;- predict(
+<pre class="r"><code># Use the trained depression LASSO model to predict validation-set PHQ scores.
+phq_lasso_validation_pred &lt;- predict(
   phq_lasso,
   newx = phq_x_validation,
   s = &quot;lambda.min&quot;
@@ -1896,7 +1948,8 @@ phq_lasso_validation_r2 &lt;- cor(
 <div id="validate-depression-xgboost" class="section level2" number="13.4">
 <h2><span class="header-section-number">13.4</span> Validate Depression
 XGBoost</h2>
-<pre class="r"><code>phq_xgb_validation_pred &lt;- predict(
+<pre class="r"><code># Use the trained depression XGBoost model to predict validation-set PHQ scores.
+phq_xgb_validation_pred &lt;- predict(
   phq_xgb,
   phq_xgb_validation
 )
@@ -1924,7 +1977,8 @@ phq_xgb_validation_r2 &lt;- cor(
 <div id="depression-validation-comparison" class="section level1" number="14">
 <h1><span class="header-section-number">14</span> Depression Validation
 Comparison</h1>
-<pre class="r"><code>depression_validation &lt;- data.frame(
+<pre class="r"><code># Compare the selected depression models on the independent validation set.
+depression_validation &lt;- data.frame(
 
   Model = c(
     &quot;Linear Regression&quot;,
@@ -1977,7 +2031,8 @@ Validation</h1>
 <div id="validate-anxiety-linear-regression" class="section level2" number="15.1">
 <h2><span class="header-section-number">15.1</span> Validate Anxiety
 Linear Regression</h2>
-<pre class="r"><code>gad_lm_validation_pred &lt;- predict(
+<pre class="r"><code># Generate validation predictions from the fitted anxiety linear regression.
+gad_lm_validation_pred &lt;- predict(
   gad_lm,
   newdata = validation
 )
@@ -2002,7 +2057,8 @@ gad_lm_validation_r2 &lt;- cor(
 <div id="validate-anxiety-gender-x-stem-regression" class="section level2" number="15.2">
 <h2><span class="header-section-number">15.2</span> Validate Anxiety
 Gender x STEM Regression</h2>
-<pre class="r"><code>gad_interaction_validation_pred &lt;- predict(
+<pre class="r"><code># Evaluate the anxiety gender-by-STEM interaction model on validation data.
+gad_interaction_validation_pred &lt;- predict(
   gad_interaction,
   newdata = validation
 )
@@ -2029,7 +2085,8 @@ gad_interaction_validation_r2 &lt;- cor(
 <div id="validate-anxiety-lasso" class="section level2" number="15.3">
 <h2><span class="header-section-number">15.3</span> Validate Anxiety
 LASSO</h2>
-<pre class="r"><code>gad_lasso_validation_pred &lt;- predict(
+<pre class="r"><code># Predict validation-set GAD scores using the fitted anxiety LASSO model.
+gad_lasso_validation_pred &lt;- predict(
   gad_lasso,
   newx = gad_x_validation,
   s = &quot;lambda.min&quot;
@@ -2061,7 +2118,8 @@ gad_lasso_validation_r2 &lt;- cor(
 <div id="validate-anxiety-xgboost" class="section level2" number="15.4">
 <h2><span class="header-section-number">15.4</span> Validate Anxiety
 XGBoost</h2>
-<pre class="r"><code>gad_xgb_validation_pred &lt;- predict(
+<pre class="r"><code># Predict validation-set GAD scores using the trained anxiety XGBoost model.
+gad_xgb_validation_pred &lt;- predict(
   gad_xgb,
   gad_xgb_validation
 )
@@ -2089,7 +2147,8 @@ gad_xgb_validation_r2 &lt;- cor(
 <div id="anxiety-validation-comparison" class="section level1" number="16">
 <h1><span class="header-section-number">16</span> Anxiety Validation
 Comparison</h1>
-<pre class="r"><code>anxiety_validation &lt;- data.frame(
+<pre class="r"><code># Compare the selected anxiety models on the independent validation set.
+anxiety_validation &lt;- data.frame(
 
   Model = c(
     &quot;Linear Regression&quot;,
@@ -2139,7 +2198,8 @@ anxiety_validation</code></pre>
 <div id="testing-vs-validation-performance" class="section level1" number="17">
 <h1><span class="header-section-number">17</span> Testing vs Validation
 Performance</h1>
-<pre class="r"><code>final_comparison &lt;- data.frame(
+<pre class="r"><code># Contrast test-set and validation-set performance to assess generalization.
+final_comparison &lt;- data.frame(
 
   Outcome = c(
     &quot;Depression&quot;,
@@ -2231,7 +2291,8 @@ final_comparison</code></pre>
 <div id="depression-predictions" class="section level1" number="18">
 <h1><span class="header-section-number">18</span> Depression
 Predictions</h1>
-<pre class="r"><code>phq_plot_data &lt;- data.frame(
+<pre class="r"><code># Plot observed versus predicted PHQ scores for the depression linear model on validation data.
+phq_plot_data &lt;- data.frame(
   Observed = validation$PHQ,
   Predicted = phq_lm_validation_pred
 )
@@ -2263,7 +2324,8 @@ ggplot(
 <div id="anxiety-predictions" class="section level1" number="19">
 <h1><span class="header-section-number">19</span> Anxiety
 Predictions</h1>
-<pre class="r"><code>gad_plot_data &lt;- data.frame(
+<pre class="r"><code># Plot observed versus predicted GAD scores for the anxiety linear model on validation data.
+gad_plot_data &lt;- data.frame(
   Observed = validation$GAD,
   Predicted = gad_lm_validation_pred
 )
@@ -2298,7 +2360,8 @@ ggplot(
 <div id="paper-figures-and-tables" class="section level1" number="21">
 <h1><span class="header-section-number">21</span> Paper Figures and
 Tables</h1>
-<pre class="r"><code>final_paper_dir &lt;- file.path(project_root, &quot;outputs&quot;, &quot;final_paper&quot;)
+<pre class="r"><code># Make folders to save the tables and figures used in the final paper.
+final_paper_dir &lt;- file.path(project_root, &quot;outputs&quot;, &quot;final_paper&quot;)
 figure_dir &lt;- file.path(final_paper_dir, &quot;figures&quot;)
 table_dir &lt;- file.path(final_paper_dir, &quot;tables&quot;)
 dir.create(figure_dir, recursive = TRUE, showWarnings = FALSE)
@@ -2323,21 +2386,24 @@ save_paper_table &lt;- function(tab, filename, digits = 4) {
     error = function(e) message(&quot;Table CSV not saved (file in use or folder blocked): &quot;, csv_path)
   )
   tryCatch(
-    writeLines(as.character(knitr::kable(tab, format = &quot;html&quot;, digits = digits)), html_path),
+    writeLines(sub(&quot;&lt;table&quot;, &quot;&lt;table class=\&quot;paper-table\&quot;&quot;,
+                   as.character(knitr::kable(tab, format = &quot;html&quot;, digits = digits)), fixed = TRUE), html_path),
     error = function(e) message(&quot;Table HTML not saved (file in use or folder blocked): &quot;, html_path)
   )
   invisible(tab)
 }</code></pre>
 <div id="test-results" class="section level2" number="21.1">
 <h2><span class="header-section-number">21.1</span> Test Results</h2>
-<pre class="r"><code>all_test_metrics &lt;- dplyr::bind_rows(
+<pre class="r"><code># Compare the eight models on the test data and save the model results.
+all_test_metrics &lt;- dplyr::bind_rows(
   dplyr::mutate(depression_results, Outcome = &quot;PHQ&quot;),
   dplyr::mutate(anxiety_results, Outcome = &quot;GAD&quot;)
 ) %&gt;% dplyr::select(Outcome, Model, RMSE, MAE, R2, Accuracy)</code></pre>
 </div>
 <div id="model-features" class="section level2" number="21.2">
 <h2><span class="header-section-number">21.2</span> Model Features</h2>
-<pre class="r"><code>full_vs_reduced &lt;- predictor_comparison %&gt;%
+<pre class="r"><code># Compare predictions using all variables versus student characteristics only.
+full_vs_reduced &lt;- predictor_comparison %&gt;%
   dplyr::mutate(Feature_Set = ifelse(Predictors == &quot;Student Characteristics Only&quot;,
                                    &quot;Student characteristics only&quot;, &quot;Full features&quot;)) %&gt;%
   dplyr::select(Outcome, Feature_Set, Predictors, RMSE, R2)
@@ -2416,7 +2482,8 @@ knitr::kable(feature_comparison_table, caption = &quot;Model Features&quot;)</co
 <div id="validation-results" class="section level2" number="21.3">
 <h2><span class="header-section-number">21.3</span> Validation
 Results</h2>
-<pre class="r"><code>all_validation_metrics &lt;- dplyr::bind_rows(
+<pre class="r"><code># Put the validation results for the selected models into one table.
+all_validation_metrics &lt;- dplyr::bind_rows(
   dplyr::mutate(depression_validation, Outcome = &quot;PHQ&quot;),
   dplyr::mutate(anxiety_validation, Outcome = &quot;GAD&quot;)
 ) %&gt;% dplyr::select(Outcome, dplyr::everything())</code></pre>
@@ -2424,7 +2491,8 @@ Results</h2>
 <div id="observed-and-predicted" class="section level2" number="21.4">
 <h2><span class="header-section-number">21.4</span> Observed and
 Predicted</h2>
-<pre class="r"><code>observed_predicted &lt;- dplyr::bind_rows(
+<pre class="r"><code># Plot observed versus predicted scores on the validation data.
+observed_predicted &lt;- dplyr::bind_rows(
   data.frame(Outcome = &quot;PHQ&quot;, Observed = validation$PHQ,
              Predicted = as.numeric(phq_interaction_validation_pred)),
   data.frame(Outcome = &quot;GAD&quot;, Observed = validation$GAD,
@@ -2445,7 +2513,8 @@ print(figure_05)</code></pre>
 </div>
 <div id="model-tables" class="section level2" number="21.5">
 <h2><span class="header-section-number">21.5</span> Model Tables</h2>
-<pre class="r"><code>test_results_table &lt;- all_test_metrics %&gt;%
+<pre class="r"><code># Format the testing, predictor comparison, and validation tables for the paper.
+test_results_table &lt;- all_test_metrics %&gt;%
   dplyr::transmute(
     Outcome = dplyr::recode(Outcome, PHQ = &quot;Depression&quot;, GAD = &quot;Anxiety&quot;),
     Model = dplyr::recode(Model, &quot;Gender x STEM Regression&quot; = &quot;Gender × STEM Regression&quot;),
@@ -2708,7 +2777,8 @@ knitr::kable(validation_results_table, caption = &quot;Validation Results&quot;)
 </div>
 <div id="residual-plots" class="section level2" number="21.6">
 <h2><span class="header-section-number">21.6</span> Residual Plots</h2>
-<pre class="r"><code>residual_data &lt;- observed_predicted %&gt;%
+<pre class="r"><code># Plot prediction residuals to check where the validation models miss.
+residual_data &lt;- observed_predicted %&gt;%
   dplyr::mutate(
     Residual = Observed - Predicted,
     Outcome = dplyr::recode(Outcome,
@@ -2731,7 +2801,8 @@ print(figure_06)</code></pre>
 <div id="confusion-matrices" class="section level2" number="21.7">
 <h2><span class="header-section-number">21.7</span> Confusion
 Matrices</h2>
-<pre class="r"><code>make_confusion &lt;- function(observed, predicted, outcome, cutoff) {
+<pre class="r"><code># Make confusion matrices for the PHQ and GAD validation predictions.
+make_confusion &lt;- function(observed, predicted, outcome, cutoff) {
   labels &lt;- c(&quot;Below 10&quot;, &quot;10 or higher&quot;)
   observed_group &lt;- factor(ifelse(observed &gt;= cutoff, labels[2], labels[1]), levels = labels)
   predicted_group &lt;- factor(ifelse(predicted &gt;= cutoff, labels[2], labels[1]), levels = labels)

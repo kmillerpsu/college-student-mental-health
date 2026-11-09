@@ -1,122 +1,370 @@
 ---
-title: "College Student Mental Health: Pre- and Post-COVID-19 Analysis"
+title: "Final Paper Results"
+author: "Caylee Collins and Kate Miller"
 output:
   html_document:
     toc: true
-    toc_depth: 3
-    number_sections: true
+    toc_depth: 2
+    number_sections: false
 ---
 
-# Purpose
+<style>
+/* A little extra space makes the tables and plots easier to read. */
+.main-container { max-width: 1100px !important; }
+h1 { margin-top: 44px; margin-bottom: 18px; }
+h2 { margin-top: 30px; margin-bottom: 15px; }
+.paper-table-title { font-weight: 700; margin: 30px 0 10px; font-size: 15px; color: #283c54; line-height: 1.5; }
+.paper-figure-title { font-weight: 700; font-size: 15px; color: #283c54; margin: 38px 0 16px; line-height: 1.5; }
+.paper-table-wrap { margin: 0 0 38px; overflow-x: auto; }
+.paper-figure-wrap { margin: 0 auto 42px; padding: 12px 0 4px; text-align: center; }
+.paper-table-wrap table, table.paper-table { border-collapse: collapse !important; width: 100%; margin: 0 !important; font-size: 13px; line-height: 1.5; }
+.paper-table-wrap th, table.paper-table th { background: #eaf0f7 !important; color: #243951; border-bottom: 2px solid #b4c5d9 !important; padding: 10px 12px !important; text-align: left !important; white-space: nowrap; }
+.paper-table-wrap td, table.paper-table td { padding: 9px 12px !important; border-bottom: 1px solid #e2e8f0 !important; vertical-align: top; }
+.paper-table-wrap tbody tr:nth-child(even), table.paper-table tbody tr:nth-child(even) { background: #f6f8fb !important; }
+.paper-table-wrap tbody tr:hover, table.paper-table tbody tr:hover { background: #ecf3fa !important; }
+.paper-figure-wrap img { display: block; margin: 0 auto; max-width: 100%; height: auto; }
+@media print { .paper-table-wrap { overflow: visible; } .paper-table-wrap tr { break-inside: avoid; } .paper-figure-wrap { break-inside: avoid; } }
+</style>
 
-This document runs the analyses used for our final research project from the existing numbered notebooks. It does **not** introduce new statistical tests, regressions, or predictive models. All analyses remain in their source scripts so that changes can be made in one place.
+This file runs our three analysis scripts and puts the results we used in the final paper in one place. The scripts still do all of their calculations, but this report only shows the six tables and five figures from the paper.
 
-- **Script 02:** Descriptive analysis of the pre- and post-COVID samples.
-- **Script 03:** Hypothesis tests and regression analyses.
-- **Script 04:** Predictive modeling and evaluation.
+```{r master-setup, include=FALSE}
+knitr::opts_chunk$set(echo = FALSE, warning = FALSE, message = FALSE)
+set.seed(415)
 
-Script 01 recreates the parent paper and is retained separately for reference. Its narrative and full output are intentionally excluded here. Relevant replication results can be added to the final report later.
-
-# Setup
-
-```{r install-packages, include=FALSE}
-# Install packages only if they are not already available.
-required_packages = c(
-  "rmarkdown", "knitr", "tidyverse", "dplyr", "tidyr", "ggplot2",
-  "readr", "tibble", "here", "psych", "janitor", "jtools",
-  "interactions", "ggstance", "ggpubr", "cowplot", "reshape2",
-  "scales", "rpart", "randomForest", "glmnet", "xgboost"
+# Install any packages that aren't already on this computer.
+# This should only install things the first time someone runs the project.
+packages <- c(
+  "rmarkdown", "knitr", "callr", "tidyverse", "here", "scales",
+  "rpart", "randomForest", "glmnet", "xgboost"
 )
-
-missing_packages = required_packages[
-  !vapply(required_packages, requireNamespace, logical(1), quietly = TRUE)
-]
+missing_packages <- packages[!vapply(packages, requireNamespace, logical(1), quietly = TRUE)]
 
 if (length(missing_packages) > 0) {
-  install.packages(missing_packages, repos = "https://cloud.r-project.org")
+  options(repos = c(CRAN = "https://cloud.r-project.org"))
+  install.packages(missing_packages, dependencies = c("Depends", "Imports", "LinkingTo"))
 }
 
-still_missing = required_packages[
-  !vapply(required_packages, requireNamespace, logical(1), quietly = TRUE)
-]
-
+# Check that the installations worked before running the analyses.
+still_missing <- packages[!vapply(packages, requireNamespace, logical(1), quietly = TRUE)]
 if (length(still_missing) > 0) {
-  stop("Could not install required packages: ", paste(still_missing, collapse = ", "))
+  stop("These packages could not be installed: ", paste(still_missing, collapse = ", "),
+       ". Check your internet connection and try knitting again.")
 }
 
-knitr::opts_chunk$set(echo = FALSE, message = FALSE, warning = FALSE)
-set.seed(415)
-```
-
-```{r verify-project, include=FALSE}
-# Check that this document is being knitted from the repository root.
-script_names = c(
-  "02 - Descriptive Analysis.Rmd",
-  "03 - Hypothesis Tests and Regression.Rmd",
-  "04 - Predictive Modeling.Rmd"
-)
-
-script_paths = file.path("code", script_names)
-data_paths = c(
+# Start RStudio in the main project folder, where the code and data folders are.
+project_root <- normalizePath(getwd(), winslash = "/", mustWork = TRUE)
+script_names <- c("02 - Descriptive Analysis.Rmd", "03 - Hypothesis Tests and Regression.Rmd", "04 - Predictive Modeling.Rmd")
+script_paths <- file.path(project_root, "code", script_names)
+data_paths <- file.path(project_root, c(
   "data/processed/pre_covid_clean.csv",
   "data/processed/post_covid_clean.csv",
   "data/split/training_data.csv",
   "data/split/test_data.csv",
   "data/split/validation_data.csv"
-)
-
-required_files = c(script_paths, data_paths)
-missing_files = required_files[!file.exists(required_files)]
-
-if (length(missing_files) > 0) {
-  stop(
-    "Missing project files. Open the project .Rproj and check:\n",
-    paste(missing_files, collapse = "\n")
-  )
+))
+missing_files <- c(script_paths, data_paths)[!file.exists(c(script_paths, data_paths))]
+if (length(missing_files)) {
+  stop("Required project files were not found. Open the project .Rproj file, put Run Project.Rmd in its root folder, and check:\n",
+       paste(missing_files, collapse = "\n"))
 }
 
-# Keep generated reports separate from source code and input datasets.
-project_root = normalizePath(getwd(), mustWork = TRUE)
-output_dir = file.path(project_root, "outputs", "reports")
-dir.create(output_dir, recursive = TRUE, showWarnings = FALSE)
-```
+# Keep the tables and figures for the paper together in their own folder.
+paper_dir <- file.path(project_root, "outputs", "paper_only")
+figure_dir <- file.path(paper_dir, "figures")
+table_dir <- file.path(paper_dir, "tables")
+dir.create(figure_dir, recursive = TRUE, showWarnings = FALSE)
+dir.create(table_dir, recursive = TRUE, showWarnings = FALSE)
 
-# Reproduce the Final-Paper Analyses
-
-The three notebooks below are rendered in order from the `code/` folder. Each notebook runs in a fresh R environment, using its own original code, tables, figures, and models. This avoids copying or modifying the underlying analysis inside the master document.
-
-```{r run-analysis-scripts, results='asis'}
-# Run Scripts 02, 03, and 04 from their existing source files.
-report_titles = c(
-  "Descriptive Analysis",
-  "Hypothesis Tests and Regression",
-  "Predictive Modeling"
-)
-
-report_paths = character(length(script_paths))
-
+# Run copies of the three scripts so their original files stay untouched.
+# Send any figures and tables they save to our paper-only output folder.
+build_dir <- tempfile("paper_only_build_")
+dir.create(build_dir, recursive = TRUE)
 for (i in seq_along(script_paths)) {
-  # Render each script independently to prevent objects from carrying over.
-  report_paths[i] = rmarkdown::render(
-    input = file.path(project_root, script_paths[i]),
-    output_format = "html_document",
-    output_dir = output_dir,
-    knit_root_dir = project_root,
-    envir = new.env(parent = globalenv()),
-    quiet = TRUE
+  contents <- readLines(script_paths[i], warn = FALSE, encoding = "UTF-8")
+  old <- 'final_paper_dir <- file.path(project_root, "outputs", "final_paper")'
+  new <- 'final_paper_dir <- file.path(project_root, "outputs", "paper_only")'
+  if (!any(grepl(old, contents, fixed = TRUE))) {
+    stop("Could not find the expected export directory in: ", script_names[i])
+  }
+  contents <- gsub(old, new, contents, fixed = TRUE)
+  temp_input <- file.path(build_dir, script_names[i])
+  writeLines(contents, temp_input, useBytes = TRUE)
+  # Each script needs its own R session. Running render() directly in this
+  # setup chunk makes knitr reuse chunk labels like "setup" and stops the report.
+  message("Running: ", script_names[i])
+  callr::r(
+    function(input, output_file, output_dir, project_root) {
+      rmarkdown::render(
+        input = input,
+        output_format = "html_document",
+        output_file = output_file,
+        output_dir = output_dir,
+        knit_root_dir = project_root,
+        envir = new.env(parent = globalenv()),
+        quiet = TRUE
+      )
+    },
+    args = list(
+      input = temp_input,
+      output_file = sprintf("internal_analysis_%02d.html", i),
+      output_dir = build_dir,
+      project_root = project_root
+    ),
+    show = FALSE
   )
-
-  # Link to the generated HTML report for review.
-  report_link = paste0("outputs/reports/", utils::URLencode(basename(report_paths[i]), reserved = TRUE))
-  cat(sprintf(
-    "\n\n## %s\n\n[Open the generated analysis report](%s)\n\n",
-    report_titles[i], report_link
-  ))
 }
+
+# The scripts generate more results than we need to show.
+# Pull out the tables that actually appear in our paper.
+read_table <- function(filename) {
+  path <- file.path(table_dir, paste0(filename, ".csv"))
+  if (!file.exists(path)) stop("An expected source table was not created: ", path,
+                               "\nCheck the original source script's knit log and required input data.")
+  utils::read.csv(path, check.names = FALSE, stringsAsFactors = FALSE)
+}
+write_table <- function(x, stem) {
+  utils::write.csv(x, file.path(table_dir, paste0(stem, ".csv")), row.names = FALSE, na = "")
+}
+format_p <- function(p) ifelse(is.na(p), "NA", ifelse(p < 0.001, "<0.001", sprintf("%.3f", p)))
+
+# Table I: descriptive statistics from Script 02, including standard errors.
+desc <- read_table("table_01_descriptive_means_and_ci")
+table_1 <- data.frame(
+  Period = desc$`Survey Period`,
+  Outcome = ifelse(desc$Outcome == "Anxiety", "GAD", "PHQ"),
+  N = desc$N,
+  Mean = sprintf("%.3f", as.numeric(desc$Mean)),
+  SD = sprintf("%.3f", as.numeric(desc$SD)),
+  SE = sprintf("%.3f", as.numeric(desc$SD) / sqrt(as.numeric(desc$N))),
+  `95% CI` = vapply(strsplit(gsub("[()]", "", desc$`95% CI`), ","), function(z) {
+    sprintf("(%.3f, %.3f)", as.numeric(trimws(z[1])), as.numeric(trimws(z[2])))
+  }, character(1)),
+  check.names = FALSE
+)
+table_1 <- table_1[order(table_1$Period, table_1$Outcome), , drop = FALSE]
+
+# Table II: adjusted regression results from Script 03.
+reg <- read_table("table_02_adjusted_phq_gad_regression_ci")
+pretty_term <- function(x) {
+  if (x == "(Intercept)") return("Intercept")
+  if (grepl("^Period", x)) return("Period: 2022–2023")
+  if (grepl("^gender", x)) return("Gender: Women")
+  if (grepl("^field", x)) return("Field: STEM")
+  if (grepl("^race\\.2", x)) return(paste0("Race: ", sub("^race\\.2", "", x)))
+  if (grepl("^yr_sch\\.2", x)) {
+    y <- sub("^yr_sch\\.2", "", x)
+    return(paste0("Year: ", switch(y, secondyear="Second year", thirdyear="Third year", "fourthyear+"="Fourth year +", y)))
+  }
+  if (x == "fincur.2") return("Financial status")
+  if (x == "age") return("Age")
+  x
+}
+table_2 <- data.frame(
+  Outcome = reg$Outcome,
+  Predictor = vapply(reg$Predictor, pretty_term, character(1)),
+  Coefficient = sprintf("%.3f", as.numeric(reg$Coefficient)),
+  SE = sprintf("%.3f", as.numeric(reg$Standard_Error)),
+  `95% CI` = sprintf("(%.3f, %.3f)", as.numeric(reg$CI_Lower), as.numeric(reg$CI_Upper)),
+  t = sprintf("%.2f", as.numeric(reg$T_Value)),
+  p = format_p(as.numeric(reg$P_Value)), check.names = FALSE
+)
+
+# Table III: interactions with survey period from Script 03.
+inter <- read_table("table_03_period_interaction_results")
+table_3 <- data.frame(
+  Outcome = inter$Outcome,
+  Interaction = inter$Interaction,
+  Coefficient = sprintf("%.3f", as.numeric(inter$Coefficient)),
+  SE = sprintf("%.3f", as.numeric(inter$Standard_Error)),
+  `95% CI` = sprintf("(%.3f, %.3f)", as.numeric(inter$CI_Lower), as.numeric(inter$CI_Upper)),
+  t = sprintf("%.2f", as.numeric(inter$T_Value)),
+  p = format_p(as.numeric(inter$P_Value)), check.names = FALSE
+)
+
+# Tables IV–VI: testing, predictor comparisons, and validation from Script 04.
+table_4 <- read_table("table_04_all_eight_models_test_metrics")
+table_5 <- read_table("table_05_full_vs_reduced_models")
+table_6 <- read_table("table_06_validation_model_metrics")
+for (i in 4:6) {
+  tt <- get(paste0("table_", i))
+  names(tt)[names(tt) == "R²"] <- "R²"
+  assign(paste0("table_", i), tt)
+}
+
+names_of_tables <- c(
+  "table_01_descriptive_statistics", "table_02_adjusted_regression",
+  "table_03_period_interactions", "table_04_testing_models",
+  "table_05_predictor_sets", "table_06_validation_models"
+)
+for (i in 1:6) write_table(get(paste0("table_", i)), names_of_tables[i])
+
+# Figure 1: compare average PHQ and GAD scores in the two survey periods.
+figure_1_data <- desc
+figure_1_data$Outcome <- factor(figure_1_data$Outcome,
+                               levels = c("Anxiety", "Depression"),
+                               labels = c("Anxiety (GAD-7)", "Depression (PHQ-9)"))
+figure_1_data$`Survey Period` <- factor(figure_1_data$`Survey Period`,
+                                      levels = c("2017-2018", "2022-2023"))
+figure_1 <- ggplot2::ggplot(figure_1_data,
+                           ggplot2::aes(x = Outcome, y = Mean, fill = `Survey Period`)) +
+  ggplot2::geom_col(position = ggplot2::position_dodge(width = 0.78), width = 0.66) +
+  ggplot2::scale_fill_manual(values = c("2017-2018" = "#377EB8", "2022-2023" = "#E69F00")) +
+  ggplot2::labs(title = "Average Depression and Anxiety", x = NULL,
+                y = "Mean item score (1–4)", fill = "Survey period") +
+  ggplot2::theme_minimal(base_size = 12) +
+  ggplot2::theme(plot.title = ggplot2::element_text(face = "bold"),
+                 legend.position = "bottom")
+figure_files <- c(
+  "figure_01_average_scores.png",
+  "figure_02_gender_stem_interactions.png",
+  "figure_03_validation_observed_vs_predicted.png",
+  "figure_04_validation_residuals.png",
+  "figure_05_validation_confusion_matrices.png"
+)
+ggplot2::ggsave(file.path(figure_dir, figure_files[1]), plot = figure_1,
+                width = 8, height = 5, dpi = 300, bg = "white")
+source_figures <- c(
+  "figure_02_gender_stem_interactions.png",
+  "figure_05_validation_observed_vs_predicted.png",
+  "figure_06_validation_residuals.png",
+  "figure_07_best_validation_confusion_matrices.png"
+)
+for (i in seq_along(source_figures)) {
+  src <- file.path(figure_dir, source_figures[i]); dst <- file.path(figure_dir, figure_files[i + 1])
+  if (!file.exists(src)) stop("Missing required paper figure: ", src)
+  if (normalizePath(src, mustWork = FALSE) != normalizePath(dst, mustWork = FALSE)) {
+    if (!file.copy(src, dst, overwrite = TRUE)) stop("Unable to copy paper figure: ", src)
+  }
+}
+
+# Remove extra exports so this folder only has what is in the paper.
+for (p in list.files(table_dir, full.names = TRUE)) {
+  if (!basename(p) %in% paste0(names_of_tables, ".csv")) unlink(p)
+}
+for (p in list.files(figure_dir, full.names = TRUE)) {
+  if (!basename(p) %in% figure_files) unlink(p)
+}
+
+# We do not need to keep the temporary reports from each script.
+unlink(build_dir, recursive = TRUE, force = TRUE)
+knitr::opts_chunk$set(echo = FALSE, message = FALSE, warning = FALSE)
 ```
 
-# Notes for the Final Paper
+# Descriptive Results
 
-The linked reports are the complete, reproducible source analyses. As we write the final paper, we can add **selected tables, figures, and findings** here, referring directly to the outputs from Scripts 02-04 rather than creating new or inconsistent analyses.
+<div class="paper-table-title">TABLE I. Statistics for Depression (PHQ) and Anxiety (GAD) by Survey Period</div>
 
-The parent-paper recreation remains in `code/01 - Parent Paper Recreation.Rmd` and is not executed by this draft master report.
+<div class="paper-table-wrap">
+
+```{r table-i, results='asis'}
+knitr::kable(table_1, format = "html", escape = TRUE, align = "l")
+```
+
+</div>
+
+<div class="paper-figure-title">FIGURE 1. Average depression and anxiety scores across survey periods</div>
+
+<div class="paper-figure-wrap">
+
+```{r figure-1, out.width='90%', fig.align='center'}
+knitr::include_graphics(file.path(figure_dir, figure_files[1]))
+```
+
+</div>
+
+# Regression and Interaction Results
+
+<div class="paper-table-title">TABLE II. Regression Results for Depression (PHQ) and Anxiety (GAD)</div>
+
+<div class="paper-table-wrap">
+
+```{r table-ii, results='asis'}
+knitr::kable(table_2, format = "html", escape = TRUE, align = "l")
+```
+
+</div>
+
+<div class="paper-table-title">TABLE III. Interactions Between Survey Period and Gender and STEM Status</div>
+
+<div class="paper-table-wrap">
+
+```{r table-iii, results='asis'}
+knitr::kable(table_3, format = "html", escape = TRUE, align = "l")
+```
+
+</div>
+
+<div class="paper-figure-title">FIGURE 2. Depression and anxiety scores by gender, STEM status, and survey period</div>
+
+<div class="paper-figure-wrap">
+
+```{r figure-2, out.width='100%', fig.align='center'}
+knitr::include_graphics(file.path(figure_dir, figure_files[2]))
+```
+
+</div>
+
+# Predictive Model Results
+
+<div class="paper-table-title">TABLE IV. Predictive Model Comparison on the Testing Set</div>
+
+<div class="paper-table-wrap">
+
+```{r table-iv, results='asis'}
+knitr::kable(table_4, format = "html", escape = TRUE, align = "l")
+```
+
+</div>
+
+<div class="paper-table-title">TABLE V. Model Performance With and Without the Other Mental Health Score</div>
+
+<div class="paper-table-wrap">
+
+```{r table-v, results='asis'}
+knitr::kable(table_5, format = "html", escape = TRUE, align = "l")
+```
+
+</div>
+
+<div class="paper-table-title">TABLE VI. Model Performance on the Validation Set</div>
+
+<div class="paper-table-wrap">
+
+```{r table-vi, results='asis'}
+knitr::kable(table_6, format = "html", escape = TRUE, align = "l")
+```
+
+</div>
+
+<div class="paper-figure-title">FIGURE 3. Observed versus predicted depression and anxiety scores on the validation set</div>
+
+<div class="paper-figure-wrap">
+
+```{r figure-3, out.width='100%', fig.align='center'}
+knitr::include_graphics(file.path(figure_dir, figure_files[3]))
+```
+
+</div>
+
+<div class="paper-figure-title">FIGURE 4. Residual plots for the selected predictive models</div>
+
+<div class="paper-figure-wrap">
+
+```{r figure-4, out.width='100%', fig.align='center'}
+knitr::include_graphics(file.path(figure_dir, figure_files[4]))
+```
+
+</div>
+
+<div class="paper-figure-title">FIGURE 5. Confusion matrices for depression and anxiety classification on the validation set</div>
+
+<div class="paper-figure-wrap">
+
+```{r figure-5, out.width='100%', fig.align='center'}
+knitr::include_graphics(file.path(figure_dir, figure_files[5]))
+```
+
+</div>
+
+*The original scripts also calculate other results, but this report shows only the tables and figures used in the paper.*

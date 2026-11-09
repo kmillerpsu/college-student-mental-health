@@ -8,14 +8,35 @@ output:
     number_sections: true
 ---
 
+
+<style>
+/* A little extra space makes the tables and plots easier to read. */
+.main-container { max-width: 1100px !important; }
+h1 { margin-top: 44px; margin-bottom: 18px; }
+h2 { margin-top: 30px; margin-bottom: 15px; }
+.paper-table-title { font-weight: 700; margin: 30px 0 10px; font-size: 15px; color: #283c54; line-height: 1.5; }
+.paper-figure-title { font-weight: 700; font-size: 15px; color: #283c54; margin: 38px 0 16px; line-height: 1.5; }
+.paper-table-wrap { margin: 0 0 38px; overflow-x: auto; }
+.paper-figure-wrap { margin: 0 auto 42px; padding: 12px 0 4px; text-align: center; }
+.paper-table-wrap table, table.paper-table { border-collapse: collapse !important; width: 100%; margin: 0 !important; font-size: 13px; line-height: 1.5; }
+.paper-table-wrap th, table.paper-table th { background: #eaf0f7 !important; color: #243951; border-bottom: 2px solid #b4c5d9 !important; padding: 10px 12px !important; text-align: left !important; white-space: nowrap; }
+.paper-table-wrap td, table.paper-table td { padding: 9px 12px !important; border-bottom: 1px solid #e2e8f0 !important; vertical-align: top; }
+.paper-table-wrap tbody tr:nth-child(even), table.paper-table tbody tr:nth-child(even) { background: #f6f8fb !important; }
+.paper-table-wrap tbody tr:hover, table.paper-table tbody tr:hover { background: #ecf3fa !important; }
+.paper-figure-wrap img { display: block; margin: 0 auto; max-width: 100%; height: auto; }
+@media print { .paper-table-wrap { overflow: visible; } .paper-table-wrap tr { break-inside: avoid; } .paper-figure-wrap { break-inside: avoid; } }
+</style>
+
 # Setup
 
 ```{r setup, include = FALSE}
+# Configure the report and reproducible random seed.
 knitr::opts_chunk$set(echo = TRUE, message = FALSE, warning = FALSE)
 set.seed(415)
 ```
 
 ```{r packages}
+# Load packages required for statistical comparisons.
 required_packages <- c("dplyr", "tidyr", "ggplot2", "knitr")
 missing_packages <- required_packages[
   !vapply(required_packages, requireNamespace, logical(1), quietly = TRUE)
@@ -51,6 +72,7 @@ ggplot2::theme_set(paper_theme)
 # Load Data
 
 ```{r load_data}
+# Find the project root whether knitting from code/ or the project root.
 project_root <- if (file.exists("data/processed/pre_covid_clean.csv")) {
   "."
 } else if (file.exists("../data/processed/pre_covid_clean.csv")) {
@@ -59,6 +81,7 @@ project_root <- if (file.exists("data/processed/pre_covid_clean.csv")) {
   stop("Cannot locate data/processed/pre_covid_clean.csv. Open the project .Rproj first.")
 }
 
+# Read the two processed datasets without modifying the originals.
 pre_path <- file.path(project_root, "data", "processed", "pre_covid_clean.csv")
 post_path <- file.path(project_root, "data", "processed", "post_covid_clean.csv")
 
@@ -69,6 +92,7 @@ if (!file.exists(post_path)) {
 pre_covid <- read.csv(pre_path, check.names = FALSE)
 post_covid <- read.csv(post_path, check.names = FALSE)
 
+# Check the shared variables needed for comparisons.
 required_columns <- c("PHQ", "GAD", "gender", "field", "race.2",
                       "yr_sch.2", "fincur.2", "age")
 
@@ -79,6 +103,7 @@ for (dataset_name in c("pre_covid", "post_covid")) {
   }
 }
 
+# Confirm sample sizes.
 data.frame(
   Dataset = c("Pre-COVID (2017–2018)", "Post-COVID (2022–2023)"),
   N = c(nrow(pre_covid), nrow(post_covid))
@@ -88,6 +113,7 @@ data.frame(
 # Clean Pre-COVID and Post-COVID Data
 
 ```{r analysis_01}
+# Standardize survey periods and demographic categories across datasets.
 pre_covid$Period <- "2017-2018 Pre-COVID"
 post_covid$Period <- "2022-2023 Post-COVID"
 
@@ -181,6 +207,7 @@ combined$Period <- factor(
 ## Depression
 
 ```{r analysis_02}
+# Use a two-sample t-test to compare average depression (PHQ) scores
 phq_test <- t.test(
   PHQ ~ Period,
   data = combined
@@ -193,6 +220,7 @@ phq_test
 ## Anxiety
 
 ```{r analysis_03}
+# Use a two-sample t-test to compare average anxiety (GAD) scores
 gad_test <- t.test(
   GAD ~ Period,
   data = combined
@@ -207,6 +235,7 @@ gad_test
 ## Age
 
 ```{r analysis_04}
+# Test whether the average student age differs between survey periods.
 age_test <- t.test(
   age ~ Period,
   data = combined
@@ -219,6 +248,7 @@ age_test
 ## Financial Stress
 
 ```{r analysis_05}
+# Compare average current financial stress scores across survey periods.
 financial_test <- t.test(
   fincur.2 ~ Period,
   data = combined
@@ -231,6 +261,7 @@ financial_test
 ## Gender
 
 ```{r analysis_06}
+# Create a period-by-gender frequency table and use a chi-square test
 gender_table <- table(
   combined$Period,
   combined$gender
@@ -249,6 +280,7 @@ gender_test
 ## STEM Status
 
 ```{r analysis_07}
+# Compare the proportion of STEM and non-STEM students across periods
 stem_table <- table(
   combined$Period,
   combined$field
@@ -267,6 +299,7 @@ stem_test
 ## Race
 
 ```{r analysis_08}
+# Test whether the distribution of reported race categories
 race_table <- table(
   combined$Period,
   combined$race.2
@@ -285,6 +318,7 @@ race_test
 ## Year in School
 
 ```{r analysis_09}
+# Use a chi-square test to compare year-in-school distributions
 year_table <- table(
   combined$Period,
   combined$yr_sch.2
@@ -303,6 +337,7 @@ year_test
 # Depression Changes by Gender
 
 ```{r analysis_10}
+# Compare pre- and post-COVID depression scores separately for men
 men_phq <- t.test(
   PHQ ~ Period,
   data = combined %>%
@@ -323,6 +358,7 @@ women_phq
 # Anxiety Changes by Gender
 
 ```{r analysis_11}
+# Compare pre- and post-COVID anxiety scores separately for men
 men_gad <- t.test(
   GAD ~ Period,
   data = combined %>%
@@ -343,6 +379,7 @@ women_gad
 # Depression Changes by STEM Status
 
 ```{r analysis_12}
+# Test changes in depression scores across survey periods separately
 nonstem_phq <- t.test(
   PHQ ~ Period,
   data = combined %>%
@@ -363,6 +400,7 @@ stem_phq
 # Anxiety Changes by STEM Status
 
 ```{r analysis_13}
+# Test changes in anxiety scores across survey periods separately
 nonstem_gad <- t.test(
   GAD ~ Period,
   data = combined %>%
@@ -385,6 +423,7 @@ stem_gad
 ## Depression and Gender
 
 ```{r analysis_14}
+# Fit a period-by-gender interaction model for depression to assess
 phq_gender_interaction <- lm(
   PHQ ~ Period * gender,
   data = combined
@@ -397,6 +436,7 @@ summary(phq_gender_interaction)
 ## Depression and STEM Status
 
 ```{r analysis_15}
+# Fit a period-by-STEM interaction model for depression to assess
 phq_stem_interaction <- lm(
   PHQ ~ Period * field,
   data = combined
@@ -409,6 +449,7 @@ summary(phq_stem_interaction)
 ## Anxiety and Gender
 
 ```{r analysis_16}
+# Fit a period-by-gender interaction model for anxiety to assess
 gad_gender_interaction <- lm(
   GAD ~ Period * gender,
   data = combined
@@ -421,6 +462,7 @@ summary(gad_gender_interaction)
 ## Anxiety and STEM Status
 
 ```{r analysis_17}
+# Fit a period-by-STEM interaction model for anxiety to assess
 gad_stem_interaction <- lm(
   GAD ~ Period * field,
   data = combined
@@ -435,6 +477,7 @@ summary(gad_stem_interaction)
 ## Adjusted Depression Model
 
 ```{r analysis_18}
+# Estimate the difference in depression scores between survey periods
 adjusted_phq <- lm(
   PHQ ~ Period +
     gender +
@@ -453,6 +496,7 @@ summary(adjusted_phq)
 ## Adjusted Anxiety Model
 
 ```{r analysis_19}
+# Estimate the difference in anxiety scores between survey periods
 adjusted_gad <- lm(
   GAD ~ Period +
     gender +
@@ -471,6 +515,7 @@ summary(adjusted_gad)
 # Results Tables
 
 ```{r comparison_table}
+# Summarize the raw PHQ and GAD differences by period.
 period_summary <- combined %>%
   group_by(Period) %>%
   summarise(
@@ -489,6 +534,7 @@ knitr::kable(period_summary, digits = 3,
 ```
 
 ```{r regression_tables}
+# Present adjusted regression coefficients in compact tables.
 regression_table <- function(model, outcome) {
   coef_table <- as.data.frame(summary(model)$coefficients)
   coef_table$Term <- rownames(coef_table)
@@ -508,6 +554,7 @@ knitr::kable(adjusted_results, digits = 4,
 ```
 
 ```{r model_diagnostics}
+# Check residual patterns for the two adjusted models.
 par(mfrow = c(1, 2))
 plot(adjusted_phq, which = 1, main = "PHQ residuals")
 plot(adjusted_gad, which = 1, main = "GAD residuals")
@@ -517,6 +564,7 @@ par(mfrow = c(1, 1))
 # Reproducibility
 
 ```{r session_info}
+# Record package and R versions for reproducibility.
 sessionInfo()
 ```
 
@@ -524,6 +572,7 @@ sessionInfo()
 
 
 ```{r final_paper_export_setup}
+# Make folders to save the tables and figures used in the final paper.
 final_paper_dir <- file.path(project_root, "outputs", "final_paper")
 figure_dir <- file.path(final_paper_dir, "figures")
 table_dir <- file.path(final_paper_dir, "tables")
@@ -549,7 +598,8 @@ save_paper_table <- function(tab, filename, digits = 4) {
     error = function(e) message("Table CSV not saved (file in use or folder blocked): ", csv_path)
   )
   tryCatch(
-    writeLines(as.character(knitr::kable(tab, format = "html", digits = digits)), html_path),
+    writeLines(sub("<table", "<table class=\"paper-table\"",
+                   as.character(knitr::kable(tab, format = "html", digits = digits, row.names = FALSE)), fixed = TRUE), html_path),
     error = function(e) message("Table HTML not saved (file in use or folder blocked): ", html_path)
   )
   invisible(tab)
@@ -559,6 +609,7 @@ save_paper_table <- function(tab, filename, digits = 4) {
 ## Regression Results
 
 ```{r final_paper_regression_ci_table}
+# Build the adjusted regression table with coefficients and confidence intervals.
 model_ci_table <- function(model, outcome) {
   coefficients <- as.data.frame(summary(model)$coefficients)
   confidence_intervals <- stats::confint(model, level = 0.95)
@@ -621,6 +672,7 @@ knitr::kable(regression_ci_publication, caption =
 ## Interactions
 
 ```{r final_paper_interaction_table}
+# Collect the period interaction results and format the table without extra row names.
 extract_interaction <- function(model, outcome, comparison) {
   coefficient_matrix <- summary(model)$coefficients
   interaction_index <- grep(":", rownames(coefficient_matrix), fixed = TRUE)
@@ -630,11 +682,15 @@ extract_interaction <- function(model, outcome, comparison) {
   confidence_interval <- stats::confint(model)[interaction_index, ]
   data.frame(
     Outcome = outcome, Interaction = comparison,
-    Coefficient = coefficient_matrix[interaction_index, 1],
-    Standard_Error = coefficient_matrix[interaction_index, 2],
-    CI_Lower = confidence_interval[1], CI_Upper = confidence_interval[2],
-    T_Value = coefficient_matrix[interaction_index, 3],
-    P_Value = coefficient_matrix[interaction_index, 4]
+    # Drop the names that come from confint(). Otherwise R uses them as row labels
+    # (for example, "2.5 %...1") when putting the interaction rows together.
+    Coefficient = unname(coefficient_matrix[interaction_index, 1]),
+    Standard_Error = unname(coefficient_matrix[interaction_index, 2]),
+    CI_Lower = unname(confidence_interval[1]),
+    CI_Upper = unname(confidence_interval[2]),
+    T_Value = unname(coefficient_matrix[interaction_index, 3]),
+    P_Value = unname(coefficient_matrix[interaction_index, 4]),
+    row.names = NULL
   )
 }
 interaction_results <- dplyr::bind_rows(
@@ -643,8 +699,10 @@ interaction_results <- dplyr::bind_rows(
   extract_interaction(gad_gender_interaction, "GAD", "Period × Gender"),
   extract_interaction(gad_stem_interaction, "GAD", "Period × STEM")
 )
+# Keep the four interaction rows in order, without the inherited row names.
+row.names(interaction_results) <- NULL
 save_paper_table(interaction_results, "table_03_period_interaction_results")
-knitr::kable(interaction_results, digits = 4,
+knitr::kable(interaction_results, digits = 4, row.names = FALSE,
              caption = "Interactions")
 
 interaction_publication <- interaction_results %>%
@@ -658,7 +716,7 @@ interaction_publication <- interaction_results %>%
   ) %>%
   dplyr::select(Outcome, Interaction, Coefficient, Standard_Error, `95% CI`, `t-value`, `p-value`)
 save_paper_table(interaction_publication, "table_03b_interactions_publication_ready")
-knitr::kable(interaction_publication,
+knitr::kable(interaction_publication, row.names = FALSE,
              caption = "Interactions")
 
 ```
@@ -667,6 +725,7 @@ knitr::kable(interaction_publication,
 ## Interaction Plots
 
 ```{r final_paper_interaction_plots, fig.width=11, fig.height=7}
+# Plot how PHQ and GAD scores vary by survey period, gender, and STEM status.
 interaction_long <- combined %>%
   dplyr::select(Period, gender, field, PHQ, GAD) %>%
   tidyr::pivot_longer(
