@@ -1,0 +1,29 @@
+## 
+## Call:
+## lm(formula = GAD ~ gender + field + race.2 + yr_sch.2 + fincur.2 + 
+##     age, data = train)
+## 
+## Residuals:
+##     Min      1Q  Median      3Q     Max 
+## -1.7899 -0.5945 -0.1377  0.5381  2.5295 
+## 
+## Coefficients:
+##                       Estimate Std. Error t value Pr(>|t|)    
+## (Intercept)           1.525942   0.027897  54.699  < 2e-16 ***
+## genderWomen           0.291030   0.011106  26.205  < 2e-16 ***
+## fieldSTEM             0.020469   0.010043   2.038   0.0416 *  
+## race.2Asian          -0.104539   0.015207  -6.874 6.38e-12 ***
+## race.2Black          -0.186078   0.016320 -11.402  < 2e-16 ***
+## race.2Hispanic       -0.086539   0.018364  -4.712 2.46e-06 ***
+## race.2Middle Eastern  0.043836   0.041959   1.045   0.2962    
+## yr_sch.2secondyear    0.089521   0.014143   6.329 2.50e-10 ***
+## yr_sch.2thirdyear     0.079805   0.014387   5.547 2.94e-08 ***
+## yr_sch.2fourthyear+   0.060820   0.014532   4.185 2.86e-05 ***
+## fincur.2              0.227788   0.004532  50.262  < 2e-16 ***
+## age                  -0.015333   0.001133 -13.536  < 2e-16 ***
+## ---
+## Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
+## 
+## Residual standard error: 0.7727 on 24020 degrees of freedom
+## Multiple R-squared:  0.134,	Adjusted R-squared:  0.1336 
+## F-statistic: 337.8 on 11 and 24020 DF,  p-value: < 2.2e-16

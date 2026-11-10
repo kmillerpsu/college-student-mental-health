@@ -1,0 +1,30 @@
+## 
+## Call:
+## lm(formula = GAD ~ PHQ + gender + field + race.2 + yr_sch.2 + 
+##     fincur.2 + age, data = train)
+## 
+## Residuals:
+##      Min       1Q   Median       3Q      Max 
+## -2.79218 -0.34452 -0.06802  0.30339  2.66173 
+## 
+## Coefficients:
+##                        Estimate Std. Error t value Pr(>|t|)    
+## (Intercept)           0.3244764  0.0211337  15.354  < 2e-16 ***
+## PHQ                   0.8399915  0.0053922 155.779  < 2e-16 ***
+## genderWomen           0.1850955  0.0078624  23.542  < 2e-16 ***
+## fieldSTEM             0.0036764  0.0070845   0.519    0.604    
+## race.2Asian          -0.1318343  0.0107271 -12.290  < 2e-16 ***
+## race.2Black          -0.1434579  0.0115140 -12.459  < 2e-16 ***
+## race.2Hispanic       -0.0932949  0.0129526  -7.203 6.07e-13 ***
+## race.2Middle Eastern -0.0313617  0.0295975  -1.060    0.289    
+## yr_sch.2secondyear    0.0508749  0.0099785   5.098 3.45e-07 ***
+## yr_sch.2thirdyear     0.0522495  0.0101488   5.148 2.65e-07 ***
+## yr_sch.2fourthyear+   0.0557569  0.0102494   5.440 5.38e-08 ***
+## fincur.2              0.0487396  0.0033968  14.349  < 2e-16 ***
+## age                  -0.0059000  0.0008012  -7.364 1.84e-13 ***
+## ---
+## Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
+## 
+## Residual standard error: 0.545 on 24019 degrees of freedom
+## Multiple R-squared:  0.5692,	Adjusted R-squared:  0.569 
+## F-statistic:  2645 on 12 and 24019 DF,  p-value: < 2.2e-16

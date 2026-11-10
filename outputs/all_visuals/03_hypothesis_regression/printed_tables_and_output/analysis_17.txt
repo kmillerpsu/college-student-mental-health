@@ -1,0 +1,21 @@
+## 
+## Call:
+## lm(formula = GAD ~ Period * field, data = combined)
+## 
+## Residuals:
+##     Min      1Q  Median      3Q     Max 
+## -1.1626 -0.6384 -0.1757  0.5517  2.0759 
+## 
+## Coefficients:
+##                                       Estimate Std. Error t value Pr(>|t|)    
+## (Intercept)                           2.032844   0.005046  402.84   <2e-16 ***
+## Period2022-2023 Post-COVID            0.107968   0.007864   13.73   <2e-16 ***
+## fieldSTEM                            -0.108726   0.007932  -13.71   <2e-16 ***
+## Period2022-2023 Post-COVID:fieldSTEM  0.130529   0.011423   11.43   <2e-16 ***
+## ---
+## Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
+## 
+## Residual standard error: 0.8085 on 82038 degrees of freedom
+##   (30295 observations deleted due to missingness)
+## Multiple R-squared:  0.01244,	Adjusted R-squared:  0.01241 
+## F-statistic: 344.6 on 3 and 82038 DF,  p-value: < 2.2e-16

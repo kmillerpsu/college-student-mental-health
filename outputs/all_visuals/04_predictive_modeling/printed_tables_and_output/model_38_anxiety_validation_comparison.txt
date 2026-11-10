@@ -1,0 +1,5 @@
+##                      Model      RMSE       MAE        R2 Accuracy
+## 2 Gender x STEM Regression 0.5330389 0.4092053 0.5761584    79.87
+## 3         LASSO Regression 0.5330810 0.4092891 0.5760571    79.93
+## 1        Linear Regression 0.5331193 0.4092204 0.5760299    79.90
+## 4                  XGBoost 0.5456263 0.4169220 0.5574111    79.57

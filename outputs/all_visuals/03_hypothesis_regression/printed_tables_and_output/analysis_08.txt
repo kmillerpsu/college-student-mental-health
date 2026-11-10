@@ -1,0 +1,9 @@
+##                       
+##                        White Asian Black Hispanic Middle Eastern
+##   2017-2018 Pre-COVID  40349 10167  3406     4940           1112
+##   2022-2023 Post-COVID 25215  5118  4446     3332            647
+## 
+## 	Pearson's Chi-squared test
+## 
+## data:  race_table
+## X-squared = 1232.3, df = 4, p-value < 2.2e-16

@@ -1,9 +1,0 @@
-"Outcome","Model","Actual","Predicted","Freq"
-"PHQ","Gender x STEM Regression","Below 10","Below 10",1854
-"PHQ","Gender x STEM Regression","10 or higher","Below 10",329
-"PHQ","Gender x STEM Regression","Below 10","10 or higher",361
-"PHQ","Gender x STEM Regression","10 or higher","10 or higher",824
-"GAD","Gender x STEM Regression","Below 10","Below 10",1926
-"GAD","Gender x STEM Regression","10 or higher","Below 10",439
-"GAD","Gender x STEM Regression","Below 10","10 or higher",239
-"GAD","Gender x STEM Regression","10 or higher","10 or higher",764

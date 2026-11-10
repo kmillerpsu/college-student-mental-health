@@ -1,0 +1,9 @@
+
+
+Table: Depression Score Comparison
+
+|Period               |     N| Mean| Median|   SD|
+|:--------------------|-----:|----:|------:|----:|
+|2017-2018 Pre-COVID  | 51639| 1.89|   1.78| 0.67|
+|2022-2023 Post-COVID | 41469| 1.99|   1.89| 0.70|
+

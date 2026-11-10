@@ -1,0 +1,11 @@
+
+
+Table: Confusion Matrices
+
+|Outcome    |Observed     | Predicted below 10| Predicted 10 or higher|
+|:----------|:------------|------------------:|----------------------:|
+|Depression |Below 10     |               1854|                    361|
+|Depression |10 or higher |                329|                    824|
+|Anxiety    |Below 10     |               1926|                    239|
+|Anxiety    |10 or higher |                439|                    764|
+

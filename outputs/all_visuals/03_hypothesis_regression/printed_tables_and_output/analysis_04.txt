@@ -1,0 +1,11 @@
+## 
+## 	Welch Two Sample t-test
+## 
+## data:  age by Period
+## t = 61.229, df = 109641, p-value < 2.2e-16
+## alternative hypothesis: true difference in means between group 2017-2018 Pre-COVID and group 2022-2023 Post-COVID is not equal to 0
+## 95 percent confidence interval:
+##  1.920245 2.047248
+## sample estimates:
+##  mean in group 2017-2018 Pre-COVID mean in group 2022-2023 Post-COVID 
+##                           22.95718                           20.97343

@@ -1,0 +1,38 @@
+
+
+Table: Test Results
+
+|Outcome    |Model                    |   RMSE|    MAE|     R²| Accuracy (%)|
+|:----------|:------------------------|------:|------:|------:|------------:|
+|Depression |Gender × STEM Regression | 0.4630| 0.3539| 0.5693|        80.68|
+|Depression |Linear Regression        | 0.4630| 0.3539| 0.5692|        80.68|
+|Depression |LASSO Regression         | 0.4630| 0.3539| 0.5692|        80.68|
+|Depression |Ridge Regression         | 0.4649| 0.3581| 0.5690|        80.79|
+|Depression |Random Forest            | 0.4674| 0.3620| 0.5641|        80.42|
+|Depression |XGBoost                  | 0.4709| 0.3588| 0.5546|        80.15|
+|Depression |Regression Tree          | 0.4884| 0.3778| 0.5206|        78.31|
+|Depression |Baseline                 | 0.7051| 0.5727| 0.0000|        65.40|
+|Anxiety    |LASSO Regression         | 0.5426| 0.4187| 0.5682|        80.76|
+|Anxiety    |Gender × STEM Regression | 0.5427| 0.4187| 0.5681|        80.76|
+|Anxiety    |Linear Regression        | 0.5427| 0.4187| 0.5681|        80.79|
+|Anxiety    |Ridge Regression         | 0.5438| 0.4245| 0.5677|        80.83|
+|Anxiety    |Random Forest            | 0.5462| 0.4282| 0.5642|        80.55|
+|Anxiety    |XGBoost                  | 0.5518| 0.4245| 0.5545|        80.55|
+|Anxiety    |Regression Tree          | 0.5695| 0.4453| 0.5243|        79.58|
+|Anxiety    |Baseline                 | 0.8254| 0.6900| 0.0000|        64.53|
+
+
+
+Table: Validation Results
+
+|Outcome    |Model                    |   RMSE|    MAE|     R²| Accuracy (%)|
+|:----------|:------------------------|------:|------:|------:|------------:|
+|Depression |Gender × STEM Regression | 0.4591| 0.3525| 0.5746|        79.51|
+|Depression |Linear Regression        | 0.4591| 0.3527| 0.5745|        79.39|
+|Depression |LASSO Regression         | 0.4592| 0.3528| 0.5744|        79.54|
+|Depression |XGBoost                  | 0.4732| 0.3606| 0.5484|        79.51|
+|Anxiety    |Gender × STEM Regression | 0.5330| 0.4092| 0.5762|        79.87|
+|Anxiety    |LASSO Regression         | 0.5331| 0.4093| 0.5761|        79.93|
+|Anxiety    |Linear Regression        | 0.5331| 0.4092| 0.5760|        79.90|
+|Anxiety    |XGBoost                  | 0.5456| 0.4169| 0.5574|        79.57|
+

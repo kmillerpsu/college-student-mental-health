@@ -1,0 +1,2 @@
+##    Min. 1st Qu.  Median    Mean 3rd Qu.    Max.    NA's 
+##   1.000   1.444   1.889   1.990   2.444   4.000    2441

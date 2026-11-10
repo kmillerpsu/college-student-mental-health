@@ -1,0 +1,18 @@
+##      Outcome                    Model Test_RMSE Validation_RMSE   Test_R2
+## 1 Depression        Linear Regression 0.4630183       0.4590990 0.5692459
+## 2 Depression Gender x STEM Regression 0.4630075       0.4590554 0.5692703
+## 3 Depression         LASSO Regression 0.4630377       0.4591551 0.5692493
+## 4 Depression                  XGBoost 0.4709333       0.4731762 0.5546324
+## 5    Anxiety        Linear Regression 0.5426935       0.5331193 0.5681078
+## 6    Anxiety Gender x STEM Regression 0.5426797       0.5330389 0.5681353
+## 7    Anxiety         LASSO Regression 0.5426277       0.5330810 0.5681774
+## 8    Anxiety                  XGBoost 0.5518474       0.5456263 0.5545291
+##   Validation_R2
+## 1     0.5744728
+## 2     0.5745552
+## 3     0.5744179
+## 4     0.5484138
+## 5     0.5760299
+## 6     0.5761584
+## 7     0.5760571
+## 8     0.5574111

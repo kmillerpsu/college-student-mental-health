@@ -35,6 +35,64 @@ knitr::opts_chunk$set(echo = TRUE, message = FALSE, warning = FALSE)
 set.seed(415)
 ```
 
+```{r save_all_rendered_outputs, include=FALSE}
+# Export each chart and printed table while retaining the original R Markdown output.
+# Only file-saving hooks are added; the analysis chunks below are unchanged.
+export_project_root <- if (file.exists(file.path("data", "processed")) ||
+                           file.exists(file.path("data", "split"))) {
+  "."
+} else if (file.exists(file.path("..", "data", "processed")) ||
+           file.exists(file.path("..", "data", "split"))) {
+  ".."
+} else {
+  getwd()
+}
+export_base_dir <- file.path(export_project_root, "outputs", "all_visuals", "03_hypothesis_regression")
+export_plot_dir <- file.path(export_base_dir, "figures")
+export_table_dir <- file.path(export_base_dir, "printed_tables_and_output")
+dir.create(export_plot_dir, recursive = TRUE, showWarnings = FALSE)
+dir.create(export_table_dir, recursive = TRUE, showWarnings = FALSE)
+
+# Keep the built-in plot hook so figures still appear in the knitted report.
+original_plot_hook <- knitr::knit_hooks$get("plot")
+knitr::knit_hooks$set(plot = function(x, options) {
+  for (source_file in x) {
+    if (file.exists(source_file)) {
+      # Knitr's filenames include the chunk label and figure number.
+      destination <- file.path(export_plot_dir, basename(source_file))
+      file.copy(source_file, destination, overwrite = TRUE)
+    }
+  }
+  original_plot_hook(x, options)
+})
+
+# Also retain the original printed output and export it as readable text.
+# This includes tables rendered by knitr::kable() in ordinary output chunks.
+original_output_hook <- knitr::knit_hooks$get("output")
+knitr::knit_hooks$set(output = function(x, options) {
+  if (nzchar(trimws(x))) {
+    label <- if (is.null(options$label)) "unnamed" else options$label
+    path <- file.path(export_table_dir, paste0(label, ".txt"))
+    cat(x, file = path, append = TRUE, sep = "")
+  }
+  original_output_hook(x, options)
+})
+
+# Save markdown/HTML table output when a chunk uses results='asis'.
+original_asis_hook <- knitr::knit_hooks$get("asis")
+if (is.function(original_asis_hook)) {
+  knitr::knit_hooks$set(asis = function(x, options) {
+    if (nzchar(trimws(x))) {
+      label <- if (is.null(options$label)) "unnamed" else options$label
+      path <- file.path(export_table_dir, paste0(label, ".md"))
+      cat(x, file = path, append = TRUE, sep = "")
+    }
+    original_asis_hook(x, options)
+  })
+}
+```
+
+
 ```{r packages}
 # Load packages required for statistical comparisons.
 required_packages <- c("dplyr", "tidyr", "ggplot2", "knitr")

@@ -1,0 +1,21 @@
+## 
+## Call:
+## lm(formula = GAD ~ Period * gender, data = combined)
+## 
+## Residuals:
+##     Min      1Q  Median      3Q     Max 
+## -1.2503 -0.6225 -0.1902  0.5241  2.2162 
+## 
+## Coefficients:
+##                                        Estimate Std. Error t value Pr(>|t|)    
+## (Intercept)                            1.783758   0.006446 276.714  < 2e-16 ***
+## Period2022-2023 Post-COVID             0.124466   0.009818  12.677  < 2e-16 ***
+## genderWomen                            0.263546   0.007735  34.071  < 2e-16 ***
+## Period2022-2023 Post-COVID:genderWomen 0.078507   0.011658   6.734 1.66e-11 ***
+## ---
+## Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
+## 
+## Residual standard error: 0.7926 on 90528 degrees of freedom
+##   (21805 observations deleted due to missingness)
+## Multiple R-squared:  0.04193,	Adjusted R-squared:  0.04189 
+## F-statistic:  1321 on 3 and 90528 DF,  p-value: < 2.2e-16

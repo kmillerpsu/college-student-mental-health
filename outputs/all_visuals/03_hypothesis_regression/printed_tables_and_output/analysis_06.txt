@@ -1,0 +1,9 @@
+##                       
+##                          Men Women
+##   2017-2018 Pre-COVID  21541 45010
+##   2022-2023 Post-COVID 12271 31639
+## 
+## 	Pearson's Chi-squared test with Yates' continuity correction
+## 
+## data:  gender_table
+## X-squared = 243.33, df = 1, p-value < 2.2e-16

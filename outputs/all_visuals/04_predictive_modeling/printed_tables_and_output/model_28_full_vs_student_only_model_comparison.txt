@@ -1,0 +1,5 @@
+##      Outcome                           Predictors      RMSE        R2
+## 1 Depression    Student Characteristics + Anxiety 0.4630183 0.5692459
+## 2 Depression         Student Characteristics Only 0.6567766 0.1324117
+## 3    Anxiety Student Characteristics + Depression 0.5426935 0.5681078
+## 4    Anxiety         Student Characteristics Only 0.7698006 0.1301770

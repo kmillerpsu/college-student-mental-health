@@ -1,0 +1,9 @@
+
+
+Table: Correlation Between Depression and Anxiety
+
+|Period               | PHQ_GAD_Correlation|
+|:--------------------|-------------------:|
+|2017-2018 Pre-COVID  |               0.750|
+|2022-2023 Post-COVID |               0.742|
+
