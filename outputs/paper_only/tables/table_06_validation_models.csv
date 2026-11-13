@@ -1,0 +1,9 @@
+"Outcome","Model","RMSE","MAE","R²","Accuracy (%)"
+"Depression","Gender × STEM Regression",0.4591,0.3525,0.5746,79.51
+"Depression","Linear Regression",0.4591,0.3527,0.5745,79.39
+"Depression","LASSO Regression",0.4592,0.3528,0.5744,79.54
+"Depression","XGBoost",0.4732,0.3606,0.5484,79.51
+"Anxiety","Gender × STEM Regression",0.533,0.4092,0.5762,79.87
+"Anxiety","LASSO Regression",0.5331,0.4093,0.5761,79.93
+"Anxiety","Linear Regression",0.5331,0.4092,0.576,79.9
+"Anxiety","XGBoost",0.5456,0.4169,0.5574,79.57

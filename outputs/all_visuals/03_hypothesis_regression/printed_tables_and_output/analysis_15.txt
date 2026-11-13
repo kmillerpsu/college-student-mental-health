@@ -19,3 +19,129 @@
 ##   (29384 observations deleted due to missingness)
 ## Multiple R-squared:  0.007185,	Adjusted R-squared:  0.007149 
 ## F-statistic: 200.1 on 3 and 82949 DF,  p-value: < 2.2e-16
+## 
+## Call:
+## lm(formula = PHQ ~ Period * field, data = combined)
+## 
+## Residuals:
+##     Min      1Q  Median      3Q     Max 
+## -1.0008 -0.5356 -0.1636  0.3920  2.1598 
+## 
+## Coefficients:
+##                                       Estimate Std. Error t value Pr(>|t|)    
+## (Intercept)                           1.941379   0.004258 455.990  < 2e-16 ***
+## Period2022-2023 Post-COVID            0.038677   0.006639   5.825 5.72e-09 ***
+## fieldSTEM                            -0.101135   0.006687 -15.123  < 2e-16 ***
+## Period2022-2023 Post-COVID:fieldSTEM  0.121827   0.009637  12.642  < 2e-16 ***
+## ---
+## Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
+## 
+## Residual standard error: 0.6858 on 82949 degrees of freedom
+##   (29384 observations deleted due to missingness)
+## Multiple R-squared:  0.007185,	Adjusted R-squared:  0.007149 
+## F-statistic: 200.1 on 3 and 82949 DF,  p-value: < 2.2e-16
+## 
+## Call:
+## lm(formula = PHQ ~ Period * field, data = combined)
+## 
+## Residuals:
+##     Min      1Q  Median      3Q     Max 
+## -1.0008 -0.5356 -0.1636  0.3920  2.1598 
+## 
+## Coefficients:
+##                                       Estimate Std. Error t value Pr(>|t|)    
+## (Intercept)                           1.941379   0.004258 455.990  < 2e-16 ***
+## Period2022-2023 Post-COVID            0.038677   0.006639   5.825 5.72e-09 ***
+## fieldSTEM                            -0.101135   0.006687 -15.123  < 2e-16 ***
+## Period2022-2023 Post-COVID:fieldSTEM  0.121827   0.009637  12.642  < 2e-16 ***
+## ---
+## Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
+## 
+## Residual standard error: 0.6858 on 82949 degrees of freedom
+##   (29384 observations deleted due to missingness)
+## Multiple R-squared:  0.007185,	Adjusted R-squared:  0.007149 
+## F-statistic: 200.1 on 3 and 82949 DF,  p-value: < 2.2e-16
+## 
+## Call:
+## lm(formula = PHQ ~ Period * field, data = combined)
+## 
+## Residuals:
+##     Min      1Q  Median      3Q     Max 
+## -1.0008 -0.5356 -0.1636  0.3920  2.1598 
+## 
+## Coefficients:
+##                                       Estimate Std. Error t value Pr(>|t|)    
+## (Intercept)                           1.941379   0.004258 455.990  < 2e-16 ***
+## Period2022-2023 Post-COVID            0.038677   0.006639   5.825 5.72e-09 ***
+## fieldSTEM                            -0.101135   0.006687 -15.123  < 2e-16 ***
+## Period2022-2023 Post-COVID:fieldSTEM  0.121827   0.009637  12.642  < 2e-16 ***
+## ---
+## Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
+## 
+## Residual standard error: 0.6858 on 82949 degrees of freedom
+##   (29384 observations deleted due to missingness)
+## Multiple R-squared:  0.007185,	Adjusted R-squared:  0.007149 
+## F-statistic: 200.1 on 3 and 82949 DF,  p-value: < 2.2e-16
+## 
+## Call:
+## lm(formula = PHQ ~ Period * field, data = combined)
+## 
+## Residuals:
+##     Min      1Q  Median      3Q     Max 
+## -1.0008 -0.5356 -0.1636  0.3920  2.1598 
+## 
+## Coefficients:
+##                                       Estimate Std. Error t value Pr(>|t|)    
+## (Intercept)                           1.941379   0.004258 455.990  < 2e-16 ***
+## Period2022-2023 Post-COVID            0.038677   0.006639   5.825 5.72e-09 ***
+## fieldSTEM                            -0.101135   0.006687 -15.123  < 2e-16 ***
+## Period2022-2023 Post-COVID:fieldSTEM  0.121827   0.009637  12.642  < 2e-16 ***
+## ---
+## Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
+## 
+## Residual standard error: 0.6858 on 82949 degrees of freedom
+##   (29384 observations deleted due to missingness)
+## Multiple R-squared:  0.007185,	Adjusted R-squared:  0.007149 
+## F-statistic: 200.1 on 3 and 82949 DF,  p-value: < 2.2e-16
+## 
+## Call:
+## lm(formula = PHQ ~ Period * field, data = combined)
+## 
+## Residuals:
+##     Min      1Q  Median      3Q     Max 
+## -1.0008 -0.5356 -0.1636  0.3920  2.1598 
+## 
+## Coefficients:
+##                                       Estimate Std. Error t value Pr(>|t|)    
+## (Intercept)                           1.941379   0.004258 455.990  < 2e-16 ***
+## Period2022-2023 Post-COVID            0.038677   0.006639   5.825 5.72e-09 ***
+## fieldSTEM                            -0.101135   0.006687 -15.123  < 2e-16 ***
+## Period2022-2023 Post-COVID:fieldSTEM  0.121827   0.009637  12.642  < 2e-16 ***
+## ---
+## Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
+## 
+## Residual standard error: 0.6858 on 82949 degrees of freedom
+##   (29384 observations deleted due to missingness)
+## Multiple R-squared:  0.007185,	Adjusted R-squared:  0.007149 
+## F-statistic: 200.1 on 3 and 82949 DF,  p-value: < 2.2e-16
+## 
+## Call:
+## lm(formula = PHQ ~ Period * field, data = combined)
+## 
+## Residuals:
+##     Min      1Q  Median      3Q     Max 
+## -1.0008 -0.5356 -0.1636  0.3920  2.1598 
+## 
+## Coefficients:
+##                                       Estimate Std. Error t value Pr(>|t|)    
+## (Intercept)                           1.941379   0.004258 455.990  < 2e-16 ***
+## Period2022-2023 Post-COVID            0.038677   0.006639   5.825 5.72e-09 ***
+## fieldSTEM                            -0.101135   0.006687 -15.123  < 2e-16 ***
+## Period2022-2023 Post-COVID:fieldSTEM  0.121827   0.009637  12.642  < 2e-16 ***
+## ---
+## Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
+## 
+## Residual standard error: 0.6858 on 82949 degrees of freedom
+##   (29384 observations deleted due to missingness)
+## Multiple R-squared:  0.007185,	Adjusted R-squared:  0.007149 
+## F-statistic: 200.1 on 3 and 82949 DF,  p-value: < 2.2e-16

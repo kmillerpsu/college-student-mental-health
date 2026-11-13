@@ -9,3 +9,47 @@
 ## 6 2022-2023 Post-COVID Men    STEM      5928     1.88     1.90
 ## 7 2022-2023 Post-COVID Women  Non-STEM 13187     2.04     2.24
 ## 8 2022-2023 Post-COVID Women  STEM     16137     2.05     2.26
+## # A tibble: 8 × 6
+##   Period               gender field        N Mean_PHQ Mean_GAD
+##   <fct>                <fct>  <fct>    <int>    <dbl>    <dbl>
+## 1 2017-2018 Pre-COVID  Men    Non-STEM  9116     1.81     1.82
+## 2 2017-2018 Pre-COVID  Men    STEM      9306     1.76     1.75
+## 3 2017-2018 Pre-COVID  Women  Non-STEM 21822     1.96     2.09
+## 4 2017-2018 Pre-COVID  Women  STEM     15447     1.87     2.00
+## 5 2022-2023 Post-COVID Men    Non-STEM  5770     1.85     1.91
+## 6 2022-2023 Post-COVID Men    STEM      5928     1.88     1.90
+## 7 2022-2023 Post-COVID Women  Non-STEM 13187     2.04     2.24
+## 8 2022-2023 Post-COVID Women  STEM     16137     2.05     2.26
+## # A tibble: 8 × 6
+##   Period               gender field        N Mean_PHQ Mean_GAD
+##   <fct>                <fct>  <fct>    <int>    <dbl>    <dbl>
+## 1 2017-2018 Pre-COVID  Men    Non-STEM  9116     1.81     1.82
+## 2 2017-2018 Pre-COVID  Men    STEM      9306     1.76     1.75
+## 3 2017-2018 Pre-COVID  Women  Non-STEM 21822     1.96     2.09
+## 4 2017-2018 Pre-COVID  Women  STEM     15447     1.87     2.00
+## 5 2022-2023 Post-COVID Men    Non-STEM  5770     1.85     1.91
+## 6 2022-2023 Post-COVID Men    STEM      5928     1.88     1.90
+## 7 2022-2023 Post-COVID Women  Non-STEM 13187     2.04     2.24
+## 8 2022-2023 Post-COVID Women  STEM     16137     2.05     2.26
+## # A tibble: 8 × 6
+##   Period               gender field        N Mean_PHQ Mean_GAD
+##   <fct>                <fct>  <fct>    <int>    <dbl>    <dbl>
+## 1 2017-2018 Pre-COVID  Men    Non-STEM  9116     1.81     1.82
+## 2 2017-2018 Pre-COVID  Men    STEM      9306     1.76     1.75
+## 3 2017-2018 Pre-COVID  Women  Non-STEM 21822     1.96     2.09
+## 4 2017-2018 Pre-COVID  Women  STEM     15447     1.87     2.00
+## 5 2022-2023 Post-COVID Men    Non-STEM  5770     1.85     1.91
+## 6 2022-2023 Post-COVID Men    STEM      5928     1.88     1.90
+## 7 2022-2023 Post-COVID Women  Non-STEM 13187     2.04     2.24
+## 8 2022-2023 Post-COVID Women  STEM     16137     2.05     2.26
+## # A tibble: 8 × 6
+##   Period               gender field        N Mean_PHQ Mean_GAD
+##   <fct>                <fct>  <fct>    <int>    <dbl>    <dbl>
+## 1 2017-2018 Pre-COVID  Men    Non-STEM  9116     1.81     1.82
+## 2 2017-2018 Pre-COVID  Men    STEM      9306     1.76     1.75
+## 3 2017-2018 Pre-COVID  Women  Non-STEM 21822     1.96     2.09
+## 4 2017-2018 Pre-COVID  Women  STEM     15447     1.87     2.00
+## 5 2022-2023 Post-COVID Men    Non-STEM  5770     1.85     1.91
+## 6 2022-2023 Post-COVID Men    STEM      5928     1.88     1.90
+## 7 2022-2023 Post-COVID Women  Non-STEM 13187     2.04     2.24
+## 8 2022-2023 Post-COVID Women  STEM     16137     2.05     2.26

@@ -20,3 +20,135 @@
 ## sample estimates:
 ##  mean in group 2017-2018 Pre-COVID mean in group 2022-2023 Post-COVID 
 ##                           1.840244                           2.000748
+## 
+## 	Welch Two Sample t-test
+## 
+## data:  PHQ by Period
+## t = -5.7139, df = 38337, p-value = 1.112e-08
+## alternative hypothesis: true difference in means between group 2017-2018 Pre-COVID and group 2022-2023 Post-COVID is not equal to 0
+## 95 percent confidence interval:
+##  -0.05194366 -0.02540956
+## sample estimates:
+##  mean in group 2017-2018 Pre-COVID mean in group 2022-2023 Post-COVID 
+##                           1.941379                           1.980055
+## 
+## 	Welch Two Sample t-test
+## 
+## data:  PHQ by Period
+## t = -23.563, df = 38552, p-value < 2.2e-16
+## alternative hypothesis: true difference in means between group 2017-2018 Pre-COVID and group 2022-2023 Post-COVID is not equal to 0
+## 95 percent confidence interval:
+##  -0.1738548 -0.1471531
+## sample estimates:
+##  mean in group 2017-2018 Pre-COVID mean in group 2022-2023 Post-COVID 
+##                           1.840244                           2.000748
+## 
+## 	Welch Two Sample t-test
+## 
+## data:  PHQ by Period
+## t = -5.7139, df = 38337, p-value = 1.112e-08
+## alternative hypothesis: true difference in means between group 2017-2018 Pre-COVID and group 2022-2023 Post-COVID is not equal to 0
+## 95 percent confidence interval:
+##  -0.05194366 -0.02540956
+## sample estimates:
+##  mean in group 2017-2018 Pre-COVID mean in group 2022-2023 Post-COVID 
+##                           1.941379                           1.980055
+## 
+## 	Welch Two Sample t-test
+## 
+## data:  PHQ by Period
+## t = -23.563, df = 38552, p-value < 2.2e-16
+## alternative hypothesis: true difference in means between group 2017-2018 Pre-COVID and group 2022-2023 Post-COVID is not equal to 0
+## 95 percent confidence interval:
+##  -0.1738548 -0.1471531
+## sample estimates:
+##  mean in group 2017-2018 Pre-COVID mean in group 2022-2023 Post-COVID 
+##                           1.840244                           2.000748
+## 
+## 	Welch Two Sample t-test
+## 
+## data:  PHQ by Period
+## t = -5.7139, df = 38337, p-value = 1.112e-08
+## alternative hypothesis: true difference in means between group 2017-2018 Pre-COVID and group 2022-2023 Post-COVID is not equal to 0
+## 95 percent confidence interval:
+##  -0.05194366 -0.02540956
+## sample estimates:
+##  mean in group 2017-2018 Pre-COVID mean in group 2022-2023 Post-COVID 
+##                           1.941379                           1.980055
+## 
+## 	Welch Two Sample t-test
+## 
+## data:  PHQ by Period
+## t = -23.563, df = 38552, p-value < 2.2e-16
+## alternative hypothesis: true difference in means between group 2017-2018 Pre-COVID and group 2022-2023 Post-COVID is not equal to 0
+## 95 percent confidence interval:
+##  -0.1738548 -0.1471531
+## sample estimates:
+##  mean in group 2017-2018 Pre-COVID mean in group 2022-2023 Post-COVID 
+##                           1.840244                           2.000748
+## 
+## 	Welch Two Sample t-test
+## 
+## data:  PHQ by Period
+## t = -5.7139, df = 38337, p-value = 1.112e-08
+## alternative hypothesis: true difference in means between group 2017-2018 Pre-COVID and group 2022-2023 Post-COVID is not equal to 0
+## 95 percent confidence interval:
+##  -0.05194366 -0.02540956
+## sample estimates:
+##  mean in group 2017-2018 Pre-COVID mean in group 2022-2023 Post-COVID 
+##                           1.941379                           1.980055
+## 
+## 	Welch Two Sample t-test
+## 
+## data:  PHQ by Period
+## t = -23.563, df = 38552, p-value < 2.2e-16
+## alternative hypothesis: true difference in means between group 2017-2018 Pre-COVID and group 2022-2023 Post-COVID is not equal to 0
+## 95 percent confidence interval:
+##  -0.1738548 -0.1471531
+## sample estimates:
+##  mean in group 2017-2018 Pre-COVID mean in group 2022-2023 Post-COVID 
+##                           1.840244                           2.000748
+## 
+## 	Welch Two Sample t-test
+## 
+## data:  PHQ by Period
+## t = -5.7139, df = 38337, p-value = 1.112e-08
+## alternative hypothesis: true difference in means between group 2017-2018 Pre-COVID and group 2022-2023 Post-COVID is not equal to 0
+## 95 percent confidence interval:
+##  -0.05194366 -0.02540956
+## sample estimates:
+##  mean in group 2017-2018 Pre-COVID mean in group 2022-2023 Post-COVID 
+##                           1.941379                           1.980055
+## 
+## 	Welch Two Sample t-test
+## 
+## data:  PHQ by Period
+## t = -23.563, df = 38552, p-value < 2.2e-16
+## alternative hypothesis: true difference in means between group 2017-2018 Pre-COVID and group 2022-2023 Post-COVID is not equal to 0
+## 95 percent confidence interval:
+##  -0.1738548 -0.1471531
+## sample estimates:
+##  mean in group 2017-2018 Pre-COVID mean in group 2022-2023 Post-COVID 
+##                           1.840244                           2.000748
+## 
+## 	Welch Two Sample t-test
+## 
+## data:  PHQ by Period
+## t = -5.7139, df = 38337, p-value = 1.112e-08
+## alternative hypothesis: true difference in means between group 2017-2018 Pre-COVID and group 2022-2023 Post-COVID is not equal to 0
+## 95 percent confidence interval:
+##  -0.05194366 -0.02540956
+## sample estimates:
+##  mean in group 2017-2018 Pre-COVID mean in group 2022-2023 Post-COVID 
+##                           1.941379                           1.980055
+## 
+## 	Welch Two Sample t-test
+## 
+## data:  PHQ by Period
+## t = -23.563, df = 38552, p-value < 2.2e-16
+## alternative hypothesis: true difference in means between group 2017-2018 Pre-COVID and group 2022-2023 Post-COVID is not equal to 0
+## 95 percent confidence interval:
+##  -0.1738548 -0.1471531
+## sample estimates:
+##  mean in group 2017-2018 Pre-COVID mean in group 2022-2023 Post-COVID 
+##                           1.840244                           2.000748

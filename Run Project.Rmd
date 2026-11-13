@@ -26,7 +26,7 @@ h2 { margin-top: 30px; margin-bottom: 15px; }
 @media print { .paper-table-wrap { overflow: visible; } .paper-table-wrap tr { break-inside: avoid; } .paper-figure-wrap { break-inside: avoid; } }
 </style>
 
-This file runs our three analysis scripts and puts the results we used in the final paper in one place. The scripts still do all of their calculations, but this report only shows the six tables and five figures from the paper.
+This file runs our three analysis scripts and puts the results we used in the final paper in one place. The scripts still do all of their calculations without rendering three extra HTML reports, but this report shows the six tables and six figures from the paper, beginning with Figure 1 (the four-panel adjusted-regression residual and normal Q-Q diagnostics in the Assumptions subsection). The other five figures are numbered 2–6.
 
 ```{r master-setup, include=FALSE}
 knitr::opts_chunk$set(echo = FALSE, warning = FALSE, message = FALSE)
@@ -56,6 +56,32 @@ if (length(still_missing) > 0) {
 project_root <- normalizePath(getwd(), winslash = "/", mustWork = TRUE)
 script_names <- c("02 - Descriptive Analysis.Rmd", "03 - Hypothesis Tests and Regression.Rmd", "04 - Predictive Modeling.Rmd")
 script_paths <- file.path(project_root, "code", script_names)
+
+# Use the updated regression report that includes the assumption-checking plot.
+# It can be saved under its descriptive filename in code/ (or the project root),
+# or installed as the regular code/03 - Hypothesis Tests and Regression.Rmd.
+diagnostic_markers <- c("final_paper_assumptions_residual_plot", "Normal Q-Q", "qq_reference")
+regression_candidates <- c(
+  file.path(project_root, "code", "03 - Hypothesis Tests and Regression_With_Residual_and_QQ_Diagnostics.Rmd"),
+  file.path(project_root, "03 - Hypothesis Tests and Regression_With_Residual_and_QQ_Diagnostics.Rmd"),
+  script_paths[2]
+)
+regression_candidates <- regression_candidates[file.exists(regression_candidates)]
+has_combined_diagnostics <- function(path) {
+  lines <- readLines(path, warn = FALSE, encoding = "UTF-8")
+  all(vapply(diagnostic_markers, function(marker) {
+    any(grepl(marker, lines, fixed = TRUE))
+  }, logical(1)))
+}
+regression_candidates <- regression_candidates[vapply(regression_candidates, has_combined_diagnostics, logical(1))]
+if (!length(regression_candidates)) {
+  stop("The updated regression script with both residual and Q-Q diagnostics was not found. ",
+       "Place '03 - Hypothesis Tests and Regression_With_Residual_and_QQ_Diagnostics.Rmd' ",
+       "in the code/ folder, or replace code/03 - Hypothesis Tests and Regression.Rmd ",
+       "with that revised script before knitting Run Project.")
+}
+script_paths[2] <- regression_candidates[1]
+
 data_paths <- file.path(project_root, c(
   "data/processed/pre_covid_clean.csv",
   "data/processed/post_covid_clean.csv",
@@ -76,42 +102,76 @@ table_dir <- file.path(paper_dir, "tables")
 dir.create(figure_dir, recursive = TRUE, showWarnings = FALSE)
 dir.create(table_dir, recursive = TRUE, showWarnings = FALSE)
 
-# Run copies of the three scripts so their original files stay untouched.
-# Send any figures and tables they save to our paper-only output folder.
-build_dir <- tempfile("paper_only_build_")
-dir.create(build_dir, recursive = TRUE)
+# Execute the existing R analysis chunks directly, without rendering a nested
+# HTML report.  The underlying models, exports, and calculations are unchanged.
+# This avoids rmarkdown::render() creating additional markdown/log connections
+# in a callr subprocess (the source of the previous write-connection failure).
+# knitr::purl() extracts executable R code; sys.source() runs it in an isolated
+# R session with the *project root* as the working directory.
+build_dir <- file.path(paper_dir, "_run_project_work")
+if (!dir.exists(build_dir) && !dir.create(build_dir, recursive = TRUE, showWarnings = FALSE)) {
+  stop("Cannot create the project working folder: ", build_dir,
+       "\nCheck that your project folder is writable.")
+}
+
+# Check write access explicitly so permission failures display the real path.
+for (folder in c(paper_dir, figure_dir, table_dir, build_dir)) {
+  probe <- file.path(folder, "write_test.tmp")
+  ok <- tryCatch({
+    writeLines("write test", probe)
+    file.exists(probe)
+  }, error = function(e) FALSE)
+  if (!ok) stop("Cannot write to: ", folder,
+                "\nMove the project to a writable local folder or check folder permissions.")
+  unlink(probe)
+}
+
 for (i in seq_along(script_paths)) {
   contents <- readLines(script_paths[i], warn = FALSE, encoding = "UTF-8")
   old <- 'final_paper_dir <- file.path(project_root, "outputs", "final_paper")'
   new <- 'final_paper_dir <- file.path(project_root, "outputs", "paper_only")'
   if (!any(grepl(old, contents, fixed = TRUE))) {
-    stop("Could not find the expected export directory in: ", script_names[i])
+    stop("Could not find the expected export directory in: ", script_paths[i])
   }
   contents <- gsub(old, new, contents, fixed = TRUE)
-  temp_input <- file.path(build_dir, script_names[i])
-  writeLines(contents, temp_input, useBytes = TRUE)
-  # Each script needs its own R session. Running render() directly in this
-  # setup chunk makes knitr reuse chunk labels like "setup" and stops the report.
-  message("Running: ", script_names[i])
-  callr::r(
-    function(input, output_file, output_dir, project_root) {
-      rmarkdown::render(
-        input = input,
-        output_format = "html_document",
-        output_file = output_file,
-        output_dir = output_dir,
-        knit_root_dir = project_root,
-        envir = new.env(parent = globalenv()),
-        quiet = TRUE
-      )
-    },
-    args = list(
-      input = temp_input,
-      output_file = sprintf("internal_analysis_%02d.html", i),
-      output_dir = build_dir,
-      project_root = project_root
+  # Keep the Rmd copy and extracted R code under the verified writable directory.
+  safe_rmd <- file.path(build_dir, sprintf("analysis_%02d.Rmd", i))
+  safe_r <- file.path(build_dir, sprintf("analysis_%02d.R", i))
+  log_file <- file.path(build_dir, sprintf("analysis_%02d.log", i))
+  error_log <- file.path(build_dir, sprintf("analysis_%02d_errors.log", i))
+  writeLines(contents, safe_rmd, useBytes = TRUE)
+  knitr::purl(input = safe_rmd, output = safe_r, documentation = 0, quiet = TRUE)
+  if (!file.exists(safe_r) || file.info(safe_r)$size == 0) {
+    stop("Could not extract the R code from: ", script_paths[i])
+  }
+  message("Running analysis ", i, " of 3: ", basename(script_paths[i]))
+  # A separate R session prevents similarly named variables, objects, and
+  # knitr hooks in the three original analyses from interfering with each other.
+  # Standard output is logged for actionable debugging if a source script fails.
+  tryCatch(
+    callr::r(
+      function(r_file, working_dir) {
+        setwd(working_dir)
+        options(warn = 1)
+        sys.source(r_file, envir = new.env(parent = globalenv()), chdir = FALSE)
+        invisible(TRUE)
+      },
+      args = list(r_file = safe_r, working_dir = project_root),
+      stdout = log_file,
+      stderr = error_log,
+      show = FALSE
     ),
-    show = FALSE
+    error = function(e) {
+      log_excerpt <- paste(c(
+        if (file.exists(error_log)) tail(readLines(error_log, warn = FALSE), 30),
+        if (file.exists(log_file)) tail(readLines(log_file, warn = FALSE), 30)
+      ), collapse = "\n")
+      if (!nzchar(log_excerpt)) log_excerpt <- "No additional log output was produced."
+      stop("Analysis ", i, " failed while running: ", basename(script_paths[i]),
+           "\nOriginal error: ", conditionMessage(e),
+           "\nLog file: ", log_file,
+           "\nRecent log output:\n", log_excerpt, call. = FALSE)
+    }
   )
 }
 
@@ -199,7 +259,7 @@ names_of_tables <- c(
 )
 for (i in 1:6) write_table(get(paste0("table_", i)), names_of_tables[i])
 
-# Figure 1: compare average PHQ and GAD scores in the two survey periods.
+# Figure 2: compare average PHQ and GAD scores in the two survey periods.
 figure_1_data <- desc
 figure_1_data$Outcome <- factor(figure_1_data$Outcome,
                                levels = c("Anxiety", "Depression"),
@@ -215,14 +275,17 @@ figure_1 <- ggplot2::ggplot(figure_1_data,
   ggplot2::theme_minimal(base_size = 12) +
   ggplot2::theme(plot.title = ggplot2::element_text(face = "bold"),
                  legend.position = "bottom")
+# The assumptions diagnostic comes FIRST in the paper (Figure 1).
+# Preserve the existing five figures, now Figures 2–6, in their original order.
 figure_files <- c(
-  "figure_01_average_scores.png",
-  "figure_02_gender_stem_interactions.png",
-  "figure_03_validation_observed_vs_predicted.png",
-  "figure_04_validation_residuals.png",
-  "figure_05_validation_confusion_matrices.png"
+  "figure_01_assumptions_adjusted_regression_residuals.png",
+  "figure_02_average_scores.png",
+  "figure_03_gender_stem_interactions.png",
+  "figure_04_validation_observed_vs_predicted.png",
+  "figure_05_validation_residuals.png",
+  "figure_06_validation_confusion_matrices.png"
 )
-ggplot2::ggsave(file.path(figure_dir, figure_files[1]), plot = figure_1,
+ggplot2::ggsave(file.path(figure_dir, figure_files[2]), plot = figure_1,
                 width = 8, height = 5, dpi = 300, bg = "white")
 source_figures <- c(
   "figure_02_gender_stem_interactions.png",
@@ -231,10 +294,28 @@ source_figures <- c(
   "figure_07_best_validation_confusion_matrices.png"
 )
 for (i in seq_along(source_figures)) {
-  src <- file.path(figure_dir, source_figures[i]); dst <- file.path(figure_dir, figure_files[i + 1])
+  src <- file.path(figure_dir, source_figures[i]); dst <- file.path(figure_dir, figure_files[i + 2])
   if (!file.exists(src)) stop("Missing required paper figure: ", src)
   if (normalizePath(src, mustWork = FALSE) != normalizePath(dst, mustWork = FALSE)) {
     if (!file.copy(src, dst, overwrite = TRUE)) stop("Unable to copy paper figure: ", src)
+  }
+}
+
+# Figure 1: combined residual-versus-fitted and normal Q-Q diagnostics from Script 03.
+# Preserve both the high-resolution PNG and vector PDF for the final paper.
+assumptions_plot_stem <- "figure_assumptions_adjusted_regression_residuals"
+for (ext in c("png", "pdf")) {
+  src <- file.path(figure_dir, paste0(assumptions_plot_stem, ".", ext))
+  dst <- file.path(figure_dir, paste0("figure_01_assumptions_adjusted_regression_residuals.", ext))
+  if (!file.exists(src) || file.info(src)$size <= 0) {
+    stop("The adjusted-regression assumptions plot is missing: ", src,
+         "\nCheck that the revised 03 regression script was used and ran successfully.")
+  }
+  if (!file.copy(src, dst, overwrite = TRUE)) {
+    stop("Could not save final-paper assumptions figure: ", dst)
+  }
+  if (!file.exists(dst) || file.info(dst)$size <= 0) {
+    stop("Final-paper assumptions figure failed the save check: ", dst)
   }
 }
 
@@ -243,13 +324,28 @@ for (p in list.files(table_dir, full.names = TRUE)) {
   if (!basename(p) %in% paste0(names_of_tables, ".csv")) unlink(p)
 }
 for (p in list.files(figure_dir, full.names = TRUE)) {
-  if (!basename(p) %in% figure_files) unlink(p)
+  retained_figures <- c(figure_files, "figure_01_assumptions_adjusted_regression_residuals.pdf")
+  if (!basename(p) %in% retained_figures) unlink(p)
 }
 
 # We do not need to keep the temporary reports from each script.
 unlink(build_dir, recursive = TRUE, force = TRUE)
 knitr::opts_chunk$set(echo = FALSE, message = FALSE, warning = FALSE)
 ```
+
+# Assumptions and Regression Diagnostics
+
+Figure 1 combines four panels for the adjusted PHQ-9 and GAD-7 regression models. The top panels display residuals against fitted scores, which can reveal curvature or changing error variance. The bottom panels contain normal Q-Q plots, which show departures from the normality assumption for regression errors. The orange lines indicate smoothed residual patterns (top) or reference lines (bottom). Each outcome uses up to 5,000 reproducibly selected observations for the visualization; both models were fitted using all complete observations. These plots do not establish independent errors or absence of multicollinearity.
+
+<div class="paper-figure-title">FIGURE 1. Residuals versus fitted values and normal Q-Q plots for adjusted PHQ-9 and GAD-7 regression models</div>
+
+<div class="paper-figure-wrap">
+
+```{r figure-1-assumptions, out.width='100%', fig.align='center'}
+knitr::include_graphics(file.path(figure_dir, figure_files[1]))
+```
+
+</div>
 
 # Descriptive Results
 
@@ -263,12 +359,12 @@ knitr::kable(table_1, format = "html", escape = TRUE, align = "l")
 
 </div>
 
-<div class="paper-figure-title">FIGURE 1. Average depression and anxiety scores across survey periods</div>
+<div class="paper-figure-title">FIGURE 2. Average depression and anxiety scores across survey periods</div>
 
 <div class="paper-figure-wrap">
 
-```{r figure-1, out.width='90%', fig.align='center'}
-knitr::include_graphics(file.path(figure_dir, figure_files[1]))
+```{r figure-2, out.width='90%', fig.align='center'}
+knitr::include_graphics(file.path(figure_dir, figure_files[2]))
 ```
 
 </div>
@@ -295,12 +391,12 @@ knitr::kable(table_3, format = "html", escape = TRUE, align = "l")
 
 </div>
 
-<div class="paper-figure-title">FIGURE 2. Depression and anxiety scores by gender, STEM status, and survey period</div>
+<div class="paper-figure-title">FIGURE 3. Depression and anxiety scores by gender, STEM status, and survey period</div>
 
 <div class="paper-figure-wrap">
 
-```{r figure-2, out.width='100%', fig.align='center'}
-knitr::include_graphics(file.path(figure_dir, figure_files[2]))
+```{r figure-3, out.width='100%', fig.align='center'}
+knitr::include_graphics(file.path(figure_dir, figure_files[3]))
 ```
 
 </div>
@@ -337,17 +433,7 @@ knitr::kable(table_6, format = "html", escape = TRUE, align = "l")
 
 </div>
 
-<div class="paper-figure-title">FIGURE 3. Observed versus predicted depression and anxiety scores on the validation set</div>
-
-<div class="paper-figure-wrap">
-
-```{r figure-3, out.width='100%', fig.align='center'}
-knitr::include_graphics(file.path(figure_dir, figure_files[3]))
-```
-
-</div>
-
-<div class="paper-figure-title">FIGURE 4. Residual plots for the selected predictive models</div>
+<div class="paper-figure-title">FIGURE 4. Observed versus predicted depression and anxiety scores on the validation set</div>
 
 <div class="paper-figure-wrap">
 
@@ -357,7 +443,7 @@ knitr::include_graphics(file.path(figure_dir, figure_files[4]))
 
 </div>
 
-<div class="paper-figure-title">FIGURE 5. Confusion matrices for depression and anxiety classification on the validation set</div>
+<div class="paper-figure-title">FIGURE 5. Residual plots for the selected predictive models</div>
 
 <div class="paper-figure-wrap">
 
@@ -366,5 +452,16 @@ knitr::include_graphics(file.path(figure_dir, figure_files[5]))
 ```
 
 </div>
+
+<div class="paper-figure-title">FIGURE 6. Confusion matrices for depression and anxiety classification on the validation set</div>
+
+<div class="paper-figure-wrap">
+
+```{r figure-6, out.width='100%', fig.align='center'}
+knitr::include_graphics(file.path(figure_dir, figure_files[6]))
+```
+
+</div>
+
 
 *The original scripts also calculate other results, but this report shows only the tables and figures used in the paper.*

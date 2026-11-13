@@ -20,3 +20,135 @@ Table: Interactions
 |Anxiety (GAD-7)    |Period × Gender |0.0785      |0.0117         |(0.0557, 0.1014) |6.73    |<0.0001 |
 |Anxiety (GAD-7)    |Period × STEM   |0.1305      |0.0114         |(0.1081, 0.1529) |11.43   |<0.0001 |
 
+
+
+Table: Interactions
+
+|Outcome |Interaction     | Coefficient| Standard_Error| CI_Lower| CI_Upper| T_Value| P_Value|
+|:-------|:---------------|-----------:|--------------:|--------:|--------:|-------:|-------:|
+|PHQ     |Period × Gender |      0.0392|         0.0099|   0.0199|   0.0586|  3.9720|   1e-04|
+|PHQ     |Period × STEM   |      0.1218|         0.0096|   0.1029|   0.1407| 12.6416|   0e+00|
+|GAD     |Period × Gender |      0.0785|         0.0117|   0.0557|   0.1014|  6.7342|   0e+00|
+|GAD     |Period × STEM   |      0.1305|         0.0114|   0.1081|   0.1529| 11.4269|   0e+00|
+
+
+
+Table: Interactions
+
+|Outcome            |Interaction     |Coefficient |Standard_Error |95% CI           |t-value |p-value |
+|:------------------|:---------------|:-----------|:--------------|:----------------|:-------|:-------|
+|Depression (PHQ-9) |Period × Gender |0.0392      |0.0099         |(0.0199, 0.0586) |3.97    |<0.0001 |
+|Depression (PHQ-9) |Period × STEM   |0.1218      |0.0096         |(0.1029, 0.1407) |12.64   |<0.0001 |
+|Anxiety (GAD-7)    |Period × Gender |0.0785      |0.0117         |(0.0557, 0.1014) |6.73    |<0.0001 |
+|Anxiety (GAD-7)    |Period × STEM   |0.1305      |0.0114         |(0.1081, 0.1529) |11.43   |<0.0001 |
+
+
+
+Table: Interactions
+
+|Outcome |Interaction     | Coefficient| Standard_Error| CI_Lower| CI_Upper| T_Value| P_Value|
+|:-------|:---------------|-----------:|--------------:|--------:|--------:|-------:|-------:|
+|PHQ     |Period × Gender |      0.0392|         0.0099|   0.0199|   0.0586|  3.9720|   1e-04|
+|PHQ     |Period × STEM   |      0.1218|         0.0096|   0.1029|   0.1407| 12.6416|   0e+00|
+|GAD     |Period × Gender |      0.0785|         0.0117|   0.0557|   0.1014|  6.7342|   0e+00|
+|GAD     |Period × STEM   |      0.1305|         0.0114|   0.1081|   0.1529| 11.4269|   0e+00|
+
+
+
+Table: Interactions
+
+|Outcome            |Interaction     |Coefficient |Standard_Error |95% CI           |t-value |p-value |
+|:------------------|:---------------|:-----------|:--------------|:----------------|:-------|:-------|
+|Depression (PHQ-9) |Period × Gender |0.0392      |0.0099         |(0.0199, 0.0586) |3.97    |<0.0001 |
+|Depression (PHQ-9) |Period × STEM   |0.1218      |0.0096         |(0.1029, 0.1407) |12.64   |<0.0001 |
+|Anxiety (GAD-7)    |Period × Gender |0.0785      |0.0117         |(0.0557, 0.1014) |6.73    |<0.0001 |
+|Anxiety (GAD-7)    |Period × STEM   |0.1305      |0.0114         |(0.1081, 0.1529) |11.43   |<0.0001 |
+
+
+
+Table: Interactions
+
+|Outcome |Interaction     | Coefficient| Standard_Error| CI_Lower| CI_Upper| T_Value| P_Value|
+|:-------|:---------------|-----------:|--------------:|--------:|--------:|-------:|-------:|
+|PHQ     |Period × Gender |      0.0392|         0.0099|   0.0199|   0.0586|  3.9720|   1e-04|
+|PHQ     |Period × STEM   |      0.1218|         0.0096|   0.1029|   0.1407| 12.6416|   0e+00|
+|GAD     |Period × Gender |      0.0785|         0.0117|   0.0557|   0.1014|  6.7342|   0e+00|
+|GAD     |Period × STEM   |      0.1305|         0.0114|   0.1081|   0.1529| 11.4269|   0e+00|
+
+
+
+Table: Interactions
+
+|Outcome            |Interaction     |Coefficient |Standard_Error |95% CI           |t-value |p-value |
+|:------------------|:---------------|:-----------|:--------------|:----------------|:-------|:-------|
+|Depression (PHQ-9) |Period × Gender |0.0392      |0.0099         |(0.0199, 0.0586) |3.97    |<0.0001 |
+|Depression (PHQ-9) |Period × STEM   |0.1218      |0.0096         |(0.1029, 0.1407) |12.64   |<0.0001 |
+|Anxiety (GAD-7)    |Period × Gender |0.0785      |0.0117         |(0.0557, 0.1014) |6.73    |<0.0001 |
+|Anxiety (GAD-7)    |Period × STEM   |0.1305      |0.0114         |(0.1081, 0.1529) |11.43   |<0.0001 |
+
+
+
+Table: Interactions
+
+|Outcome |Interaction     | Coefficient| Standard_Error| CI_Lower| CI_Upper| T_Value| P_Value|
+|:-------|:---------------|-----------:|--------------:|--------:|--------:|-------:|-------:|
+|PHQ     |Period × Gender |      0.0392|         0.0099|   0.0199|   0.0586|  3.9720|   1e-04|
+|PHQ     |Period × STEM   |      0.1218|         0.0096|   0.1029|   0.1407| 12.6416|   0e+00|
+|GAD     |Period × Gender |      0.0785|         0.0117|   0.0557|   0.1014|  6.7342|   0e+00|
+|GAD     |Period × STEM   |      0.1305|         0.0114|   0.1081|   0.1529| 11.4269|   0e+00|
+
+
+
+Table: Interactions
+
+|Outcome            |Interaction     |Coefficient |Standard_Error |95% CI           |t-value |p-value |
+|:------------------|:---------------|:-----------|:--------------|:----------------|:-------|:-------|
+|Depression (PHQ-9) |Period × Gender |0.0392      |0.0099         |(0.0199, 0.0586) |3.97    |<0.0001 |
+|Depression (PHQ-9) |Period × STEM   |0.1218      |0.0096         |(0.1029, 0.1407) |12.64   |<0.0001 |
+|Anxiety (GAD-7)    |Period × Gender |0.0785      |0.0117         |(0.0557, 0.1014) |6.73    |<0.0001 |
+|Anxiety (GAD-7)    |Period × STEM   |0.1305      |0.0114         |(0.1081, 0.1529) |11.43   |<0.0001 |
+
+
+
+Table: Interactions
+
+|Outcome |Interaction     | Coefficient| Standard_Error| CI_Lower| CI_Upper| T_Value| P_Value|
+|:-------|:---------------|-----------:|--------------:|--------:|--------:|-------:|-------:|
+|PHQ     |Period × Gender |      0.0392|         0.0099|   0.0199|   0.0586|  3.9720|   1e-04|
+|PHQ     |Period × STEM   |      0.1218|         0.0096|   0.1029|   0.1407| 12.6416|   0e+00|
+|GAD     |Period × Gender |      0.0785|         0.0117|   0.0557|   0.1014|  6.7342|   0e+00|
+|GAD     |Period × STEM   |      0.1305|         0.0114|   0.1081|   0.1529| 11.4269|   0e+00|
+
+
+
+Table: Interactions
+
+|Outcome            |Interaction     |Coefficient |Standard_Error |95% CI           |t-value |p-value |
+|:------------------|:---------------|:-----------|:--------------|:----------------|:-------|:-------|
+|Depression (PHQ-9) |Period × Gender |0.0392      |0.0099         |(0.0199, 0.0586) |3.97    |<0.0001 |
+|Depression (PHQ-9) |Period × STEM   |0.1218      |0.0096         |(0.1029, 0.1407) |12.64   |<0.0001 |
+|Anxiety (GAD-7)    |Period × Gender |0.0785      |0.0117         |(0.0557, 0.1014) |6.73    |<0.0001 |
+|Anxiety (GAD-7)    |Period × STEM   |0.1305      |0.0114         |(0.1081, 0.1529) |11.43   |<0.0001 |
+
+
+
+Table: Interactions
+
+|Outcome |Interaction     | Coefficient| Standard_Error| CI_Lower| CI_Upper| T_Value| P_Value|
+|:-------|:---------------|-----------:|--------------:|--------:|--------:|-------:|-------:|
+|PHQ     |Period × Gender |      0.0392|         0.0099|   0.0199|   0.0586|  3.9720|   1e-04|
+|PHQ     |Period × STEM   |      0.1218|         0.0096|   0.1029|   0.1407| 12.6416|   0e+00|
+|GAD     |Period × Gender |      0.0785|         0.0117|   0.0557|   0.1014|  6.7342|   0e+00|
+|GAD     |Period × STEM   |      0.1305|         0.0114|   0.1081|   0.1529| 11.4269|   0e+00|
+
+
+
+Table: Interactions
+
+|Outcome            |Interaction     |Coefficient |Standard_Error |95% CI           |t-value |p-value |
+|:------------------|:---------------|:-----------|:--------------|:----------------|:-------|:-------|
+|Depression (PHQ-9) |Period × Gender |0.0392      |0.0099         |(0.0199, 0.0586) |3.97    |<0.0001 |
+|Depression (PHQ-9) |Period × STEM   |0.1218      |0.0096         |(0.1029, 0.1407) |12.64   |<0.0001 |
+|Anxiety (GAD-7)    |Period × Gender |0.0785      |0.0117         |(0.0557, 0.1014) |6.73    |<0.0001 |
+|Anxiety (GAD-7)    |Period × STEM   |0.1305      |0.0114         |(0.1081, 0.1529) |11.43   |<0.0001 |
+

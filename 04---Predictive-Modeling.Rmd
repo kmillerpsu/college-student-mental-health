@@ -1,0 +1,2034 @@
+---
+title: "04 - Predictive Modeling"
+author: "Caylee Collins and Kate Miller"
+output:
+  html_document:
+    toc: true
+    toc_depth: 3
+    number_sections: true
+---
+
+
+<style>
+/* A little extra space makes the tables and plots easier to read. */
+.main-container { max-width: 1100px !important; }
+h1 { margin-top: 44px; margin-bottom: 18px; }
+h2 { margin-top: 30px; margin-bottom: 15px; }
+.paper-table-title { font-weight: 700; margin: 30px 0 10px; font-size: 15px; color: #283c54; line-height: 1.5; }
+.paper-figure-title { font-weight: 700; font-size: 15px; color: #283c54; margin: 38px 0 16px; line-height: 1.5; }
+.paper-table-wrap { margin: 0 0 38px; overflow-x: auto; }
+.paper-figure-wrap { margin: 0 auto 42px; padding: 12px 0 4px; text-align: center; }
+.paper-table-wrap table, table.paper-table { border-collapse: collapse !important; width: 100%; margin: 0 !important; font-size: 13px; line-height: 1.5; }
+.paper-table-wrap th, table.paper-table th { background: #eaf0f7 !important; color: #243951; border-bottom: 2px solid #b4c5d9 !important; padding: 10px 12px !important; text-align: left !important; white-space: nowrap; }
+.paper-table-wrap td, table.paper-table td { padding: 9px 12px !important; border-bottom: 1px solid #e2e8f0 !important; vertical-align: top; }
+.paper-table-wrap tbody tr:nth-child(even), table.paper-table tbody tr:nth-child(even) { background: #f6f8fb !important; }
+.paper-table-wrap tbody tr:hover, table.paper-table tbody tr:hover { background: #ecf3fa !important; }
+.paper-figure-wrap img { display: block; margin: 0 auto; max-width: 100%; height: auto; }
+@media print { .paper-table-wrap { overflow: visible; } .paper-table-wrap tr { break-inside: avoid; } .paper-figure-wrap { break-inside: avoid; } }
+</style>
+
+# Setup
+
+```{r setup, message = FALSE, warning = FALSE}
+# Load the modeling packages, set chunk display options, and fix the random seed for reproducibility.
+knitr::opts_chunk$set(echo = TRUE, message = FALSE, warning = FALSE)
+required_packages <- c("tidyverse", "rpart", "randomForest", "glmnet", "xgboost")
+missing_packages <- required_packages[
+  !vapply(required_packages, requireNamespace, logical(1), quietly = TRUE)
+]
+if (length(missing_packages) > 0) {
+  stop("Install these packages first: ", paste(missing_packages, collapse = ", "))
+}
+library(tidyverse)
+library(rpart)
+library(randomForest)
+library(glmnet)
+library(xgboost)
+set.seed(415)
+pre_color <- "#377EB8"
+post_color <- "#E69F00"
+phq_color <- pre_color
+gad_color <- post_color
+outcome_colors <- c("PHQ" = phq_color, "GAD" = gad_color)
+period_colors <- c("2017-2018" = pre_color, "2022-2023" = post_color)
+feature_colors <- c("Full features" = pre_color,
+                    "Student characteristics only" = post_color)
+paper_theme <- ggplot2::theme_minimal(base_size = 12) +
+  ggplot2::theme(
+    plot.title = ggplot2::element_text(face = "bold"),
+    axis.text.x = ggplot2::element_text(angle = 0, hjust = 0.5),
+    legend.position = "bottom",
+    panel.grid.minor = ggplot2::element_blank()
+  )
+ggplot2::theme_set(paper_theme)
+
+```
+
+```{r save_all_rendered_outputs, include=FALSE}
+# Export each chart and printed table while retaining the original R Markdown output.
+# Only file-saving hooks are added; the analysis chunks below are unchanged.
+export_project_root <- if (file.exists(file.path("data", "processed")) ||
+                           file.exists(file.path("data", "split"))) {
+  "."
+} else if (file.exists(file.path("..", "data", "processed")) ||
+           file.exists(file.path("..", "data", "split"))) {
+  ".."
+} else {
+  getwd()
+}
+export_base_dir <- file.path(export_project_root, "outputs", "all_visuals", "04_predictive_modeling")
+export_plot_dir <- file.path(export_base_dir, "figures")
+export_table_dir <- file.path(export_base_dir, "printed_tables_and_output")
+dir.create(export_plot_dir, recursive = TRUE, showWarnings = FALSE)
+dir.create(export_table_dir, recursive = TRUE, showWarnings = FALSE)
+
+# Keep the built-in plot hook so figures still appear in the knitted report.
+original_plot_hook <- knitr::knit_hooks$get("plot")
+knitr::knit_hooks$set(plot = function(x, options) {
+  for (source_file in x) {
+    if (file.exists(source_file)) {
+      # Knitr's filenames include the chunk label and figure number.
+      destination <- file.path(export_plot_dir, basename(source_file))
+      file.copy(source_file, destination, overwrite = TRUE)
+    }
+  }
+  original_plot_hook(x, options)
+})
+
+# Also retain the original printed output and export it as readable text.
+# This includes tables rendered by knitr::kable() in ordinary output chunks.
+original_output_hook <- knitr::knit_hooks$get("output")
+knitr::knit_hooks$set(output = function(x, options) {
+  if (nzchar(trimws(x))) {
+    label <- if (is.null(options$label)) "unnamed" else options$label
+    path <- file.path(export_table_dir, paste0(label, ".txt"))
+    cat(x, file = path, append = TRUE, sep = "")
+  }
+  original_output_hook(x, options)
+})
+
+# Save markdown/HTML table output when a chunk uses results='asis'.
+original_asis_hook <- knitr::knit_hooks$get("asis")
+if (is.function(original_asis_hook)) {
+  knitr::knit_hooks$set(asis = function(x, options) {
+    if (nzchar(trimws(x))) {
+      label <- if (is.null(options$label)) "unnamed" else options$label
+      path <- file.path(export_table_dir, paste0(label, ".md"))
+      cat(x, file = path, append = TRUE, sep = "")
+    }
+    original_asis_hook(x, options)
+  })
+}
+```
+
+
+# Load Training, Testing, and Validation Data
+
+```{r load_model_data}
+# Locate the project data folder, load the existing train/test/validation splits, and verify required variables.
+project_root <- if (file.exists("data/split/training_data.csv")) {
+  "."
+} else if (file.exists("../data/split/training_data.csv")) {
+  ".."
+} else {
+  stop("Cannot find data/split/training_data.csv. Open the project .Rproj first.")
+}
+
+# Load the original split datasets without overwriting them.
+split_dir <- file.path(project_root, "data", "split")
+required_files <- c("training_data.csv", "test_data.csv", "validation_data.csv")
+for (filename in required_files) {
+  if (!file.exists(file.path(split_dir, filename))) {
+    stop("Missing required data file: ", file.path(split_dir, filename))
+  }
+}
+training_data <- read.csv(file.path(split_dir, "training_data.csv"))
+testing_data <- read.csv(file.path(split_dir, "test_data.csv"))
+validation_data <- read.csv(file.path(split_dir, "validation_data.csv"))
+
+# Check the predictor and outcome columns before modeling.
+model_columns <- c("PHQ", "GAD", "gender", "field", "race.2",
+                   "yr_sch.2", "fincur.2", "age")
+for (dataset_name in c("training_data", "testing_data", "validation_data")) {
+  missing_columns <- setdiff(model_columns, names(get(dataset_name)))
+  if (length(missing_columns) > 0) {
+    stop(dataset_name, " is missing: ", paste(missing_columns, collapse = ", "))
+  }
+}
+
+# Confirm the three dataset sizes.
+dim(training_data)
+dim(testing_data)
+dim(validation_data)
+```
+
+# Prepare Predictive Modeling Data
+
+```{r model_01_prepare_predictive_modeling_data}
+# Keep complete cases for the outcomes and demographic predictors in each data split.
+train <- training_data %>%
+  select(
+    PHQ,
+    GAD,
+    gender,
+    field,
+    race.2,
+    yr_sch.2,
+    fincur.2,
+    age
+  ) %>%
+  drop_na()
+
+test <- testing_data %>%
+  select(
+    PHQ,
+    GAD,
+    gender,
+    field,
+    race.2,
+    yr_sch.2,
+    fincur.2,
+    age
+  ) %>%
+  drop_na()
+
+validation <- validation_data %>%
+  select(
+    PHQ,
+    GAD,
+    gender,
+    field,
+    race.2,
+    yr_sch.2,
+    fincur.2,
+    age
+  ) %>%
+  drop_na()
+```
+
+# Set Factor Levels
+
+```{r normalize_stem_labels}
+# Standardize STEM and non-STEM labels across all three datasets before fitting models.
+for (dataset_name in c("train", "test", "validation")) {
+  dataset <- get(dataset_name)
+  dataset$field <- as.character(dataset$field)
+  dataset$field[dataset$field == "NotSTEM"] <- "Non-STEM"
+  assign(dataset_name, dataset)
+}
+```
+
+
+```{r model_02_set_factor_levels}
+# Set consistent factor categories and reference levels so predictions use the same coding across datasets.
+race_levels <- c("White", "Asian", "Black", "Hispanic", "Middle Eastern")
+year_levels <- c("firstyear", "secondyear", "thirdyear", "fourthyear+")
+
+train$gender <- factor(
+  train$gender,
+  levels = c("Men", "Women")
+)
+
+test$gender <- factor(
+  test$gender,
+  levels = c("Men", "Women")
+)
+
+validation$gender <- factor(
+  validation$gender,
+  levels = c("Men", "Women")
+)
+
+train$field <- factor(
+  train$field,
+  levels = c("Non-STEM", "STEM")
+)
+
+test$field <- factor(
+  test$field,
+  levels = c("Non-STEM", "STEM")
+)
+
+validation$field <- factor(
+  validation$field,
+  levels = c("Non-STEM", "STEM")
+)
+
+train$race.2 <- factor(
+  train$race.2,
+  levels = race_levels
+)
+
+test$race.2 <- factor(
+  test$race.2,
+  levels = race_levels
+)
+
+validation$race.2 <- factor(
+  validation$race.2,
+  levels = race_levels
+)
+
+train$yr_sch.2 <- factor(
+  train$yr_sch.2,
+  levels = year_levels
+)
+
+test$yr_sch.2 <- factor(
+  test$yr_sch.2,
+  levels = year_levels
+)
+
+validation$yr_sch.2 <- factor(
+  validation$yr_sch.2,
+  levels = year_levels
+)
+```
+
+# Check Dataset Sizes
+
+```{r model_03_check_dataset_sizes}
+# Confirm the number of complete observations available for training, testing, and validation.
+dim(train)
+dim(test)
+dim(validation)
+```
+
+
+# Depression Prediction Models
+
+## Depression Baseline Model
+
+```{r model_04_depression_baseline_model}
+# Predict test-set depression scores using the mean PHQ score in the training data as a baseline.
+phq_baseline_value <- mean(
+  train$PHQ
+)
+
+phq_baseline_pred <- rep(
+  phq_baseline_value,
+  nrow(test)
+)
+
+phq_baseline_rmse <- sqrt(
+  mean(
+    (test$PHQ - phq_baseline_pred)^2
+  )
+)
+
+phq_baseline_mae <- mean(
+  abs(
+    test$PHQ - phq_baseline_pred
+  )
+)
+
+phq_baseline_r2 <- 0
+```
+
+
+## Depression Linear Regression
+
+```{r model_05_depression_linear_regression}
+# Fit a multiple linear regression predicting PHQ from GAD and student characteristics.
+phq_lm <- lm(
+  PHQ ~ GAD +
+    gender +
+    field +
+    race.2 +
+    yr_sch.2 +
+    fincur.2 +
+    age,
+  data = train
+)
+
+summary(phq_lm)
+
+phq_lm_pred <- predict(
+  phq_lm,
+  newdata = test
+)
+
+phq_lm_rmse <- sqrt(
+  mean(
+    (test$PHQ - phq_lm_pred)^2
+  )
+)
+
+phq_lm_mae <- mean(
+  abs(
+    test$PHQ - phq_lm_pred
+  )
+)
+
+phq_lm_r2 <- cor(
+  test$PHQ,
+  phq_lm_pred
+)^2
+```
+
+
+## Depression Gender x STEM Regression
+
+```{r model_06_depression_gender_x_stem_regression}
+# Add a gender-by-STEM interaction to test whether the PHQ prediction relationship varies across groups.
+phq_interaction <- lm(
+  PHQ ~ GAD +
+    gender * field +
+    race.2 +
+    yr_sch.2 +
+    fincur.2 +
+    age,
+  data = train
+)
+
+summary(phq_interaction)
+
+phq_interaction_pred <- predict(
+  phq_interaction,
+  newdata = test
+)
+
+phq_interaction_rmse <- sqrt(
+  mean(
+    (test$PHQ - phq_interaction_pred)^2
+  )
+)
+
+phq_interaction_mae <- mean(
+  abs(
+    test$PHQ - phq_interaction_pred
+  )
+)
+
+phq_interaction_r2 <- cor(
+  test$PHQ,
+  phq_interaction_pred
+)^2
+```
+
+
+## Depression Regression Tree
+
+```{r model_07_depression_regression_tree}
+# Fit a regression tree to predict PHQ using anxiety and student characteristics.
+phq_tree <- rpart(
+  PHQ ~ GAD +
+    gender +
+    field +
+    race.2 +
+    yr_sch.2 +
+    fincur.2 +
+    age,
+  data = train,
+  method = "anova"
+)
+
+phq_tree_pred <- predict(
+  phq_tree,
+  newdata = test
+)
+
+phq_tree_rmse <- sqrt(
+  mean(
+    (test$PHQ - phq_tree_pred)^2
+  )
+)
+
+phq_tree_mae <- mean(
+  abs(
+    test$PHQ - phq_tree_pred
+  )
+)
+
+phq_tree_r2 <- cor(
+  test$PHQ,
+  phq_tree_pred
+)^2
+```
+
+
+## Depression Random Forest
+
+```{r model_08_depression_random_forest}
+# Train a random forest to predict PHQ and generate test-set predictions.
+set.seed(415)
+
+phq_rf <- randomForest(
+  PHQ ~ GAD +
+    gender +
+    field +
+    race.2 +
+    yr_sch.2 +
+    fincur.2 +
+    age,
+  data = train,
+  ntree = 500
+)
+
+phq_rf_pred <- predict(
+  phq_rf,
+  newdata = test
+)
+
+phq_rf_rmse <- sqrt(
+  mean(
+    (test$PHQ - phq_rf_pred)^2
+  )
+)
+
+phq_rf_mae <- mean(
+  abs(
+    test$PHQ - phq_rf_pred
+  )
+)
+
+phq_rf_r2 <- cor(
+  test$PHQ,
+  phq_rf_pred
+)^2
+```
+
+
+## Prepare Depression Data for Ridge and LASSO
+
+```{r model_09_prepare_depression_data_for_ridge_and_lass}
+# Convert depression predictors into numeric design matrices for penalized regression.
+phq_x_train <- model.matrix(
+  PHQ ~ GAD +
+    gender +
+    field +
+    race.2 +
+    yr_sch.2 +
+    fincur.2 +
+    age,
+  data = train
+)[, -1]
+
+phq_x_test <- model.matrix(
+  PHQ ~ GAD +
+    gender +
+    field +
+    race.2 +
+    yr_sch.2 +
+    fincur.2 +
+    age,
+  data = test
+)[, -1]
+
+phq_x_validation <- model.matrix(
+  PHQ ~ GAD +
+    gender +
+    field +
+    race.2 +
+    yr_sch.2 +
+    fincur.2 +
+    age,
+  data = validation
+)[, -1]
+```
+
+## Depression Ridge Regression
+
+```{r model_10_depression_ridge_regression}
+# Use cross-validation to tune a ridge regression model for PHQ prediction.
+set.seed(415)
+
+phq_ridge <- cv.glmnet(
+  x = phq_x_train,
+  y = train$PHQ,
+  alpha = 0
+)
+
+phq_ridge_pred <- predict(
+  phq_ridge,
+  newx = phq_x_test,
+  s = "lambda.min"
+)
+
+phq_ridge_pred <- as.numeric(
+  phq_ridge_pred
+)
+
+phq_ridge_rmse <- sqrt(
+  mean(
+    (test$PHQ - phq_ridge_pred)^2
+  )
+)
+
+phq_ridge_mae <- mean(
+  abs(
+    test$PHQ - phq_ridge_pred
+  )
+)
+
+phq_ridge_r2 <- cor(
+  test$PHQ,
+  phq_ridge_pred
+)^2
+```
+
+
+## Depression LASSO Regression
+
+```{r model_11_depression_lasso_regression}
+# Use cross-validation to select the LASSO penalty for PHQ prediction.
+set.seed(415)
+
+phq_lasso <- cv.glmnet(
+  x = phq_x_train,
+  y = train$PHQ,
+  alpha = 1
+)
+
+phq_lasso_pred <- predict(
+  phq_lasso,
+  newx = phq_x_test,
+  s = "lambda.min"
+)
+
+phq_lasso_pred <- as.numeric(
+  phq_lasso_pred
+)
+
+phq_lasso_rmse <- sqrt(
+  mean(
+    (test$PHQ - phq_lasso_pred)^2
+  )
+)
+
+phq_lasso_mae <- mean(
+  abs(
+    test$PHQ - phq_lasso_pred
+  )
+)
+
+phq_lasso_r2 <- cor(
+  test$PHQ,
+  phq_lasso_pred
+)^2
+```
+
+
+## Depression XGBoost
+
+```{r model_12_depression_xgboost}
+# Fit an XGBoost model for PHQ and predict depression scores in the test set.
+phq_xgb_train <- model.matrix(
+  PHQ ~ GAD +
+    gender +
+    field +
+    race.2 +
+    yr_sch.2 +
+    fincur.2 +
+    age,
+  data = train
+)[, -1]
+
+phq_xgb_test <- model.matrix(
+  PHQ ~ GAD +
+    gender +
+    field +
+    race.2 +
+    yr_sch.2 +
+    fincur.2 +
+    age,
+  data = test
+)[, -1]
+
+phq_xgb_validation <- model.matrix(
+  PHQ ~ GAD +
+    gender +
+    field +
+    race.2 +
+    yr_sch.2 +
+    fincur.2 +
+    age,
+  data = validation
+)[, -1]
+
+set.seed(415)
+
+phq_xgb <- xgboost(
+  x = phq_xgb_train,
+  y = train$PHQ,
+  nrounds = 100,
+  objective = "reg:squarederror"
+)
+
+phq_xgb_pred <- predict(
+  phq_xgb,
+  phq_xgb_test
+)
+
+phq_xgb_rmse <- sqrt(
+  mean(
+    (test$PHQ - phq_xgb_pred)^2
+  )
+)
+
+phq_xgb_mae <- mean(
+  abs(
+    test$PHQ - phq_xgb_pred
+  )
+)
+
+phq_xgb_r2 <- cor(
+  test$PHQ,
+  phq_xgb_pred
+)^2
+```
+
+
+```{r classification_accuracy_function}
+
+# Percentage classified correctly using a total-score cutoff of 10.
+classification_accuracy <- function(observed, predicted, outcome) {
+  cutoff <- if (outcome == "PHQ") 1 + 10 / 9 else 1 + 10 / 7
+  100 * mean((as.numeric(predicted) >= cutoff) == (observed >= cutoff))
+}
+```
+
+# Depression Test-Set Comparison
+
+```{r model_13_depression_test_set_comparison}
+# Compare depression models on the held-out test data using the performance metrics defined below.
+depression_results <- data.frame(
+
+  Model = c(
+    "Baseline",
+    "Linear Regression",
+    "Gender x STEM Regression",
+    "Regression Tree",
+    "Random Forest",
+    "Ridge Regression",
+    "LASSO Regression",
+    "XGBoost"
+  ),
+
+  RMSE = c(
+    phq_baseline_rmse,
+    phq_lm_rmse,
+    phq_interaction_rmse,
+    phq_tree_rmse,
+    phq_rf_rmse,
+    phq_ridge_rmse,
+    phq_lasso_rmse,
+    phq_xgb_rmse
+  ),
+
+  MAE = c(
+    phq_baseline_mae,
+    phq_lm_mae,
+    phq_interaction_mae,
+    phq_tree_mae,
+    phq_rf_mae,
+    phq_ridge_mae,
+    phq_lasso_mae,
+    phq_xgb_mae
+  ),
+
+  R2 = c(
+    phq_baseline_r2,
+    phq_lm_r2,
+    phq_interaction_r2,
+    phq_tree_r2,
+    phq_rf_r2,
+    phq_ridge_r2,
+    phq_lasso_r2,
+    phq_xgb_r2
+  )
+)
+
+depression_results$Accuracy <- round(vapply(
+  list(phq_baseline_pred, phq_lm_pred, phq_interaction_pred,
+       phq_tree_pred, phq_rf_pred, phq_ridge_pred,
+       phq_lasso_pred, phq_xgb_pred),
+  function(pred) classification_accuracy(test$PHQ, pred, "PHQ"), numeric(1)
+), 2)
+depression_results <- depression_results[
+  order(depression_results$RMSE),
+]
+
+depression_results
+```
+
+
+
+
+# Anxiety Prediction Models
+
+## Anxiety Baseline Model
+
+```{r model_15_anxiety_baseline_model}
+# Predict test-set anxiety scores using the mean training-set GAD score as a baseline.
+gad_baseline_value <- mean(
+  train$GAD
+)
+
+gad_baseline_pred <- rep(
+  gad_baseline_value,
+  nrow(test)
+)
+
+gad_baseline_rmse <- sqrt(
+  mean(
+    (test$GAD - gad_baseline_pred)^2
+  )
+)
+
+gad_baseline_mae <- mean(
+  abs(
+    test$GAD - gad_baseline_pred
+  )
+)
+
+gad_baseline_r2 <- 0
+```
+
+
+## Anxiety Linear Regression
+
+```{r model_16_anxiety_linear_regression}
+# Fit a multiple linear regression predicting GAD from PHQ and student characteristics.
+gad_lm <- lm(
+  GAD ~ PHQ +
+    gender +
+    field +
+    race.2 +
+    yr_sch.2 +
+    fincur.2 +
+    age,
+  data = train
+)
+
+summary(gad_lm)
+
+gad_lm_pred <- predict(
+  gad_lm,
+  newdata = test
+)
+
+gad_lm_rmse <- sqrt(
+  mean(
+    (test$GAD - gad_lm_pred)^2
+  )
+)
+
+gad_lm_mae <- mean(
+  abs(
+    test$GAD - gad_lm_pred
+  )
+)
+
+gad_lm_r2 <- cor(
+  test$GAD,
+  gad_lm_pred
+)^2
+```
+
+
+## Anxiety Gender x STEM Regression
+
+```{r model_17_anxiety_gender_x_stem_regression}
+# Include a gender-by-STEM interaction in the anxiety regression model.
+gad_interaction <- lm(
+  GAD ~ PHQ +
+    gender * field +
+    race.2 +
+    yr_sch.2 +
+    fincur.2 +
+    age,
+  data = train
+)
+
+summary(gad_interaction)
+
+gad_interaction_pred <- predict(
+  gad_interaction,
+  newdata = test
+)
+
+gad_interaction_rmse <- sqrt(
+  mean(
+    (test$GAD - gad_interaction_pred)^2
+  )
+)
+
+gad_interaction_mae <- mean(
+  abs(
+    test$GAD - gad_interaction_pred
+  )
+)
+
+gad_interaction_r2 <- cor(
+  test$GAD,
+  gad_interaction_pred
+)^2
+```
+
+
+## Anxiety Regression Tree
+
+```{r model_18_anxiety_regression_tree}
+# Fit a regression tree to predict GAD from depression and student characteristics.
+gad_tree <- rpart(
+  GAD ~ PHQ +
+    gender +
+    field +
+    race.2 +
+    yr_sch.2 +
+    fincur.2 +
+    age,
+  data = train,
+  method = "anova"
+)
+
+gad_tree_pred <- predict(
+  gad_tree,
+  newdata = test
+)
+
+gad_tree_rmse <- sqrt(
+  mean(
+    (test$GAD - gad_tree_pred)^2
+  )
+)
+
+gad_tree_mae <- mean(
+  abs(
+    test$GAD - gad_tree_pred
+  )
+)
+
+gad_tree_r2 <- cor(
+  test$GAD,
+  gad_tree_pred
+)^2
+```
+
+
+## Anxiety Random Forest
+
+```{r model_19_anxiety_random_forest}
+# Train a random forest for anxiety prediction and evaluate it on the test set.
+set.seed(415)
+
+gad_rf <- randomForest(
+  GAD ~ PHQ +
+    gender +
+    field +
+    race.2 +
+    yr_sch.2 +
+    fincur.2 +
+    age,
+  data = train,
+  ntree = 500
+)
+
+gad_rf_pred <- predict(
+  gad_rf,
+  newdata = test
+)
+
+gad_rf_rmse <- sqrt(
+  mean(
+    (test$GAD - gad_rf_pred)^2
+  )
+)
+
+gad_rf_mae <- mean(
+  abs(
+    test$GAD - gad_rf_pred
+  )
+)
+
+gad_rf_r2 <- cor(
+  test$GAD,
+  gad_rf_pred
+)^2
+```
+
+
+## Prepare Anxiety Data for Ridge and LASSO
+
+```{r model_20_prepare_anxiety_data_for_ridge_and_lasso}
+# Create numeric predictor matrices for ridge and LASSO models of GAD.
+gad_x_train <- model.matrix(
+  GAD ~ PHQ +
+    gender +
+    field +
+    race.2 +
+    yr_sch.2 +
+    fincur.2 +
+    age,
+  data = train
+)[, -1]
+
+gad_x_test <- model.matrix(
+  GAD ~ PHQ +
+    gender +
+    field +
+    race.2 +
+    yr_sch.2 +
+    fincur.2 +
+    age,
+  data = test
+)[, -1]
+
+gad_x_validation <- model.matrix(
+  GAD ~ PHQ +
+    gender +
+    field +
+    race.2 +
+    yr_sch.2 +
+    fincur.2 +
+    age,
+  data = validation
+)[, -1]
+```
+
+## Anxiety Ridge Regression
+
+```{r model_21_anxiety_ridge_regression}
+# Cross-validate the ridge penalty and predict GAD scores in the test data.
+set.seed(415)
+
+gad_ridge <- cv.glmnet(
+  x = gad_x_train,
+  y = train$GAD,
+  alpha = 0
+)
+
+gad_ridge_pred <- predict(
+  gad_ridge,
+  newx = gad_x_test,
+  s = "lambda.min"
+)
+
+gad_ridge_pred <- as.numeric(
+  gad_ridge_pred
+)
+
+gad_ridge_rmse <- sqrt(
+  mean(
+    (test$GAD - gad_ridge_pred)^2
+  )
+)
+
+gad_ridge_mae <- mean(
+  abs(
+    test$GAD - gad_ridge_pred
+  )
+)
+
+gad_ridge_r2 <- cor(
+  test$GAD,
+  gad_ridge_pred
+)^2
+```
+
+
+## Anxiety LASSO Regression
+
+```{r model_22_anxiety_lasso_regression}
+# Cross-validate the LASSO penalty and predict GAD scores in the test data.
+set.seed(415)
+
+gad_lasso <- cv.glmnet(
+  x = gad_x_train,
+  y = train$GAD,
+  alpha = 1
+)
+
+gad_lasso_pred <- predict(
+  gad_lasso,
+  newx = gad_x_test,
+  s = "lambda.min"
+)
+
+gad_lasso_pred <- as.numeric(
+  gad_lasso_pred
+)
+
+gad_lasso_rmse <- sqrt(
+  mean(
+    (test$GAD - gad_lasso_pred)^2
+  )
+)
+
+gad_lasso_mae <- mean(
+  abs(
+    test$GAD - gad_lasso_pred
+  )
+)
+
+gad_lasso_r2 <- cor(
+  test$GAD,
+  gad_lasso_pred
+)^2
+```
+
+
+## Anxiety XGBoost
+
+```{r model_23_anxiety_xgboost}
+# Train an XGBoost anxiety model and obtain test-set predictions.
+gad_xgb_train <- model.matrix(
+  GAD ~ PHQ +
+    gender +
+    field +
+    race.2 +
+    yr_sch.2 +
+    fincur.2 +
+    age,
+  data = train
+)[, -1]
+
+gad_xgb_test <- model.matrix(
+  GAD ~ PHQ +
+    gender +
+    field +
+    race.2 +
+    yr_sch.2 +
+    fincur.2 +
+    age,
+  data = test
+)[, -1]
+
+gad_xgb_validation <- model.matrix(
+  GAD ~ PHQ +
+    gender +
+    field +
+    race.2 +
+    yr_sch.2 +
+    fincur.2 +
+    age,
+  data = validation
+)[, -1]
+
+set.seed(415)
+
+gad_xgb <- xgboost(
+  x = gad_xgb_train,
+  y = train$GAD,
+  nrounds = 100,
+  objective = "reg:squarederror"
+)
+
+gad_xgb_pred <- predict(
+  gad_xgb,
+  gad_xgb_test
+)
+
+gad_xgb_rmse <- sqrt(
+  mean(
+    (test$GAD - gad_xgb_pred)^2
+  )
+)
+
+gad_xgb_mae <- mean(
+  abs(
+    test$GAD - gad_xgb_pred
+  )
+)
+
+gad_xgb_r2 <- cor(
+  test$GAD,
+  gad_xgb_pred
+)^2
+```
+
+
+# Anxiety Test-Set Comparison
+
+```{r model_24_anxiety_test_set_comparison}
+# Calculate and compare test-set performance metrics for the anxiety models.
+anxiety_results <- data.frame(
+
+  Model = c(
+    "Baseline",
+    "Linear Regression",
+    "Gender x STEM Regression",
+    "Regression Tree",
+    "Random Forest",
+    "Ridge Regression",
+    "LASSO Regression",
+    "XGBoost"
+  ),
+
+  RMSE = c(
+    gad_baseline_rmse,
+    gad_lm_rmse,
+    gad_interaction_rmse,
+    gad_tree_rmse,
+    gad_rf_rmse,
+    gad_ridge_rmse,
+    gad_lasso_rmse,
+    gad_xgb_rmse
+  ),
+
+  MAE = c(
+    gad_baseline_mae,
+    gad_lm_mae,
+    gad_interaction_mae,
+    gad_tree_mae,
+    gad_rf_mae,
+    gad_ridge_mae,
+    gad_lasso_mae,
+    gad_xgb_mae
+  ),
+
+  R2 = c(
+    gad_baseline_r2,
+    gad_lm_r2,
+    gad_interaction_r2,
+    gad_tree_r2,
+    gad_rf_r2,
+    gad_ridge_r2,
+    gad_lasso_r2,
+    gad_xgb_r2
+  )
+)
+
+anxiety_results$Accuracy <- round(vapply(
+  list(gad_baseline_pred, gad_lm_pred, gad_interaction_pred,
+       gad_tree_pred, gad_rf_pred, gad_ridge_pred,
+       gad_lasso_pred, gad_xgb_pred),
+  function(pred) classification_accuracy(test$GAD, pred, "GAD"), numeric(1)
+), 2)
+anxiety_results <- anxiety_results[
+  order(anxiety_results$RMSE),
+]
+
+anxiety_results
+```
+
+
+
+
+# Student Characteristics Only
+
+
+## Depression Using Student Characteristics Only
+
+```{r model_26_depression_using_student_characteristics_o}
+# Fit a PHQ regression using only student characteristics, without GAD as a predictor.
+phq_student <- lm(
+  PHQ ~ gender +
+    field +
+    race.2 +
+    yr_sch.2 +
+    fincur.2 +
+    age,
+  data = train
+)
+
+summary(phq_student)
+
+phq_student_pred <- predict(
+  phq_student,
+  newdata = test
+)
+
+phq_student_rmse <- sqrt(
+  mean(
+    (test$PHQ - phq_student_pred)^2
+  )
+)
+
+phq_student_mae <- mean(
+  abs(
+    test$PHQ - phq_student_pred
+  )
+)
+
+phq_student_r2 <- cor(
+  test$PHQ,
+  phq_student_pred
+)^2
+```
+
+
+## Anxiety Using Student Characteristics Only
+
+```{r model_27_anxiety_using_student_characteristics_only}
+# Fit a GAD regression using only student characteristics, without PHQ as a predictor.
+gad_student <- lm(
+  GAD ~ gender +
+    field +
+    race.2 +
+    yr_sch.2 +
+    fincur.2 +
+    age,
+  data = train
+)
+
+summary(gad_student)
+
+gad_student_pred <- predict(
+  gad_student,
+  newdata = test
+)
+
+gad_student_rmse <- sqrt(
+  mean(
+    (test$GAD - gad_student_pred)^2
+  )
+)
+
+gad_student_mae <- mean(
+  abs(
+    test$GAD - gad_student_pred
+  )
+)
+
+gad_student_r2 <- cor(
+  test$GAD,
+  gad_student_pred
+)^2
+```
+
+
+# Full vs Student-Only Model Comparison
+
+```{r model_28_full_vs_student_only_model_comparison}
+# Compare full models against student-characteristics-only models for both outcomes.
+predictor_comparison <- data.frame(
+
+  Outcome = c(
+    "Depression",
+    "Depression",
+    "Anxiety",
+    "Anxiety"
+  ),
+
+  Predictors = c(
+    "Student Characteristics + Anxiety",
+    "Student Characteristics Only",
+    "Student Characteristics + Depression",
+    "Student Characteristics Only"
+  ),
+
+  RMSE = c(
+    phq_lm_rmse,
+    phq_student_rmse,
+    gad_lm_rmse,
+    gad_student_rmse
+  ),
+
+  R2 = c(
+    phq_lm_r2,
+    phq_student_r2,
+    gad_lm_r2,
+    gad_student_r2
+  )
+)
+
+predictor_comparison
+```
+
+
+# Final Validation
+
+
+# Depression Validation
+
+## Validate Depression Linear Regression
+
+```{r model_29_validate_depression_linear_regression}
+# Apply the fitted depression linear regression to the untouched validation data.
+phq_lm_validation_pred <- predict(
+  phq_lm,
+  newdata = validation
+)
+
+phq_lm_validation_rmse <- sqrt(
+  mean(
+    (validation$PHQ - phq_lm_validation_pred)^2
+  )
+)
+
+phq_lm_validation_mae <- mean(
+  abs(
+    validation$PHQ - phq_lm_validation_pred
+  )
+)
+
+phq_lm_validation_r2 <- cor(
+  validation$PHQ,
+  phq_lm_validation_pred
+)^2
+```
+
+
+## Validate Depression Gender x STEM Regression
+
+```{r model_30_validate_depression_gender_x_stem_regressi}
+# Generate validation predictions from the depression gender-by-STEM interaction model.
+phq_interaction_validation_pred <- predict(
+  phq_interaction,
+  newdata = validation
+)
+
+phq_interaction_validation_rmse <- sqrt(
+  mean(
+    (validation$PHQ -
+       phq_interaction_validation_pred)^2
+  )
+)
+
+phq_interaction_validation_mae <- mean(
+  abs(
+    validation$PHQ -
+      phq_interaction_validation_pred
+  )
+)
+
+phq_interaction_validation_r2 <- cor(
+  validation$PHQ,
+  phq_interaction_validation_pred
+)^2
+```
+
+
+## Validate Depression LASSO
+
+```{r model_31_validate_depression_lasso}
+# Use the trained depression LASSO model to predict validation-set PHQ scores.
+phq_lasso_validation_pred <- predict(
+  phq_lasso,
+  newx = phq_x_validation,
+  s = "lambda.min"
+)
+
+phq_lasso_validation_pred <- as.numeric(
+  phq_lasso_validation_pred
+)
+
+phq_lasso_validation_rmse <- sqrt(
+  mean(
+    (validation$PHQ -
+       phq_lasso_validation_pred)^2
+  )
+)
+
+phq_lasso_validation_mae <- mean(
+  abs(
+    validation$PHQ -
+      phq_lasso_validation_pred
+  )
+)
+
+phq_lasso_validation_r2 <- cor(
+  validation$PHQ,
+  phq_lasso_validation_pred
+)^2
+```
+
+
+## Validate Depression XGBoost
+
+```{r model_32_validate_depression_xgboost}
+# Use the trained depression XGBoost model to predict validation-set PHQ scores.
+phq_xgb_validation_pred <- predict(
+  phq_xgb,
+  phq_xgb_validation
+)
+
+phq_xgb_validation_rmse <- sqrt(
+  mean(
+    (validation$PHQ -
+       phq_xgb_validation_pred)^2
+  )
+)
+
+phq_xgb_validation_mae <- mean(
+  abs(
+    validation$PHQ -
+      phq_xgb_validation_pred
+  )
+)
+
+phq_xgb_validation_r2 <- cor(
+  validation$PHQ,
+  phq_xgb_validation_pred
+)^2
+```
+
+
+# Depression Validation Comparison
+
+```{r model_33_depression_validation_comparison}
+# Compare the selected depression models on the independent validation set.
+depression_validation <- data.frame(
+
+  Model = c(
+    "Linear Regression",
+    "Gender x STEM Regression",
+    "LASSO Regression",
+    "XGBoost"
+  ),
+
+  RMSE = c(
+    phq_lm_validation_rmse,
+    phq_interaction_validation_rmse,
+    phq_lasso_validation_rmse,
+    phq_xgb_validation_rmse
+  ),
+
+  MAE = c(
+    phq_lm_validation_mae,
+    phq_interaction_validation_mae,
+    phq_lasso_validation_mae,
+    phq_xgb_validation_mae
+  ),
+
+  R2 = c(
+    phq_lm_validation_r2,
+    phq_interaction_validation_r2,
+    phq_lasso_validation_r2,
+    phq_xgb_validation_r2
+  )
+)
+
+depression_validation$Accuracy <- round(vapply(
+  list(phq_lm_validation_pred, phq_interaction_validation_pred,
+       phq_lasso_validation_pred, phq_xgb_validation_pred),
+  function(pred) classification_accuracy(validation$PHQ, pred, "PHQ"), numeric(1)
+), 2)
+depression_validation <- depression_validation[
+  order(depression_validation$RMSE),
+]
+
+depression_validation
+```
+
+
+# Anxiety Validation
+
+## Validate Anxiety Linear Regression
+
+```{r model_34_validate_anxiety_linear_regression}
+# Generate validation predictions from the fitted anxiety linear regression.
+gad_lm_validation_pred <- predict(
+  gad_lm,
+  newdata = validation
+)
+
+gad_lm_validation_rmse <- sqrt(
+  mean(
+    (validation$GAD - gad_lm_validation_pred)^2
+  )
+)
+
+gad_lm_validation_mae <- mean(
+  abs(
+    validation$GAD - gad_lm_validation_pred
+  )
+)
+
+gad_lm_validation_r2 <- cor(
+  validation$GAD,
+  gad_lm_validation_pred
+)^2
+```
+
+
+## Validate Anxiety Gender x STEM Regression
+
+```{r model_35_validate_anxiety_gender_x_stem_regression}
+# Evaluate the anxiety gender-by-STEM interaction model on validation data.
+gad_interaction_validation_pred <- predict(
+  gad_interaction,
+  newdata = validation
+)
+
+gad_interaction_validation_rmse <- sqrt(
+  mean(
+    (validation$GAD -
+       gad_interaction_validation_pred)^2
+  )
+)
+
+gad_interaction_validation_mae <- mean(
+  abs(
+    validation$GAD -
+      gad_interaction_validation_pred
+  )
+)
+
+gad_interaction_validation_r2 <- cor(
+  validation$GAD,
+  gad_interaction_validation_pred
+)^2
+```
+
+
+## Validate Anxiety LASSO
+
+```{r model_36_validate_anxiety_lasso}
+# Predict validation-set GAD scores using the fitted anxiety LASSO model.
+gad_lasso_validation_pred <- predict(
+  gad_lasso,
+  newx = gad_x_validation,
+  s = "lambda.min"
+)
+
+gad_lasso_validation_pred <- as.numeric(
+  gad_lasso_validation_pred
+)
+
+gad_lasso_validation_rmse <- sqrt(
+  mean(
+    (validation$GAD -
+       gad_lasso_validation_pred)^2
+  )
+)
+
+gad_lasso_validation_mae <- mean(
+  abs(
+    validation$GAD -
+      gad_lasso_validation_pred
+  )
+)
+
+gad_lasso_validation_r2 <- cor(
+  validation$GAD,
+  gad_lasso_validation_pred
+)^2
+```
+
+
+## Validate Anxiety XGBoost
+
+```{r model_37_validate_anxiety_xgboost}
+# Predict validation-set GAD scores using the trained anxiety XGBoost model.
+gad_xgb_validation_pred <- predict(
+  gad_xgb,
+  gad_xgb_validation
+)
+
+gad_xgb_validation_rmse <- sqrt(
+  mean(
+    (validation$GAD -
+       gad_xgb_validation_pred)^2
+  )
+)
+
+gad_xgb_validation_mae <- mean(
+  abs(
+    validation$GAD -
+      gad_xgb_validation_pred
+  )
+)
+
+gad_xgb_validation_r2 <- cor(
+  validation$GAD,
+  gad_xgb_validation_pred
+)^2
+```
+
+
+# Anxiety Validation Comparison
+
+```{r model_38_anxiety_validation_comparison}
+# Compare the selected anxiety models on the independent validation set.
+anxiety_validation <- data.frame(
+
+  Model = c(
+    "Linear Regression",
+    "Gender x STEM Regression",
+    "LASSO Regression",
+    "XGBoost"
+  ),
+
+  RMSE = c(
+    gad_lm_validation_rmse,
+    gad_interaction_validation_rmse,
+    gad_lasso_validation_rmse,
+    gad_xgb_validation_rmse
+  ),
+
+  MAE = c(
+    gad_lm_validation_mae,
+    gad_interaction_validation_mae,
+    gad_lasso_validation_mae,
+    gad_xgb_validation_mae
+  ),
+
+  R2 = c(
+    gad_lm_validation_r2,
+    gad_interaction_validation_r2,
+    gad_lasso_validation_r2,
+    gad_xgb_validation_r2
+  )
+)
+
+anxiety_validation$Accuracy <- round(vapply(
+  list(gad_lm_validation_pred, gad_interaction_validation_pred,
+       gad_lasso_validation_pred, gad_xgb_validation_pred),
+  function(pred) classification_accuracy(validation$GAD, pred, "GAD"), numeric(1)
+), 2)
+anxiety_validation <- anxiety_validation[
+  order(anxiety_validation$RMSE),
+]
+
+anxiety_validation
+```
+
+
+# Testing vs Validation Performance
+
+```{r model_39_testing_vs_validation_performance}
+# Contrast test-set and validation-set performance to assess generalization.
+final_comparison <- data.frame(
+
+  Outcome = c(
+    "Depression",
+    "Depression",
+    "Depression",
+    "Depression",
+    "Anxiety",
+    "Anxiety",
+    "Anxiety",
+    "Anxiety"
+  ),
+
+  Model = c(
+    "Linear Regression",
+    "Gender x STEM Regression",
+    "LASSO Regression",
+    "XGBoost",
+    "Linear Regression",
+    "Gender x STEM Regression",
+    "LASSO Regression",
+    "XGBoost"
+  ),
+
+  Test_RMSE = c(
+    phq_lm_rmse,
+    phq_interaction_rmse,
+    phq_lasso_rmse,
+    phq_xgb_rmse,
+    gad_lm_rmse,
+    gad_interaction_rmse,
+    gad_lasso_rmse,
+    gad_xgb_rmse
+  ),
+
+  Validation_RMSE = c(
+    phq_lm_validation_rmse,
+    phq_interaction_validation_rmse,
+    phq_lasso_validation_rmse,
+    phq_xgb_validation_rmse,
+    gad_lm_validation_rmse,
+    gad_interaction_validation_rmse,
+    gad_lasso_validation_rmse,
+    gad_xgb_validation_rmse
+  ),
+
+  Test_R2 = c(
+    phq_lm_r2,
+    phq_interaction_r2,
+    phq_lasso_r2,
+    phq_xgb_r2,
+    gad_lm_r2,
+    gad_interaction_r2,
+    gad_lasso_r2,
+    gad_xgb_r2
+  ),
+
+  Validation_R2 = c(
+    phq_lm_validation_r2,
+    phq_interaction_validation_r2,
+    phq_lasso_validation_r2,
+    phq_xgb_validation_r2,
+    gad_lm_validation_r2,
+    gad_interaction_validation_r2,
+    gad_lasso_validation_r2,
+    gad_xgb_validation_r2
+  )
+)
+
+final_comparison
+```
+
+
+# Depression Predictions
+
+```{r model_40_observed_vs_predicted_depression}
+# Plot observed versus predicted PHQ scores for the depression linear model on validation data.
+phq_plot_data <- data.frame(
+  Observed = validation$PHQ,
+  Predicted = phq_lm_validation_pred
+)
+
+ggplot(
+  phq_plot_data,
+  aes(
+    x = Observed,
+    y = Predicted
+  )
+) +
+  geom_point(
+    alpha = 0.2,
+    color = phq_color
+  ) +
+  geom_smooth(
+    method = "lm",
+    se = FALSE,
+    color = "gray40"
+  ) +
+  labs(
+    title = "Depression Predictions",
+    subtitle = "Validation Data",
+    x = "Observed depression score (PHQ-9)",
+    y = "Predicted depression score (PHQ-9)"
+  )
+```
+
+
+# Anxiety Predictions
+
+```{r model_41_observed_vs_predicted_anxiety}
+# Plot observed versus predicted GAD scores for the anxiety linear model on validation data.
+gad_plot_data <- data.frame(
+  Observed = validation$GAD,
+  Predicted = gad_lm_validation_pred
+)
+
+ggplot(
+  gad_plot_data,
+  aes(
+    x = Observed,
+    y = Predicted
+  )
+) +
+  geom_point(
+    alpha = 0.2,
+    color = gad_color
+  ) +
+  geom_smooth(
+    method = "lm",
+    se = FALSE,
+    color = "gray40"
+  ) +
+  labs(
+    title = "Anxiety Predictions",
+    subtitle = "Validation Data",
+    x = "Observed anxiety score (GAD-7)",
+    y = "Predicted anxiety score (GAD-7)"
+  )
+```
+
+
+# Final Summary
+
+
+# Paper Figures and Tables
+
+
+```{r final_paper_export_setup}
+# Make folders to save the tables and figures used in the final paper.
+final_paper_dir <- file.path(project_root, "outputs", "paper_only")
+figure_dir <- file.path(final_paper_dir, "figures")
+table_dir <- file.path(final_paper_dir, "tables")
+dir.create(figure_dir, recursive = TRUE, showWarnings = FALSE)
+dir.create(table_dir, recursive = TRUE, showWarnings = FALSE)
+
+save_paper_figure <- function(plot, filename, width = 8, height = 5) {
+  for (extension in c("png", "pdf")) {
+    path <- file.path(figure_dir, paste0(filename, ".", extension))
+    tryCatch(
+      ggplot2::ggsave(path, plot = plot, width = width, height = height,
+                      dpi = 300, bg = "white"),
+      error = function(e) message("Figure not saved: ", path)
+    )
+  }
+}
+
+save_paper_table <- function(tab, filename, digits = 4) {
+  csv_path <- file.path(table_dir, paste0(filename, ".csv"))
+  html_path <- file.path(table_dir, paste0(filename, ".html"))
+  tryCatch(
+    utils::write.csv(tab, csv_path, row.names = FALSE, na = ""),
+    error = function(e) message("Table CSV not saved (file in use or folder blocked): ", csv_path)
+  )
+  tryCatch(
+    writeLines(sub("<table", "<table class=\"paper-table\"",
+                   as.character(knitr::kable(tab, format = "html", digits = digits)), fixed = TRUE), html_path),
+    error = function(e) message("Table HTML not saved (file in use or folder blocked): ", html_path)
+  )
+  invisible(tab)
+}
+```
+
+## Test Results
+
+```{r final_paper_eight_model_table_and_plot, fig.width=9, fig.height=6}
+# Compare the eight models on the test data and save the model results.
+all_test_metrics <- dplyr::bind_rows(
+  dplyr::mutate(depression_results, Outcome = "PHQ"),
+  dplyr::mutate(anxiety_results, Outcome = "GAD")
+) %>% dplyr::select(Outcome, Model, RMSE, MAE, R2, Accuracy)
+
+
+
+```
+
+## Model Features
+
+```{r final_paper_full_vs_reduced, fig.width=8, fig.height=5}
+# Compare predictions using all variables versus student characteristics only.
+full_vs_reduced <- predictor_comparison %>%
+  dplyr::mutate(Feature_Set = ifelse(Predictors == "Student Characteristics Only",
+                                   "Student characteristics only", "Full features")) %>%
+  dplyr::select(Outcome, Feature_Set, Predictors, RMSE, R2)
+feature_comparison_table <- data.frame(
+  Outcome = c("Depression", "Depression", "Anxiety", "Anxiety"),
+  Model = c("With anxiety", "Student characteristics", "With depression", "Student characteristics"),
+  RMSE = round(c(phq_lm_rmse, phq_student_rmse, gad_lm_rmse, gad_student_rmse), 4),
+  MAE = round(c(phq_lm_mae, phq_student_mae, gad_lm_mae, gad_student_mae), 4),
+  check.names = FALSE
+)
+feature_comparison_table$`R²` <- round(c(phq_lm_r2, phq_student_r2, gad_lm_r2, gad_student_r2), 4)
+feature_comparison_table$`Accuracy (%)` <- round(c(
+  classification_accuracy(test$PHQ, phq_lm_pred, "PHQ"),
+  classification_accuracy(test$PHQ, phq_student_pred, "PHQ"),
+  classification_accuracy(test$GAD, gad_lm_pred, "GAD"),
+  classification_accuracy(test$GAD, gad_student_pred, "GAD")
+), 2)
+save_paper_table(feature_comparison_table, "table_05_full_vs_reduced_models")
+knitr::kable(feature_comparison_table, caption = "Model Features")
+
+
+```
+
+## Validation Results
+
+```{r final_paper_validation_table}
+# Put the validation results for the selected models into one table.
+all_validation_metrics <- dplyr::bind_rows(
+  dplyr::mutate(depression_validation, Outcome = "PHQ"),
+  dplyr::mutate(anxiety_validation, Outcome = "GAD")
+) %>% dplyr::select(Outcome, dplyr::everything())
+
+```
+
+## Observed and Predicted
+
+```{r final_paper_validation_scatter, fig.width=10, fig.height=5}
+# Plot observed versus predicted scores on the validation data.
+observed_predicted <- dplyr::bind_rows(
+  data.frame(Outcome = "PHQ", Observed = validation$PHQ,
+             Predicted = as.numeric(phq_interaction_validation_pred)),
+  data.frame(Outcome = "GAD", Observed = validation$GAD,
+             Predicted = as.numeric(gad_interaction_validation_pred))
+)
+figure_05 <- ggplot2::ggplot(observed_predicted,
+               ggplot2::aes(x = Observed, y = Predicted, color = Outcome)) +
+  ggplot2::geom_point(alpha = 0.12, size = 0.6) +
+  ggplot2::scale_color_manual(values = outcome_colors, labels = c(PHQ = "Depression (PHQ-9)", GAD = "Anxiety (GAD-7)"), guide = "none") +
+  ggplot2::geom_abline(slope = 1, intercept = 0, linetype = "dashed", color = "gray40") +
+  ggplot2::facet_wrap(~Outcome, labeller = ggplot2::as_labeller(c(PHQ = "Depression (PHQ-9)", GAD = "Anxiety (GAD-7)")), scales = "fixed") +
+  ggplot2::coord_equal() +
+  ggplot2::labs(title = "Observed vs. Predicted",
+       x = "Observed score", y = "Predicted score")
+print(figure_05)
+save_paper_figure(figure_05, "figure_05_validation_observed_vs_predicted", 10, 5)
+```
+
+
+## Model Tables
+
+
+```{r final_paper_model_tables}
+# Format the testing, predictor comparison, and validation tables for the paper.
+test_results_table <- all_test_metrics %>%
+  dplyr::transmute(
+    Outcome = dplyr::recode(Outcome, PHQ = "Depression", GAD = "Anxiety"),
+    Model = dplyr::recode(Model, "Gender x STEM Regression" = "Gender × STEM Regression"),
+    RMSE = round(RMSE, 4),
+    MAE = round(MAE, 4),
+    `R²` = round(R2, 4),
+    `Accuracy (%)` = round(Accuracy, 2)
+  )
+save_paper_table(test_results_table, "table_04_all_eight_models_test_metrics")
+knitr::kable(test_results_table, caption = "Test Results")
+
+validation_results_table <- all_validation_metrics %>%
+  dplyr::transmute(
+    Outcome = dplyr::recode(Outcome, PHQ = "Depression", GAD = "Anxiety"),
+    Model = dplyr::recode(Model, "Gender x STEM Regression" = "Gender × STEM Regression"),
+    RMSE = round(RMSE, 4),
+    MAE = round(MAE, 4),
+    `R²` = round(R2, 4),
+    `Accuracy (%)` = round(Accuracy, 2)
+  )
+save_paper_table(validation_results_table, "table_06_validation_model_metrics")
+knitr::kable(validation_results_table, caption = "Validation Results")
+```
+
+## Residual Plots
+
+```{r final_paper_residual_plots, fig.width=10, fig.height=5}
+# Plot prediction residuals to check where the validation models miss.
+residual_data <- observed_predicted %>%
+  dplyr::mutate(
+    Residual = Observed - Predicted,
+    Outcome = dplyr::recode(Outcome,
+      PHQ = "Depression (PHQ-9)", GAD = "Anxiety (GAD-7)")
+  )
+
+figure_06 <- ggplot2::ggplot(residual_data,
+    ggplot2::aes(x = Predicted, y = Residual, color = Outcome)) +
+  ggplot2::geom_point(alpha = 0.12, size = 0.6) +
+  ggplot2::geom_hline(yintercept = 0, color = "gray40", linetype = "dashed") +
+  ggplot2::facet_wrap(~Outcome, scales = "free_x") +
+  ggplot2::scale_color_manual(values = c(
+    "Depression (PHQ-9)" = phq_color,
+    "Anxiety (GAD-7)" = gad_color), guide = "none") +
+  ggplot2::labs(title = "Residual Plots", x = "Predicted score", y = "Observed − predicted")
+print(figure_06)
+save_paper_figure(figure_06, "figure_06_validation_residuals", 10, 5)
+```
+
+
+## Confusion Matrices
+
+```{r final_paper_confusion_matrices, fig.width=10, fig.height=5}
+# Make confusion matrices for the PHQ and GAD validation predictions.
+make_confusion <- function(observed, predicted, outcome, cutoff) {
+  labels <- c("Below 10", "10 or higher")
+  observed_group <- factor(ifelse(observed >= cutoff, labels[2], labels[1]), levels = labels)
+  predicted_group <- factor(ifelse(predicted >= cutoff, labels[2], labels[1]), levels = labels)
+  tab <- as.data.frame(table(Observed = observed_group, Predicted = predicted_group))
+  tab$Outcome <- outcome
+  tab
+}
+
+confusion_data <- dplyr::bind_rows(
+  make_confusion(validation$PHQ, phq_interaction_validation_pred, "Depression", 1 + 10 / 9),
+  make_confusion(validation$GAD, gad_interaction_validation_pred, "Anxiety", 1 + 10 / 7)
+)
+
+confusion_table <- confusion_data %>%
+  tidyr::pivot_wider(names_from = Predicted, values_from = Freq) %>%
+  dplyr::rename(`Predicted below 10` = `Below 10`,
+                `Predicted 10 or higher` = `10 or higher`) %>%
+  dplyr::select(Outcome, Observed, `Predicted below 10`, `Predicted 10 or higher`)
+
+save_paper_table(confusion_table, "table_07_confusion_matrices")
+knitr::kable(confusion_table, caption = "Confusion Matrices")
+
+confusion_plot <- ggplot2::ggplot(confusion_data,
+    ggplot2::aes(x = Predicted, y = Observed, fill = Freq)) +
+  ggplot2::geom_tile(color = "white", linewidth = 1) +
+  ggplot2::geom_text(ggplot2::aes(label = scales::comma(Freq)), size = 5) +
+  ggplot2::scale_fill_gradient(low = "white", high = "#377EB8", name = "Students") +
+  ggplot2::facet_wrap(~Outcome, nrow = 1) +
+  ggplot2::coord_equal() +
+  ggplot2::labs(title = "Confusion Matrices", x = "Predicted", y = "Observed")
+print(confusion_plot)
+save_paper_figure(confusion_plot, "figure_07_best_validation_confusion_matrices", 10, 5)
+```

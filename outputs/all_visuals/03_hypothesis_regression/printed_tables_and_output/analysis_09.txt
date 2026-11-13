@@ -7,3 +7,57 @@
 ## 
 ## data:  year_table
 ## X-squared = 1269.2, df = 3, p-value < 2.2e-16
+##                       
+##                        firstyear secondyear thirdyear fourthyear+
+##   2017-2018 Pre-COVID      20665      17477     13481       10813
+##   2022-2023 Post-COVID     11639      10498     10567       10789
+## 
+## 	Pearson's Chi-squared test
+## 
+## data:  year_table
+## X-squared = 1269.2, df = 3, p-value < 2.2e-16
+##                       
+##                        firstyear secondyear thirdyear fourthyear+
+##   2017-2018 Pre-COVID      20665      17477     13481       10813
+##   2022-2023 Post-COVID     11639      10498     10567       10789
+## 
+## 	Pearson's Chi-squared test
+## 
+## data:  year_table
+## X-squared = 1269.2, df = 3, p-value < 2.2e-16
+##                       
+##                        firstyear secondyear thirdyear fourthyear+
+##   2017-2018 Pre-COVID      20665      17477     13481       10813
+##   2022-2023 Post-COVID     11639      10498     10567       10789
+## 
+## 	Pearson's Chi-squared test
+## 
+## data:  year_table
+## X-squared = 1269.2, df = 3, p-value < 2.2e-16
+##                       
+##                        firstyear secondyear thirdyear fourthyear+
+##   2017-2018 Pre-COVID      20665      17477     13481       10813
+##   2022-2023 Post-COVID     11639      10498     10567       10789
+## 
+## 	Pearson's Chi-squared test
+## 
+## data:  year_table
+## X-squared = 1269.2, df = 3, p-value < 2.2e-16
+##                       
+##                        firstyear secondyear thirdyear fourthyear+
+##   2017-2018 Pre-COVID      20665      17477     13481       10813
+##   2022-2023 Post-COVID     11639      10498     10567       10789
+## 
+## 	Pearson's Chi-squared test
+## 
+## data:  year_table
+## X-squared = 1269.2, df = 3, p-value < 2.2e-16
+##                       
+##                        firstyear secondyear thirdyear fourthyear+
+##   2017-2018 Pre-COVID      20665      17477     13481       10813
+##   2022-2023 Post-COVID     11639      10498     10567       10789
+## 
+## 	Pearson's Chi-squared test
+## 
+## data:  year_table
+## X-squared = 1269.2, df = 3, p-value < 2.2e-16

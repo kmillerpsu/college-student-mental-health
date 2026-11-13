@@ -29,3 +29,65 @@
 ## Residual standard error: 0.4599 on 24018 degrees of freedom
 ## Multiple R-squared:  0.5674,	Adjusted R-squared:  0.5671 
 ## F-statistic:  2423 on 13 and 24018 DF,  p-value: < 2.2e-16
+## 
+## Call:
+## lm(formula = PHQ ~ GAD + gender * field + race.2 + yr_sch.2 + 
+##     fincur.2 + age, data = train)
+## 
+## Residuals:
+##      Min       1Q   Median       3Q      Max 
+## -2.13676 -0.28646 -0.04664  0.26135  2.68323 
+## 
+## Coefficients:
+##                         Estimate Std. Error t value Pr(>|t|)    
+## (Intercept)            0.5045448  0.0182266  27.682  < 2e-16 ***
+## GAD                    0.5983006  0.0038402 155.799  < 2e-16 ***
+## genderWomen           -0.0292738  0.0096122  -3.045 0.002326 ** 
+## fieldSTEM              0.0332865  0.0111325   2.990 0.002792 ** 
+## race.2Asian            0.0947701  0.0090603  10.460  < 2e-16 ***
+## race.2Black            0.0609561  0.0097405   6.258 3.97e-10 ***
+## race.2Hispanic         0.0598060  0.0109350   5.469 4.57e-08 ***
+## race.2Middle Eastern   0.0625758  0.0249745   2.506 0.012231 *  
+## yr_sch.2secondyear    -0.0076422  0.0084249  -0.907 0.364363    
+## yr_sch.2thirdyear     -0.0150573  0.0085683  -1.757 0.078877 .  
+## yr_sch.2fourthyear+   -0.0304920  0.0086522  -3.524 0.000426 ***
+## fincur.2               0.0769213  0.0028357  27.126  < 2e-16 ***
+## age                   -0.0020736  0.0006767  -3.064 0.002186 ** 
+## genderWomen:fieldSTEM -0.0358089  0.0131663  -2.720 0.006538 ** 
+## ---
+## Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
+## 
+## Residual standard error: 0.4599 on 24018 degrees of freedom
+## Multiple R-squared:  0.5674,	Adjusted R-squared:  0.5671 
+## F-statistic:  2423 on 13 and 24018 DF,  p-value: < 2.2e-16
+## 
+## Call:
+## lm(formula = PHQ ~ GAD + gender * field + race.2 + yr_sch.2 + 
+##     fincur.2 + age, data = train)
+## 
+## Residuals:
+##      Min       1Q   Median       3Q      Max 
+## -2.13676 -0.28646 -0.04664  0.26135  2.68323 
+## 
+## Coefficients:
+##                         Estimate Std. Error t value Pr(>|t|)    
+## (Intercept)            0.5045448  0.0182266  27.682  < 2e-16 ***
+## GAD                    0.5983006  0.0038402 155.799  < 2e-16 ***
+## genderWomen           -0.0292738  0.0096122  -3.045 0.002326 ** 
+## fieldSTEM              0.0332865  0.0111325   2.990 0.002792 ** 
+## race.2Asian            0.0947701  0.0090603  10.460  < 2e-16 ***
+## race.2Black            0.0609561  0.0097405   6.258 3.97e-10 ***
+## race.2Hispanic         0.0598060  0.0109350   5.469 4.57e-08 ***
+## race.2Middle Eastern   0.0625758  0.0249745   2.506 0.012231 *  
+## yr_sch.2secondyear    -0.0076422  0.0084249  -0.907 0.364363    
+## yr_sch.2thirdyear     -0.0150573  0.0085683  -1.757 0.078877 .  
+## yr_sch.2fourthyear+   -0.0304920  0.0086522  -3.524 0.000426 ***
+## fincur.2               0.0769213  0.0028357  27.126  < 2e-16 ***
+## age                   -0.0020736  0.0006767  -3.064 0.002186 ** 
+## genderWomen:fieldSTEM -0.0358089  0.0131663  -2.720 0.006538 ** 
+## ---
+## Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
+## 
+## Residual standard error: 0.4599 on 24018 degrees of freedom
+## Multiple R-squared:  0.5674,	Adjusted R-squared:  0.5671 
+## F-statistic:  2423 on 13 and 24018 DF,  p-value: < 2.2e-16

@@ -7,3 +7,39 @@ Table: Percent Missing by Time Period
 |2017-2018 Pre-COVID  | 24.53| 25.37|   2.74| 16.30| 12.35| 8.76|             1.44|   0|
 |2022-2023 Post-COVID |  5.56|  6.52|   0.00|  6.58| 11.73| 0.95|             0.10|   0|
 
+
+
+Table: Percent Missing by Time Period
+
+|Period               |   PHQ|   GAD| Gender| Field|  Race| Year| Financial_Stress| Age|
+|:--------------------|-----:|-----:|------:|-----:|-----:|----:|----------------:|---:|
+|2017-2018 Pre-COVID  | 24.53| 25.37|   2.74| 16.30| 12.35| 8.76|             1.44|   0|
+|2022-2023 Post-COVID |  5.56|  6.52|   0.00|  6.58| 11.73| 0.95|             0.10|   0|
+
+
+
+Table: Percent Missing by Time Period
+
+|Period               |   PHQ|   GAD| Gender| Field|  Race| Year| Financial_Stress| Age|
+|:--------------------|-----:|-----:|------:|-----:|-----:|----:|----------------:|---:|
+|2017-2018 Pre-COVID  | 24.53| 25.37|   2.74| 16.30| 12.35| 8.76|             1.44|   0|
+|2022-2023 Post-COVID |  5.56|  6.52|   0.00|  6.58| 11.73| 0.95|             0.10|   0|
+
+
+
+Table: Percent Missing by Time Period
+
+|Period               |   PHQ|   GAD| Gender| Field|  Race| Year| Financial_Stress| Age|
+|:--------------------|-----:|-----:|------:|-----:|-----:|----:|----------------:|---:|
+|2017-2018 Pre-COVID  | 24.53| 25.37|   2.74| 16.30| 12.35| 8.76|             1.44|   0|
+|2022-2023 Post-COVID |  5.56|  6.52|   0.00|  6.58| 11.73| 0.95|             0.10|   0|
+
+
+
+Table: Percent Missing by Time Period
+
+|Period               |   PHQ|   GAD| Gender| Field|  Race| Year| Financial_Stress| Age|
+|:--------------------|-----:|-----:|------:|-----:|-----:|----:|----------------:|---:|
+|2017-2018 Pre-COVID  | 24.53| 25.37|   2.74| 16.30| 12.35| 8.76|             1.44|   0|
+|2022-2023 Post-COVID |  5.56|  6.52|   0.00|  6.58| 11.73| 0.95|             0.10|   0|
+

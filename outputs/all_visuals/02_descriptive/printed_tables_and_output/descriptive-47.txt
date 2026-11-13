@@ -7,3 +7,39 @@ Table: Sample Size by Time Period
 |2017-2018 Pre-COVID  | 68427|
 |2022-2023 Post-COVID | 43910|
 
+
+
+Table: Sample Size by Time Period
+
+|Period               |     n|
+|:--------------------|-----:|
+|2017-2018 Pre-COVID  | 68427|
+|2022-2023 Post-COVID | 43910|
+
+
+
+Table: Sample Size by Time Period
+
+|Period               |     n|
+|:--------------------|-----:|
+|2017-2018 Pre-COVID  | 68427|
+|2022-2023 Post-COVID | 43910|
+
+
+
+Table: Sample Size by Time Period
+
+|Period               |     n|
+|:--------------------|-----:|
+|2017-2018 Pre-COVID  | 68427|
+|2022-2023 Post-COVID | 43910|
+
+
+
+Table: Sample Size by Time Period
+
+|Period               |     n|
+|:--------------------|-----:|
+|2017-2018 Pre-COVID  | 68427|
+|2022-2023 Post-COVID | 43910|
+

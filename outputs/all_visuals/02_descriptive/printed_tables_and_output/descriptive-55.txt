@@ -7,3 +7,39 @@ Table: Anxiety Score Comparison
 |2017-2018 Pre-COVID  | 51065| 1.98|   1.86| 0.79|
 |2022-2023 Post-COVID | 41047| 2.15|   2.00| 0.83|
 
+
+
+Table: Anxiety Score Comparison
+
+|Period               |     N| Mean| Median|   SD|
+|:--------------------|-----:|----:|------:|----:|
+|2017-2018 Pre-COVID  | 51065| 1.98|   1.86| 0.79|
+|2022-2023 Post-COVID | 41047| 2.15|   2.00| 0.83|
+
+
+
+Table: Anxiety Score Comparison
+
+|Period               |     N| Mean| Median|   SD|
+|:--------------------|-----:|----:|------:|----:|
+|2017-2018 Pre-COVID  | 51065| 1.98|   1.86| 0.79|
+|2022-2023 Post-COVID | 41047| 2.15|   2.00| 0.83|
+
+
+
+Table: Anxiety Score Comparison
+
+|Period               |     N| Mean| Median|   SD|
+|:--------------------|-----:|----:|------:|----:|
+|2017-2018 Pre-COVID  | 51065| 1.98|   1.86| 0.79|
+|2022-2023 Post-COVID | 41047| 2.15|   2.00| 0.83|
+
+
+
+Table: Anxiety Score Comparison
+
+|Period               |     N| Mean| Median|   SD|
+|:--------------------|-----:|----:|------:|----:|
+|2017-2018 Pre-COVID  | 51065| 1.98|   1.86| 0.79|
+|2022-2023 Post-COVID | 41047| 2.15|   2.00| 0.83|
+

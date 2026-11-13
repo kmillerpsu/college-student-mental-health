@@ -13,3 +13,63 @@ Table: Missing Data: 2022-2023
 |fincur.2 |fincur.2 |      44|            0.10|
 |age      |age      |       0|            0.00|
 
+
+
+Table: Missing Data: 2022-2023
+
+|         |Variable | Missing| Percent_Missing|
+|:--------|:--------|-------:|---------------:|
+|PHQ      |PHQ      |    2441|            5.56|
+|GAD      |GAD      |    2863|            6.52|
+|gender   |gender   |       0|            0.00|
+|field    |field    |    2888|            6.58|
+|race.2   |race.2   |    5152|           11.73|
+|yr_sch.2 |yr_sch.2 |     417|            0.95|
+|fincur.2 |fincur.2 |      44|            0.10|
+|age      |age      |       0|            0.00|
+
+
+
+Table: Missing Data: 2022-2023
+
+|         |Variable | Missing| Percent_Missing|
+|:--------|:--------|-------:|---------------:|
+|PHQ      |PHQ      |    2441|            5.56|
+|GAD      |GAD      |    2863|            6.52|
+|gender   |gender   |       0|            0.00|
+|field    |field    |    2888|            6.58|
+|race.2   |race.2   |    5152|           11.73|
+|yr_sch.2 |yr_sch.2 |     417|            0.95|
+|fincur.2 |fincur.2 |      44|            0.10|
+|age      |age      |       0|            0.00|
+
+
+
+Table: Missing Data: 2022-2023
+
+|         |Variable | Missing| Percent_Missing|
+|:--------|:--------|-------:|---------------:|
+|PHQ      |PHQ      |    2441|            5.56|
+|GAD      |GAD      |    2863|            6.52|
+|gender   |gender   |       0|            0.00|
+|field    |field    |    2888|            6.58|
+|race.2   |race.2   |    5152|           11.73|
+|yr_sch.2 |yr_sch.2 |     417|            0.95|
+|fincur.2 |fincur.2 |      44|            0.10|
+|age      |age      |       0|            0.00|
+
+
+
+Table: Missing Data: 2022-2023
+
+|         |Variable | Missing| Percent_Missing|
+|:--------|:--------|-------:|---------------:|
+|PHQ      |PHQ      |    2441|            5.56|
+|GAD      |GAD      |    2863|            6.52|
+|gender   |gender   |       0|            0.00|
+|field    |field    |    2888|            6.58|
+|race.2   |race.2   |    5152|           11.73|
+|yr_sch.2 |yr_sch.2 |     417|            0.95|
+|fincur.2 |fincur.2 |      44|            0.10|
+|age      |age      |       0|            0.00|
+

@@ -20,3 +20,135 @@
 ## sample estimates:
 ##  mean in group 2017-2018 Pre-COVID mean in group 2022-2023 Post-COVID 
 ##                           2.047305                           2.250277
+## 
+## 	Welch Two Sample t-test
+## 
+## data:  GAD by Period
+## t = -13.274, df = 23726, p-value < 2.2e-16
+## alternative hypothesis: true difference in means between group 2017-2018 Pre-COVID and group 2022-2023 Post-COVID is not equal to 0
+## 95 percent confidence interval:
+##  -0.1428441 -0.1060874
+## sample estimates:
+##  mean in group 2017-2018 Pre-COVID mean in group 2022-2023 Post-COVID 
+##                           1.783758                           1.908224
+## 
+## 	Welch Two Sample t-test
+## 
+## data:  GAD by Period
+## t = -31.493, df = 61530, p-value < 2.2e-16
+## alternative hypothesis: true difference in means between group 2017-2018 Pre-COVID and group 2022-2023 Post-COVID is not equal to 0
+## 95 percent confidence interval:
+##  -0.2156048 -0.1903401
+## sample estimates:
+##  mean in group 2017-2018 Pre-COVID mean in group 2022-2023 Post-COVID 
+##                           2.047305                           2.250277
+## 
+## 	Welch Two Sample t-test
+## 
+## data:  GAD by Period
+## t = -13.274, df = 23726, p-value < 2.2e-16
+## alternative hypothesis: true difference in means between group 2017-2018 Pre-COVID and group 2022-2023 Post-COVID is not equal to 0
+## 95 percent confidence interval:
+##  -0.1428441 -0.1060874
+## sample estimates:
+##  mean in group 2017-2018 Pre-COVID mean in group 2022-2023 Post-COVID 
+##                           1.783758                           1.908224
+## 
+## 	Welch Two Sample t-test
+## 
+## data:  GAD by Period
+## t = -31.493, df = 61530, p-value < 2.2e-16
+## alternative hypothesis: true difference in means between group 2017-2018 Pre-COVID and group 2022-2023 Post-COVID is not equal to 0
+## 95 percent confidence interval:
+##  -0.2156048 -0.1903401
+## sample estimates:
+##  mean in group 2017-2018 Pre-COVID mean in group 2022-2023 Post-COVID 
+##                           2.047305                           2.250277
+## 
+## 	Welch Two Sample t-test
+## 
+## data:  GAD by Period
+## t = -13.274, df = 23726, p-value < 2.2e-16
+## alternative hypothesis: true difference in means between group 2017-2018 Pre-COVID and group 2022-2023 Post-COVID is not equal to 0
+## 95 percent confidence interval:
+##  -0.1428441 -0.1060874
+## sample estimates:
+##  mean in group 2017-2018 Pre-COVID mean in group 2022-2023 Post-COVID 
+##                           1.783758                           1.908224
+## 
+## 	Welch Two Sample t-test
+## 
+## data:  GAD by Period
+## t = -31.493, df = 61530, p-value < 2.2e-16
+## alternative hypothesis: true difference in means between group 2017-2018 Pre-COVID and group 2022-2023 Post-COVID is not equal to 0
+## 95 percent confidence interval:
+##  -0.2156048 -0.1903401
+## sample estimates:
+##  mean in group 2017-2018 Pre-COVID mean in group 2022-2023 Post-COVID 
+##                           2.047305                           2.250277
+## 
+## 	Welch Two Sample t-test
+## 
+## data:  GAD by Period
+## t = -13.274, df = 23726, p-value < 2.2e-16
+## alternative hypothesis: true difference in means between group 2017-2018 Pre-COVID and group 2022-2023 Post-COVID is not equal to 0
+## 95 percent confidence interval:
+##  -0.1428441 -0.1060874
+## sample estimates:
+##  mean in group 2017-2018 Pre-COVID mean in group 2022-2023 Post-COVID 
+##                           1.783758                           1.908224
+## 
+## 	Welch Two Sample t-test
+## 
+## data:  GAD by Period
+## t = -31.493, df = 61530, p-value < 2.2e-16
+## alternative hypothesis: true difference in means between group 2017-2018 Pre-COVID and group 2022-2023 Post-COVID is not equal to 0
+## 95 percent confidence interval:
+##  -0.2156048 -0.1903401
+## sample estimates:
+##  mean in group 2017-2018 Pre-COVID mean in group 2022-2023 Post-COVID 
+##                           2.047305                           2.250277
+## 
+## 	Welch Two Sample t-test
+## 
+## data:  GAD by Period
+## t = -13.274, df = 23726, p-value < 2.2e-16
+## alternative hypothesis: true difference in means between group 2017-2018 Pre-COVID and group 2022-2023 Post-COVID is not equal to 0
+## 95 percent confidence interval:
+##  -0.1428441 -0.1060874
+## sample estimates:
+##  mean in group 2017-2018 Pre-COVID mean in group 2022-2023 Post-COVID 
+##                           1.783758                           1.908224
+## 
+## 	Welch Two Sample t-test
+## 
+## data:  GAD by Period
+## t = -31.493, df = 61530, p-value < 2.2e-16
+## alternative hypothesis: true difference in means between group 2017-2018 Pre-COVID and group 2022-2023 Post-COVID is not equal to 0
+## 95 percent confidence interval:
+##  -0.2156048 -0.1903401
+## sample estimates:
+##  mean in group 2017-2018 Pre-COVID mean in group 2022-2023 Post-COVID 
+##                           2.047305                           2.250277
+## 
+## 	Welch Two Sample t-test
+## 
+## data:  GAD by Period
+## t = -13.274, df = 23726, p-value < 2.2e-16
+## alternative hypothesis: true difference in means between group 2017-2018 Pre-COVID and group 2022-2023 Post-COVID is not equal to 0
+## 95 percent confidence interval:
+##  -0.1428441 -0.1060874
+## sample estimates:
+##  mean in group 2017-2018 Pre-COVID mean in group 2022-2023 Post-COVID 
+##                           1.783758                           1.908224
+## 
+## 	Welch Two Sample t-test
+## 
+## data:  GAD by Period
+## t = -31.493, df = 61530, p-value < 2.2e-16
+## alternative hypothesis: true difference in means between group 2017-2018 Pre-COVID and group 2022-2023 Post-COVID is not equal to 0
+## 95 percent confidence interval:
+##  -0.2156048 -0.1903401
+## sample estimates:
+##  mean in group 2017-2018 Pre-COVID mean in group 2022-2023 Post-COVID 
+##                           2.047305                           2.250277

@@ -7,3 +7,57 @@ Table: Depression and anxiety by survey period
 |2017-2018 Pre-COVID  | 68427| 51639|    1.892|  0.670| 51065|    1.984|  0.788|
 |2022-2023 Post-COVID | 43910| 41469|    1.990|  0.703| 41047|    2.155|  0.831|
 
+
+
+Table: Depression and anxiety by survey period
+
+|Period               |     N| PHQ_N| PHQ_Mean| PHQ_SD| GAD_N| GAD_Mean| GAD_SD|
+|:--------------------|-----:|-----:|--------:|------:|-----:|--------:|------:|
+|2017-2018 Pre-COVID  | 68427| 51639|    1.892|  0.670| 51065|    1.984|  0.788|
+|2022-2023 Post-COVID | 43910| 41469|    1.990|  0.703| 41047|    2.155|  0.831|
+
+
+
+Table: Depression and anxiety by survey period
+
+|Period               |     N| PHQ_N| PHQ_Mean| PHQ_SD| GAD_N| GAD_Mean| GAD_SD|
+|:--------------------|-----:|-----:|--------:|------:|-----:|--------:|------:|
+|2017-2018 Pre-COVID  | 68427| 51639|    1.892|  0.670| 51065|    1.984|  0.788|
+|2022-2023 Post-COVID | 43910| 41469|    1.990|  0.703| 41047|    2.155|  0.831|
+
+
+
+Table: Depression and anxiety by survey period
+
+|Period               |     N| PHQ_N| PHQ_Mean| PHQ_SD| GAD_N| GAD_Mean| GAD_SD|
+|:--------------------|-----:|-----:|--------:|------:|-----:|--------:|------:|
+|2017-2018 Pre-COVID  | 68427| 51639|    1.892|  0.670| 51065|    1.984|  0.788|
+|2022-2023 Post-COVID | 43910| 41469|    1.990|  0.703| 41047|    2.155|  0.831|
+
+
+
+Table: Depression and anxiety by survey period
+
+|Period               |     N| PHQ_N| PHQ_Mean| PHQ_SD| GAD_N| GAD_Mean| GAD_SD|
+|:--------------------|-----:|-----:|--------:|------:|-----:|--------:|------:|
+|2017-2018 Pre-COVID  | 68427| 51639|    1.892|  0.670| 51065|    1.984|  0.788|
+|2022-2023 Post-COVID | 43910| 41469|    1.990|  0.703| 41047|    2.155|  0.831|
+
+
+
+Table: Depression and anxiety by survey period
+
+|Period               |     N| PHQ_N| PHQ_Mean| PHQ_SD| GAD_N| GAD_Mean| GAD_SD|
+|:--------------------|-----:|-----:|--------:|------:|-----:|--------:|------:|
+|2017-2018 Pre-COVID  | 68427| 51639|    1.892|  0.670| 51065|    1.984|  0.788|
+|2022-2023 Post-COVID | 43910| 41469|    1.990|  0.703| 41047|    2.155|  0.831|
+
+
+
+Table: Depression and anxiety by survey period
+
+|Period               |     N| PHQ_N| PHQ_Mean| PHQ_SD| GAD_N| GAD_Mean| GAD_SD|
+|:--------------------|-----:|-----:|--------:|------:|-----:|--------:|------:|
+|2017-2018 Pre-COVID  | 68427| 51639|    1.892|  0.670| 51065|    1.984|  0.788|
+|2022-2023 Post-COVID | 43910| 41469|    1.990|  0.703| 41047|    2.155|  0.831|
+

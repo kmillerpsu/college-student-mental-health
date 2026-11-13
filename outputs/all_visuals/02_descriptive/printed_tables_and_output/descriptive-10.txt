@@ -1,2 +1,10 @@
 ##    Min. 1st Qu.  Median    Mean 3rd Qu.    Max.    NA's 
 ##   1.000   1.286   1.857   1.984   2.429   4.000   17362
+##    Min. 1st Qu.  Median    Mean 3rd Qu.    Max.    NA's 
+##   1.000   1.286   1.857   1.984   2.429   4.000   17362
+##    Min. 1st Qu.  Median    Mean 3rd Qu.    Max.    NA's 
+##   1.000   1.286   1.857   1.984   2.429   4.000   17362
+##    Min. 1st Qu.  Median    Mean 3rd Qu.    Max.    NA's 
+##   1.000   1.286   1.857   1.984   2.429   4.000   17362
+##    Min. 1st Qu.  Median    Mean 3rd Qu.    Max.    NA's 
+##   1.000   1.286   1.857   1.984   2.429   4.000   17362

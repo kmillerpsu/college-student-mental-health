@@ -664,6 +664,109 @@ save_paper_table <- function(tab, filename, digits = 4) {
 }
 ```
 
+## Assumptions: Regression Diagnostics (Residuals and Q-Q Plots)
+
+Figure 1 combines residuals-versus-fitted plots and normal Q-Q plots for the adjusted PHQ-9 and GAD-7 regressions. The residual plots help assess functional form and possible changes in error variance; Q-Q plots show departures from the normal-error assumption relevant to conventional inference. Plotting uses a reproducible subset of up to 5,000 observations per outcome for legibility, while the adjusted regression models are fitted using all available complete observations. Neither diagnostic confirms independence or the absence of multicollinearity.
+
+```{r final_paper_assumptions_residual_plot, fig.width=10, fig.height=8, dpi=150}
+# These adjusted models were fitted earlier; do not refit or alter the analyses.
+assumptions_diagnostic_data <- function(model, outcome, max_points = 5000L) {
+  d <- data.frame(
+    Fitted = as.numeric(stats::fitted(model)),
+    Residual = as.numeric(stats::residuals(model))
+  )
+  d <- d[is.finite(d$Fitted) & is.finite(d$Residual), , drop = FALSE]
+  if (nrow(d) > max_points) {
+    keep <- unique(as.integer(round(seq(1, nrow(d), length.out = max_points))))
+    d <- d[keep, , drop = FALSE]
+  }
+  n <- nrow(d)
+  if (n < 5L) stop("Too few observations for regression diagnostics: ", outcome)
+
+  outcome_name <- outcome
+  residual_label <- paste0(outcome_name, " | Residuals vs fitted")
+  qq_label <- paste0(outcome_name, " | Normal Q-Q")
+
+  residual_data <- data.frame(
+    X = d$Fitted, Y = d$Residual, Panel = residual_label,
+    PlotType = "Residuals", stringsAsFactors = FALSE
+  )
+  qq_data <- data.frame(
+    X = stats::qnorm(stats::ppoints(n)),
+    Y = sort(d$Residual), Panel = qq_label,
+    PlotType = "Q-Q", stringsAsFactors = FALSE
+  )
+  # Q-Q reference line goes through the sample's first and third quartiles.
+  sample_quartiles <- stats::quantile(d$Residual, c(0.25, 0.75), names = FALSE)
+  normal_quartiles <- stats::qnorm(c(0.25, 0.75))
+  slope <- diff(sample_quartiles) / diff(normal_quartiles)
+  reference <- data.frame(
+    Panel = qq_label,
+    Slope = as.numeric(slope),
+    Intercept = as.numeric(sample_quartiles[1L] - slope * normal_quartiles[1L]),
+    stringsAsFactors = FALSE
+  )
+  list(residual = residual_data, qq = qq_data, reference = reference)
+}
+
+phq_diagnostics <- assumptions_diagnostic_data(adjusted_phq, "Depression (PHQ-9)")
+gad_diagnostics <- assumptions_diagnostic_data(adjusted_gad, "Anxiety (GAD-7)")
+
+# Two columns by two rows: residual plots on top and Q-Q plots underneath.
+panel_order <- c(
+  "Depression (PHQ-9) | Residuals vs fitted",
+  "Anxiety (GAD-7) | Residuals vs fitted",
+  "Depression (PHQ-9) | Normal Q-Q",
+  "Anxiety (GAD-7) | Normal Q-Q"
+)
+plot_data <- rbind(phq_diagnostics$residual, gad_diagnostics$residual,
+                   phq_diagnostics$qq, gad_diagnostics$qq)
+plot_data$Panel <- factor(plot_data$Panel, levels = panel_order)
+qq_reference <- rbind(phq_diagnostics$reference, gad_diagnostics$reference)
+qq_reference$Panel <- factor(qq_reference$Panel, levels = panel_order)
+residual_plot_data <- plot_data[plot_data$PlotType == "Residuals", , drop = FALSE]
+qq_plot_data <- plot_data[plot_data$PlotType == "Q-Q", , drop = FALSE]
+
+figure_assumptions_residuals <- ggplot2::ggplot(plot_data, ggplot2::aes(x = X, y = Y)) +
+  ggplot2::geom_point(alpha = 0.15, size = 0.5, color = "#356991") +
+  ggplot2::geom_hline(data = unique(residual_plot_data["Panel"]),
+                      yintercept = 0,
+                      linetype = "dashed", color = "#555555", inherit.aes = FALSE) +
+  ggplot2::geom_smooth(data = residual_plot_data, method = "loess", formula = y ~ x,
+                       se = FALSE, color = "#D17439", linewidth = 0.8) +
+  ggplot2::geom_abline(data = qq_reference,
+                       ggplot2::aes(slope = Slope, intercept = Intercept),
+                       inherit.aes = FALSE, color = "#D17439", linewidth = 0.8) +
+  ggplot2::facet_wrap(~ Panel, ncol = 2, scales = "free") +
+  ggplot2::labs(
+    title = "Adjusted Regression Diagnostics: PHQ-9 and GAD-7",
+    subtitle = "Top: residuals vs fitted (dashed = zero); bottom: normal Q-Q (orange = reference)",
+    x = "Fitted score (top) / theoretical normal quantile (bottom)",
+    y = "Residual (top) / ordered residual (bottom)"
+  ) + paper_theme +
+  ggplot2::theme(strip.text = ggplot2::element_text(face = "bold", size = 10),
+                 plot.subtitle = ggplot2::element_text(size = 10))
+
+print(figure_assumptions_residuals)
+
+# Reuse the existing filename, so Run Project can still locate Figure 1.
+# save_paper_figure() exports a 300-dpi PNG and a vector PDF.
+save_paper_figure(
+  figure_assumptions_residuals,
+  "figure_assumptions_adjusted_regression_residuals",
+  width = 10,
+  height = 8
+)
+
+for (ext in c("png", "pdf")) {
+  saved_path <- file.path(figure_dir,
+                          paste0("figure_assumptions_adjusted_regression_residuals.", ext))
+  if (!file.exists(saved_path) || file.info(saved_path)$size <= 0) {
+    stop("The combined assumptions diagnostics did not save: ", saved_path)
+  }
+}
+```
+
 ## Regression Results
 
 ```{r final_paper_regression_ci_table}

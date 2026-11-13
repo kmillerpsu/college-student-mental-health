@@ -64,3 +64,399 @@ Table: Regression Results
 |Anxiety (GAD-7)    |Financial stress (per category)                    |0.0205      |0.0027         |(0.0152, 0.0258)   |<0.0001 |
 |Anxiety (GAD-7)    |Age (per year)                                     |-0.0122     |0.0006         |(-0.0133, -0.0111) |<0.0001 |
 
+
+
+Table: Regression Results
+
+|Outcome |Predictor                  | Coefficient| Standard_Error| CI_Lower| CI_Upper|  T_Value| P_Value|
+|:-------|:--------------------------|-----------:|--------------:|--------:|--------:|--------:|-------:|
+|PHQ     |(Intercept)                |      1.9135|         0.0140|   1.8861|   1.9409| 136.8542|  0.0000|
+|PHQ     |Period2022-2023 Post-COVID |      0.0793|         0.0053|   0.0689|   0.0897|  14.9048|  0.0000|
+|PHQ     |genderWomen                |      0.1468|         0.0056|   0.1359|   0.1577|  26.2992|  0.0000|
+|PHQ     |fieldSTEM                  |     -0.0382|         0.0052|  -0.0483|  -0.0280|  -7.3888|  0.0000|
+|PHQ     |race.2Asian                |      0.0191|         0.0073|   0.0049|   0.0334|   2.6278|  0.0086|
+|PHQ     |race.2Black                |      0.0576|         0.0093|   0.0393|   0.0759|   6.1760|  0.0000|
+|PHQ     |race.2Hispanic             |      0.0823|         0.0092|   0.0642|   0.1004|   8.9126|  0.0000|
+|PHQ     |race.2Middle Eastern       |      0.1249|         0.0202|   0.0852|   0.1646|   6.1680|  0.0000|
+|PHQ     |yr_sch.2secondyear         |      0.0625|         0.0068|   0.0491|   0.0759|   9.1354|  0.0000|
+|PHQ     |yr_sch.2thirdyear          |      0.0824|         0.0071|   0.0684|   0.0965|  11.5403|  0.0000|
+|PHQ     |yr_sch.2fourthyear+        |      0.0709|         0.0073|   0.0565|   0.0853|   9.6486|  0.0000|
+|PHQ     |fincur.2                   |      0.0236|         0.0023|   0.0192|   0.0281|  10.3311|  0.0000|
+|PHQ     |age                        |     -0.0115|         0.0005|  -0.0124|  -0.0106| -24.5805|  0.0000|
+|GAD     |(Intercept)                |      1.9392|         0.0165|   1.9068|   1.9717| 117.2908|  0.0000|
+|GAD     |Period2022-2023 Post-COVID |      0.1439|         0.0063|   0.1316|   0.1562|  22.8535|  0.0000|
+|GAD     |genderWomen                |      0.2969|         0.0066|   0.2840|   0.3099|  44.9487|  0.0000|
+|GAD     |fieldSTEM                  |     -0.0381|         0.0061|  -0.0501|  -0.0261|  -6.2310|  0.0000|
+|GAD     |race.2Asian                |     -0.0980|         0.0086|  -0.1149|  -0.0811| -11.3670|  0.0000|
+|GAD     |race.2Black                |     -0.0625|         0.0111|  -0.0842|  -0.0408|  -5.6415|  0.0000|
+|GAD     |race.2Hispanic             |      0.0148|         0.0109|  -0.0066|   0.0362|   1.3521|  0.1763|
+|GAD     |race.2Middle Eastern       |      0.1010|         0.0240|   0.0540|   0.1479|   4.2114|  0.0000|
+|GAD     |yr_sch.2secondyear         |      0.0969|         0.0081|   0.0811|   0.1128|  11.9762|  0.0000|
+|GAD     |yr_sch.2thirdyear          |      0.1101|         0.0085|   0.0936|   0.1267|  13.0272|  0.0000|
+|GAD     |yr_sch.2fourthyear+        |      0.1102|         0.0087|   0.0932|   0.1273|  12.6758|  0.0000|
+|GAD     |fincur.2                   |      0.0205|         0.0027|   0.0152|   0.0258|   7.5691|  0.0000|
+|GAD     |age                        |     -0.0122|         0.0006|  -0.0133|  -0.0111| -22.0936|  0.0000|
+
+
+
+Table: Regression Results
+
+|Outcome            |Predictor                                          |Coefficient |Standard_Error |95% CI             |p-value |
+|:------------------|:--------------------------------------------------|:-----------|:--------------|:------------------|:-------|
+|Depression (PHQ-9) |Intercept                                          |1.9135      |0.0140         |(1.8861, 1.9409)   |<0.0001 |
+|Depression (PHQ-9) |Survey period: 2022–2023 vs 2017–2018              |0.0793      |0.0053         |(0.0689, 0.0897)   |<0.0001 |
+|Depression (PHQ-9) |Gender: women vs men                               |0.1468      |0.0056         |(0.1359, 0.1577)   |<0.0001 |
+|Depression (PHQ-9) |Major: STEM vs non-STEM                            |-0.0382     |0.0052         |(-0.0483, -0.0280) |<0.0001 |
+|Depression (PHQ-9) |Race: Asian vs White                               |0.0191      |0.0073         |(0.0049, 0.0334)   |0.0086  |
+|Depression (PHQ-9) |Race: Black vs White                               |0.0576      |0.0093         |(0.0393, 0.0759)   |<0.0001 |
+|Depression (PHQ-9) |Race: Hispanic vs White                            |0.0823      |0.0092         |(0.0642, 0.1004)   |<0.0001 |
+|Depression (PHQ-9) |Race: Middle Eastern vs White                      |0.1249      |0.0202         |(0.0852, 0.1646)   |<0.0001 |
+|Depression (PHQ-9) |Year in school: second year vs first year          |0.0625      |0.0068         |(0.0491, 0.0759)   |<0.0001 |
+|Depression (PHQ-9) |Year in school: third year vs first year           |0.0824      |0.0071         |(0.0684, 0.0965)   |<0.0001 |
+|Depression (PHQ-9) |Year in school: fourth year or later vs first year |0.0709      |0.0073         |(0.0565, 0.0853)   |<0.0001 |
+|Depression (PHQ-9) |Financial stress (per category)                    |0.0236      |0.0023         |(0.0192, 0.0281)   |<0.0001 |
+|Depression (PHQ-9) |Age (per year)                                     |-0.0115     |0.0005         |(-0.0124, -0.0106) |<0.0001 |
+|Anxiety (GAD-7)    |Intercept                                          |1.9392      |0.0165         |(1.9068, 1.9717)   |<0.0001 |
+|Anxiety (GAD-7)    |Survey period: 2022–2023 vs 2017–2018              |0.1439      |0.0063         |(0.1316, 0.1562)   |<0.0001 |
+|Anxiety (GAD-7)    |Gender: women vs men                               |0.2969      |0.0066         |(0.2840, 0.3099)   |<0.0001 |
+|Anxiety (GAD-7)    |Major: STEM vs non-STEM                            |-0.0381     |0.0061         |(-0.0501, -0.0261) |<0.0001 |
+|Anxiety (GAD-7)    |Race: Asian vs White                               |-0.0980     |0.0086         |(-0.1149, -0.0811) |<0.0001 |
+|Anxiety (GAD-7)    |Race: Black vs White                               |-0.0625     |0.0111         |(-0.0842, -0.0408) |<0.0001 |
+|Anxiety (GAD-7)    |Race: Hispanic vs White                            |0.0148      |0.0109         |(-0.0066, 0.0362)  |0.1763  |
+|Anxiety (GAD-7)    |Race: Middle Eastern vs White                      |0.1010      |0.0240         |(0.0540, 0.1479)   |<0.0001 |
+|Anxiety (GAD-7)    |Year in school: second year vs first year          |0.0969      |0.0081         |(0.0811, 0.1128)   |<0.0001 |
+|Anxiety (GAD-7)    |Year in school: third year vs first year           |0.1101      |0.0085         |(0.0936, 0.1267)   |<0.0001 |
+|Anxiety (GAD-7)    |Year in school: fourth year or later vs first year |0.1102      |0.0087         |(0.0932, 0.1273)   |<0.0001 |
+|Anxiety (GAD-7)    |Financial stress (per category)                    |0.0205      |0.0027         |(0.0152, 0.0258)   |<0.0001 |
+|Anxiety (GAD-7)    |Age (per year)                                     |-0.0122     |0.0006         |(-0.0133, -0.0111) |<0.0001 |
+
+
+
+Table: Regression Results
+
+|Outcome |Predictor                  | Coefficient| Standard_Error| CI_Lower| CI_Upper|  T_Value| P_Value|
+|:-------|:--------------------------|-----------:|--------------:|--------:|--------:|--------:|-------:|
+|PHQ     |(Intercept)                |      1.9135|         0.0140|   1.8861|   1.9409| 136.8542|  0.0000|
+|PHQ     |Period2022-2023 Post-COVID |      0.0793|         0.0053|   0.0689|   0.0897|  14.9048|  0.0000|
+|PHQ     |genderWomen                |      0.1468|         0.0056|   0.1359|   0.1577|  26.2992|  0.0000|
+|PHQ     |fieldSTEM                  |     -0.0382|         0.0052|  -0.0483|  -0.0280|  -7.3888|  0.0000|
+|PHQ     |race.2Asian                |      0.0191|         0.0073|   0.0049|   0.0334|   2.6278|  0.0086|
+|PHQ     |race.2Black                |      0.0576|         0.0093|   0.0393|   0.0759|   6.1760|  0.0000|
+|PHQ     |race.2Hispanic             |      0.0823|         0.0092|   0.0642|   0.1004|   8.9126|  0.0000|
+|PHQ     |race.2Middle Eastern       |      0.1249|         0.0202|   0.0852|   0.1646|   6.1680|  0.0000|
+|PHQ     |yr_sch.2secondyear         |      0.0625|         0.0068|   0.0491|   0.0759|   9.1354|  0.0000|
+|PHQ     |yr_sch.2thirdyear          |      0.0824|         0.0071|   0.0684|   0.0965|  11.5403|  0.0000|
+|PHQ     |yr_sch.2fourthyear+        |      0.0709|         0.0073|   0.0565|   0.0853|   9.6486|  0.0000|
+|PHQ     |fincur.2                   |      0.0236|         0.0023|   0.0192|   0.0281|  10.3311|  0.0000|
+|PHQ     |age                        |     -0.0115|         0.0005|  -0.0124|  -0.0106| -24.5805|  0.0000|
+|GAD     |(Intercept)                |      1.9392|         0.0165|   1.9068|   1.9717| 117.2908|  0.0000|
+|GAD     |Period2022-2023 Post-COVID |      0.1439|         0.0063|   0.1316|   0.1562|  22.8535|  0.0000|
+|GAD     |genderWomen                |      0.2969|         0.0066|   0.2840|   0.3099|  44.9487|  0.0000|
+|GAD     |fieldSTEM                  |     -0.0381|         0.0061|  -0.0501|  -0.0261|  -6.2310|  0.0000|
+|GAD     |race.2Asian                |     -0.0980|         0.0086|  -0.1149|  -0.0811| -11.3670|  0.0000|
+|GAD     |race.2Black                |     -0.0625|         0.0111|  -0.0842|  -0.0408|  -5.6415|  0.0000|
+|GAD     |race.2Hispanic             |      0.0148|         0.0109|  -0.0066|   0.0362|   1.3521|  0.1763|
+|GAD     |race.2Middle Eastern       |      0.1010|         0.0240|   0.0540|   0.1479|   4.2114|  0.0000|
+|GAD     |yr_sch.2secondyear         |      0.0969|         0.0081|   0.0811|   0.1128|  11.9762|  0.0000|
+|GAD     |yr_sch.2thirdyear          |      0.1101|         0.0085|   0.0936|   0.1267|  13.0272|  0.0000|
+|GAD     |yr_sch.2fourthyear+        |      0.1102|         0.0087|   0.0932|   0.1273|  12.6758|  0.0000|
+|GAD     |fincur.2                   |      0.0205|         0.0027|   0.0152|   0.0258|   7.5691|  0.0000|
+|GAD     |age                        |     -0.0122|         0.0006|  -0.0133|  -0.0111| -22.0936|  0.0000|
+
+
+
+Table: Regression Results
+
+|Outcome            |Predictor                                          |Coefficient |Standard_Error |95% CI             |p-value |
+|:------------------|:--------------------------------------------------|:-----------|:--------------|:------------------|:-------|
+|Depression (PHQ-9) |Intercept                                          |1.9135      |0.0140         |(1.8861, 1.9409)   |<0.0001 |
+|Depression (PHQ-9) |Survey period: 2022–2023 vs 2017–2018              |0.0793      |0.0053         |(0.0689, 0.0897)   |<0.0001 |
+|Depression (PHQ-9) |Gender: women vs men                               |0.1468      |0.0056         |(0.1359, 0.1577)   |<0.0001 |
+|Depression (PHQ-9) |Major: STEM vs non-STEM                            |-0.0382     |0.0052         |(-0.0483, -0.0280) |<0.0001 |
+|Depression (PHQ-9) |Race: Asian vs White                               |0.0191      |0.0073         |(0.0049, 0.0334)   |0.0086  |
+|Depression (PHQ-9) |Race: Black vs White                               |0.0576      |0.0093         |(0.0393, 0.0759)   |<0.0001 |
+|Depression (PHQ-9) |Race: Hispanic vs White                            |0.0823      |0.0092         |(0.0642, 0.1004)   |<0.0001 |
+|Depression (PHQ-9) |Race: Middle Eastern vs White                      |0.1249      |0.0202         |(0.0852, 0.1646)   |<0.0001 |
+|Depression (PHQ-9) |Year in school: second year vs first year          |0.0625      |0.0068         |(0.0491, 0.0759)   |<0.0001 |
+|Depression (PHQ-9) |Year in school: third year vs first year           |0.0824      |0.0071         |(0.0684, 0.0965)   |<0.0001 |
+|Depression (PHQ-9) |Year in school: fourth year or later vs first year |0.0709      |0.0073         |(0.0565, 0.0853)   |<0.0001 |
+|Depression (PHQ-9) |Financial stress (per category)                    |0.0236      |0.0023         |(0.0192, 0.0281)   |<0.0001 |
+|Depression (PHQ-9) |Age (per year)                                     |-0.0115     |0.0005         |(-0.0124, -0.0106) |<0.0001 |
+|Anxiety (GAD-7)    |Intercept                                          |1.9392      |0.0165         |(1.9068, 1.9717)   |<0.0001 |
+|Anxiety (GAD-7)    |Survey period: 2022–2023 vs 2017–2018              |0.1439      |0.0063         |(0.1316, 0.1562)   |<0.0001 |
+|Anxiety (GAD-7)    |Gender: women vs men                               |0.2969      |0.0066         |(0.2840, 0.3099)   |<0.0001 |
+|Anxiety (GAD-7)    |Major: STEM vs non-STEM                            |-0.0381     |0.0061         |(-0.0501, -0.0261) |<0.0001 |
+|Anxiety (GAD-7)    |Race: Asian vs White                               |-0.0980     |0.0086         |(-0.1149, -0.0811) |<0.0001 |
+|Anxiety (GAD-7)    |Race: Black vs White                               |-0.0625     |0.0111         |(-0.0842, -0.0408) |<0.0001 |
+|Anxiety (GAD-7)    |Race: Hispanic vs White                            |0.0148      |0.0109         |(-0.0066, 0.0362)  |0.1763  |
+|Anxiety (GAD-7)    |Race: Middle Eastern vs White                      |0.1010      |0.0240         |(0.0540, 0.1479)   |<0.0001 |
+|Anxiety (GAD-7)    |Year in school: second year vs first year          |0.0969      |0.0081         |(0.0811, 0.1128)   |<0.0001 |
+|Anxiety (GAD-7)    |Year in school: third year vs first year           |0.1101      |0.0085         |(0.0936, 0.1267)   |<0.0001 |
+|Anxiety (GAD-7)    |Year in school: fourth year or later vs first year |0.1102      |0.0087         |(0.0932, 0.1273)   |<0.0001 |
+|Anxiety (GAD-7)    |Financial stress (per category)                    |0.0205      |0.0027         |(0.0152, 0.0258)   |<0.0001 |
+|Anxiety (GAD-7)    |Age (per year)                                     |-0.0122     |0.0006         |(-0.0133, -0.0111) |<0.0001 |
+
+
+
+Table: Regression Results
+
+|Outcome |Predictor                  | Coefficient| Standard_Error| CI_Lower| CI_Upper|  T_Value| P_Value|
+|:-------|:--------------------------|-----------:|--------------:|--------:|--------:|--------:|-------:|
+|PHQ     |(Intercept)                |      1.9135|         0.0140|   1.8861|   1.9409| 136.8542|  0.0000|
+|PHQ     |Period2022-2023 Post-COVID |      0.0793|         0.0053|   0.0689|   0.0897|  14.9048|  0.0000|
+|PHQ     |genderWomen                |      0.1468|         0.0056|   0.1359|   0.1577|  26.2992|  0.0000|
+|PHQ     |fieldSTEM                  |     -0.0382|         0.0052|  -0.0483|  -0.0280|  -7.3888|  0.0000|
+|PHQ     |race.2Asian                |      0.0191|         0.0073|   0.0049|   0.0334|   2.6278|  0.0086|
+|PHQ     |race.2Black                |      0.0576|         0.0093|   0.0393|   0.0759|   6.1760|  0.0000|
+|PHQ     |race.2Hispanic             |      0.0823|         0.0092|   0.0642|   0.1004|   8.9126|  0.0000|
+|PHQ     |race.2Middle Eastern       |      0.1249|         0.0202|   0.0852|   0.1646|   6.1680|  0.0000|
+|PHQ     |yr_sch.2secondyear         |      0.0625|         0.0068|   0.0491|   0.0759|   9.1354|  0.0000|
+|PHQ     |yr_sch.2thirdyear          |      0.0824|         0.0071|   0.0684|   0.0965|  11.5403|  0.0000|
+|PHQ     |yr_sch.2fourthyear+        |      0.0709|         0.0073|   0.0565|   0.0853|   9.6486|  0.0000|
+|PHQ     |fincur.2                   |      0.0236|         0.0023|   0.0192|   0.0281|  10.3311|  0.0000|
+|PHQ     |age                        |     -0.0115|         0.0005|  -0.0124|  -0.0106| -24.5805|  0.0000|
+|GAD     |(Intercept)                |      1.9392|         0.0165|   1.9068|   1.9717| 117.2908|  0.0000|
+|GAD     |Period2022-2023 Post-COVID |      0.1439|         0.0063|   0.1316|   0.1562|  22.8535|  0.0000|
+|GAD     |genderWomen                |      0.2969|         0.0066|   0.2840|   0.3099|  44.9487|  0.0000|
+|GAD     |fieldSTEM                  |     -0.0381|         0.0061|  -0.0501|  -0.0261|  -6.2310|  0.0000|
+|GAD     |race.2Asian                |     -0.0980|         0.0086|  -0.1149|  -0.0811| -11.3670|  0.0000|
+|GAD     |race.2Black                |     -0.0625|         0.0111|  -0.0842|  -0.0408|  -5.6415|  0.0000|
+|GAD     |race.2Hispanic             |      0.0148|         0.0109|  -0.0066|   0.0362|   1.3521|  0.1763|
+|GAD     |race.2Middle Eastern       |      0.1010|         0.0240|   0.0540|   0.1479|   4.2114|  0.0000|
+|GAD     |yr_sch.2secondyear         |      0.0969|         0.0081|   0.0811|   0.1128|  11.9762|  0.0000|
+|GAD     |yr_sch.2thirdyear          |      0.1101|         0.0085|   0.0936|   0.1267|  13.0272|  0.0000|
+|GAD     |yr_sch.2fourthyear+        |      0.1102|         0.0087|   0.0932|   0.1273|  12.6758|  0.0000|
+|GAD     |fincur.2                   |      0.0205|         0.0027|   0.0152|   0.0258|   7.5691|  0.0000|
+|GAD     |age                        |     -0.0122|         0.0006|  -0.0133|  -0.0111| -22.0936|  0.0000|
+
+
+
+Table: Regression Results
+
+|Outcome            |Predictor                                          |Coefficient |Standard_Error |95% CI             |p-value |
+|:------------------|:--------------------------------------------------|:-----------|:--------------|:------------------|:-------|
+|Depression (PHQ-9) |Intercept                                          |1.9135      |0.0140         |(1.8861, 1.9409)   |<0.0001 |
+|Depression (PHQ-9) |Survey period: 2022–2023 vs 2017–2018              |0.0793      |0.0053         |(0.0689, 0.0897)   |<0.0001 |
+|Depression (PHQ-9) |Gender: women vs men                               |0.1468      |0.0056         |(0.1359, 0.1577)   |<0.0001 |
+|Depression (PHQ-9) |Major: STEM vs non-STEM                            |-0.0382     |0.0052         |(-0.0483, -0.0280) |<0.0001 |
+|Depression (PHQ-9) |Race: Asian vs White                               |0.0191      |0.0073         |(0.0049, 0.0334)   |0.0086  |
+|Depression (PHQ-9) |Race: Black vs White                               |0.0576      |0.0093         |(0.0393, 0.0759)   |<0.0001 |
+|Depression (PHQ-9) |Race: Hispanic vs White                            |0.0823      |0.0092         |(0.0642, 0.1004)   |<0.0001 |
+|Depression (PHQ-9) |Race: Middle Eastern vs White                      |0.1249      |0.0202         |(0.0852, 0.1646)   |<0.0001 |
+|Depression (PHQ-9) |Year in school: second year vs first year          |0.0625      |0.0068         |(0.0491, 0.0759)   |<0.0001 |
+|Depression (PHQ-9) |Year in school: third year vs first year           |0.0824      |0.0071         |(0.0684, 0.0965)   |<0.0001 |
+|Depression (PHQ-9) |Year in school: fourth year or later vs first year |0.0709      |0.0073         |(0.0565, 0.0853)   |<0.0001 |
+|Depression (PHQ-9) |Financial stress (per category)                    |0.0236      |0.0023         |(0.0192, 0.0281)   |<0.0001 |
+|Depression (PHQ-9) |Age (per year)                                     |-0.0115     |0.0005         |(-0.0124, -0.0106) |<0.0001 |
+|Anxiety (GAD-7)    |Intercept                                          |1.9392      |0.0165         |(1.9068, 1.9717)   |<0.0001 |
+|Anxiety (GAD-7)    |Survey period: 2022–2023 vs 2017–2018              |0.1439      |0.0063         |(0.1316, 0.1562)   |<0.0001 |
+|Anxiety (GAD-7)    |Gender: women vs men                               |0.2969      |0.0066         |(0.2840, 0.3099)   |<0.0001 |
+|Anxiety (GAD-7)    |Major: STEM vs non-STEM                            |-0.0381     |0.0061         |(-0.0501, -0.0261) |<0.0001 |
+|Anxiety (GAD-7)    |Race: Asian vs White                               |-0.0980     |0.0086         |(-0.1149, -0.0811) |<0.0001 |
+|Anxiety (GAD-7)    |Race: Black vs White                               |-0.0625     |0.0111         |(-0.0842, -0.0408) |<0.0001 |
+|Anxiety (GAD-7)    |Race: Hispanic vs White                            |0.0148      |0.0109         |(-0.0066, 0.0362)  |0.1763  |
+|Anxiety (GAD-7)    |Race: Middle Eastern vs White                      |0.1010      |0.0240         |(0.0540, 0.1479)   |<0.0001 |
+|Anxiety (GAD-7)    |Year in school: second year vs first year          |0.0969      |0.0081         |(0.0811, 0.1128)   |<0.0001 |
+|Anxiety (GAD-7)    |Year in school: third year vs first year           |0.1101      |0.0085         |(0.0936, 0.1267)   |<0.0001 |
+|Anxiety (GAD-7)    |Year in school: fourth year or later vs first year |0.1102      |0.0087         |(0.0932, 0.1273)   |<0.0001 |
+|Anxiety (GAD-7)    |Financial stress (per category)                    |0.0205      |0.0027         |(0.0152, 0.0258)   |<0.0001 |
+|Anxiety (GAD-7)    |Age (per year)                                     |-0.0122     |0.0006         |(-0.0133, -0.0111) |<0.0001 |
+
+
+
+Table: Regression Results
+
+|Outcome |Predictor                  | Coefficient| Standard_Error| CI_Lower| CI_Upper|  T_Value| P_Value|
+|:-------|:--------------------------|-----------:|--------------:|--------:|--------:|--------:|-------:|
+|PHQ     |(Intercept)                |      1.9135|         0.0140|   1.8861|   1.9409| 136.8542|  0.0000|
+|PHQ     |Period2022-2023 Post-COVID |      0.0793|         0.0053|   0.0689|   0.0897|  14.9048|  0.0000|
+|PHQ     |genderWomen                |      0.1468|         0.0056|   0.1359|   0.1577|  26.2992|  0.0000|
+|PHQ     |fieldSTEM                  |     -0.0382|         0.0052|  -0.0483|  -0.0280|  -7.3888|  0.0000|
+|PHQ     |race.2Asian                |      0.0191|         0.0073|   0.0049|   0.0334|   2.6278|  0.0086|
+|PHQ     |race.2Black                |      0.0576|         0.0093|   0.0393|   0.0759|   6.1760|  0.0000|
+|PHQ     |race.2Hispanic             |      0.0823|         0.0092|   0.0642|   0.1004|   8.9126|  0.0000|
+|PHQ     |race.2Middle Eastern       |      0.1249|         0.0202|   0.0852|   0.1646|   6.1680|  0.0000|
+|PHQ     |yr_sch.2secondyear         |      0.0625|         0.0068|   0.0491|   0.0759|   9.1354|  0.0000|
+|PHQ     |yr_sch.2thirdyear          |      0.0824|         0.0071|   0.0684|   0.0965|  11.5403|  0.0000|
+|PHQ     |yr_sch.2fourthyear+        |      0.0709|         0.0073|   0.0565|   0.0853|   9.6486|  0.0000|
+|PHQ     |fincur.2                   |      0.0236|         0.0023|   0.0192|   0.0281|  10.3311|  0.0000|
+|PHQ     |age                        |     -0.0115|         0.0005|  -0.0124|  -0.0106| -24.5805|  0.0000|
+|GAD     |(Intercept)                |      1.9392|         0.0165|   1.9068|   1.9717| 117.2908|  0.0000|
+|GAD     |Period2022-2023 Post-COVID |      0.1439|         0.0063|   0.1316|   0.1562|  22.8535|  0.0000|
+|GAD     |genderWomen                |      0.2969|         0.0066|   0.2840|   0.3099|  44.9487|  0.0000|
+|GAD     |fieldSTEM                  |     -0.0381|         0.0061|  -0.0501|  -0.0261|  -6.2310|  0.0000|
+|GAD     |race.2Asian                |     -0.0980|         0.0086|  -0.1149|  -0.0811| -11.3670|  0.0000|
+|GAD     |race.2Black                |     -0.0625|         0.0111|  -0.0842|  -0.0408|  -5.6415|  0.0000|
+|GAD     |race.2Hispanic             |      0.0148|         0.0109|  -0.0066|   0.0362|   1.3521|  0.1763|
+|GAD     |race.2Middle Eastern       |      0.1010|         0.0240|   0.0540|   0.1479|   4.2114|  0.0000|
+|GAD     |yr_sch.2secondyear         |      0.0969|         0.0081|   0.0811|   0.1128|  11.9762|  0.0000|
+|GAD     |yr_sch.2thirdyear          |      0.1101|         0.0085|   0.0936|   0.1267|  13.0272|  0.0000|
+|GAD     |yr_sch.2fourthyear+        |      0.1102|         0.0087|   0.0932|   0.1273|  12.6758|  0.0000|
+|GAD     |fincur.2                   |      0.0205|         0.0027|   0.0152|   0.0258|   7.5691|  0.0000|
+|GAD     |age                        |     -0.0122|         0.0006|  -0.0133|  -0.0111| -22.0936|  0.0000|
+
+
+
+Table: Regression Results
+
+|Outcome            |Predictor                                          |Coefficient |Standard_Error |95% CI             |p-value |
+|:------------------|:--------------------------------------------------|:-----------|:--------------|:------------------|:-------|
+|Depression (PHQ-9) |Intercept                                          |1.9135      |0.0140         |(1.8861, 1.9409)   |<0.0001 |
+|Depression (PHQ-9) |Survey period: 2022–2023 vs 2017–2018              |0.0793      |0.0053         |(0.0689, 0.0897)   |<0.0001 |
+|Depression (PHQ-9) |Gender: women vs men                               |0.1468      |0.0056         |(0.1359, 0.1577)   |<0.0001 |
+|Depression (PHQ-9) |Major: STEM vs non-STEM                            |-0.0382     |0.0052         |(-0.0483, -0.0280) |<0.0001 |
+|Depression (PHQ-9) |Race: Asian vs White                               |0.0191      |0.0073         |(0.0049, 0.0334)   |0.0086  |
+|Depression (PHQ-9) |Race: Black vs White                               |0.0576      |0.0093         |(0.0393, 0.0759)   |<0.0001 |
+|Depression (PHQ-9) |Race: Hispanic vs White                            |0.0823      |0.0092         |(0.0642, 0.1004)   |<0.0001 |
+|Depression (PHQ-9) |Race: Middle Eastern vs White                      |0.1249      |0.0202         |(0.0852, 0.1646)   |<0.0001 |
+|Depression (PHQ-9) |Year in school: second year vs first year          |0.0625      |0.0068         |(0.0491, 0.0759)   |<0.0001 |
+|Depression (PHQ-9) |Year in school: third year vs first year           |0.0824      |0.0071         |(0.0684, 0.0965)   |<0.0001 |
+|Depression (PHQ-9) |Year in school: fourth year or later vs first year |0.0709      |0.0073         |(0.0565, 0.0853)   |<0.0001 |
+|Depression (PHQ-9) |Financial stress (per category)                    |0.0236      |0.0023         |(0.0192, 0.0281)   |<0.0001 |
+|Depression (PHQ-9) |Age (per year)                                     |-0.0115     |0.0005         |(-0.0124, -0.0106) |<0.0001 |
+|Anxiety (GAD-7)    |Intercept                                          |1.9392      |0.0165         |(1.9068, 1.9717)   |<0.0001 |
+|Anxiety (GAD-7)    |Survey period: 2022–2023 vs 2017–2018              |0.1439      |0.0063         |(0.1316, 0.1562)   |<0.0001 |
+|Anxiety (GAD-7)    |Gender: women vs men                               |0.2969      |0.0066         |(0.2840, 0.3099)   |<0.0001 |
+|Anxiety (GAD-7)    |Major: STEM vs non-STEM                            |-0.0381     |0.0061         |(-0.0501, -0.0261) |<0.0001 |
+|Anxiety (GAD-7)    |Race: Asian vs White                               |-0.0980     |0.0086         |(-0.1149, -0.0811) |<0.0001 |
+|Anxiety (GAD-7)    |Race: Black vs White                               |-0.0625     |0.0111         |(-0.0842, -0.0408) |<0.0001 |
+|Anxiety (GAD-7)    |Race: Hispanic vs White                            |0.0148      |0.0109         |(-0.0066, 0.0362)  |0.1763  |
+|Anxiety (GAD-7)    |Race: Middle Eastern vs White                      |0.1010      |0.0240         |(0.0540, 0.1479)   |<0.0001 |
+|Anxiety (GAD-7)    |Year in school: second year vs first year          |0.0969      |0.0081         |(0.0811, 0.1128)   |<0.0001 |
+|Anxiety (GAD-7)    |Year in school: third year vs first year           |0.1101      |0.0085         |(0.0936, 0.1267)   |<0.0001 |
+|Anxiety (GAD-7)    |Year in school: fourth year or later vs first year |0.1102      |0.0087         |(0.0932, 0.1273)   |<0.0001 |
+|Anxiety (GAD-7)    |Financial stress (per category)                    |0.0205      |0.0027         |(0.0152, 0.0258)   |<0.0001 |
+|Anxiety (GAD-7)    |Age (per year)                                     |-0.0122     |0.0006         |(-0.0133, -0.0111) |<0.0001 |
+
+
+
+Table: Regression Results
+
+|Outcome |Predictor                  | Coefficient| Standard_Error| CI_Lower| CI_Upper|  T_Value| P_Value|
+|:-------|:--------------------------|-----------:|--------------:|--------:|--------:|--------:|-------:|
+|PHQ     |(Intercept)                |      1.9135|         0.0140|   1.8861|   1.9409| 136.8542|  0.0000|
+|PHQ     |Period2022-2023 Post-COVID |      0.0793|         0.0053|   0.0689|   0.0897|  14.9048|  0.0000|
+|PHQ     |genderWomen                |      0.1468|         0.0056|   0.1359|   0.1577|  26.2992|  0.0000|
+|PHQ     |fieldSTEM                  |     -0.0382|         0.0052|  -0.0483|  -0.0280|  -7.3888|  0.0000|
+|PHQ     |race.2Asian                |      0.0191|         0.0073|   0.0049|   0.0334|   2.6278|  0.0086|
+|PHQ     |race.2Black                |      0.0576|         0.0093|   0.0393|   0.0759|   6.1760|  0.0000|
+|PHQ     |race.2Hispanic             |      0.0823|         0.0092|   0.0642|   0.1004|   8.9126|  0.0000|
+|PHQ     |race.2Middle Eastern       |      0.1249|         0.0202|   0.0852|   0.1646|   6.1680|  0.0000|
+|PHQ     |yr_sch.2secondyear         |      0.0625|         0.0068|   0.0491|   0.0759|   9.1354|  0.0000|
+|PHQ     |yr_sch.2thirdyear          |      0.0824|         0.0071|   0.0684|   0.0965|  11.5403|  0.0000|
+|PHQ     |yr_sch.2fourthyear+        |      0.0709|         0.0073|   0.0565|   0.0853|   9.6486|  0.0000|
+|PHQ     |fincur.2                   |      0.0236|         0.0023|   0.0192|   0.0281|  10.3311|  0.0000|
+|PHQ     |age                        |     -0.0115|         0.0005|  -0.0124|  -0.0106| -24.5805|  0.0000|
+|GAD     |(Intercept)                |      1.9392|         0.0165|   1.9068|   1.9717| 117.2908|  0.0000|
+|GAD     |Period2022-2023 Post-COVID |      0.1439|         0.0063|   0.1316|   0.1562|  22.8535|  0.0000|
+|GAD     |genderWomen                |      0.2969|         0.0066|   0.2840|   0.3099|  44.9487|  0.0000|
+|GAD     |fieldSTEM                  |     -0.0381|         0.0061|  -0.0501|  -0.0261|  -6.2310|  0.0000|
+|GAD     |race.2Asian                |     -0.0980|         0.0086|  -0.1149|  -0.0811| -11.3670|  0.0000|
+|GAD     |race.2Black                |     -0.0625|         0.0111|  -0.0842|  -0.0408|  -5.6415|  0.0000|
+|GAD     |race.2Hispanic             |      0.0148|         0.0109|  -0.0066|   0.0362|   1.3521|  0.1763|
+|GAD     |race.2Middle Eastern       |      0.1010|         0.0240|   0.0540|   0.1479|   4.2114|  0.0000|
+|GAD     |yr_sch.2secondyear         |      0.0969|         0.0081|   0.0811|   0.1128|  11.9762|  0.0000|
+|GAD     |yr_sch.2thirdyear          |      0.1101|         0.0085|   0.0936|   0.1267|  13.0272|  0.0000|
+|GAD     |yr_sch.2fourthyear+        |      0.1102|         0.0087|   0.0932|   0.1273|  12.6758|  0.0000|
+|GAD     |fincur.2                   |      0.0205|         0.0027|   0.0152|   0.0258|   7.5691|  0.0000|
+|GAD     |age                        |     -0.0122|         0.0006|  -0.0133|  -0.0111| -22.0936|  0.0000|
+
+
+
+Table: Regression Results
+
+|Outcome            |Predictor                                          |Coefficient |Standard_Error |95% CI             |p-value |
+|:------------------|:--------------------------------------------------|:-----------|:--------------|:------------------|:-------|
+|Depression (PHQ-9) |Intercept                                          |1.9135      |0.0140         |(1.8861, 1.9409)   |<0.0001 |
+|Depression (PHQ-9) |Survey period: 2022–2023 vs 2017–2018              |0.0793      |0.0053         |(0.0689, 0.0897)   |<0.0001 |
+|Depression (PHQ-9) |Gender: women vs men                               |0.1468      |0.0056         |(0.1359, 0.1577)   |<0.0001 |
+|Depression (PHQ-9) |Major: STEM vs non-STEM                            |-0.0382     |0.0052         |(-0.0483, -0.0280) |<0.0001 |
+|Depression (PHQ-9) |Race: Asian vs White                               |0.0191      |0.0073         |(0.0049, 0.0334)   |0.0086  |
+|Depression (PHQ-9) |Race: Black vs White                               |0.0576      |0.0093         |(0.0393, 0.0759)   |<0.0001 |
+|Depression (PHQ-9) |Race: Hispanic vs White                            |0.0823      |0.0092         |(0.0642, 0.1004)   |<0.0001 |
+|Depression (PHQ-9) |Race: Middle Eastern vs White                      |0.1249      |0.0202         |(0.0852, 0.1646)   |<0.0001 |
+|Depression (PHQ-9) |Year in school: second year vs first year          |0.0625      |0.0068         |(0.0491, 0.0759)   |<0.0001 |
+|Depression (PHQ-9) |Year in school: third year vs first year           |0.0824      |0.0071         |(0.0684, 0.0965)   |<0.0001 |
+|Depression (PHQ-9) |Year in school: fourth year or later vs first year |0.0709      |0.0073         |(0.0565, 0.0853)   |<0.0001 |
+|Depression (PHQ-9) |Financial stress (per category)                    |0.0236      |0.0023         |(0.0192, 0.0281)   |<0.0001 |
+|Depression (PHQ-9) |Age (per year)                                     |-0.0115     |0.0005         |(-0.0124, -0.0106) |<0.0001 |
+|Anxiety (GAD-7)    |Intercept                                          |1.9392      |0.0165         |(1.9068, 1.9717)   |<0.0001 |
+|Anxiety (GAD-7)    |Survey period: 2022–2023 vs 2017–2018              |0.1439      |0.0063         |(0.1316, 0.1562)   |<0.0001 |
+|Anxiety (GAD-7)    |Gender: women vs men                               |0.2969      |0.0066         |(0.2840, 0.3099)   |<0.0001 |
+|Anxiety (GAD-7)    |Major: STEM vs non-STEM                            |-0.0381     |0.0061         |(-0.0501, -0.0261) |<0.0001 |
+|Anxiety (GAD-7)    |Race: Asian vs White                               |-0.0980     |0.0086         |(-0.1149, -0.0811) |<0.0001 |
+|Anxiety (GAD-7)    |Race: Black vs White                               |-0.0625     |0.0111         |(-0.0842, -0.0408) |<0.0001 |
+|Anxiety (GAD-7)    |Race: Hispanic vs White                            |0.0148      |0.0109         |(-0.0066, 0.0362)  |0.1763  |
+|Anxiety (GAD-7)    |Race: Middle Eastern vs White                      |0.1010      |0.0240         |(0.0540, 0.1479)   |<0.0001 |
+|Anxiety (GAD-7)    |Year in school: second year vs first year          |0.0969      |0.0081         |(0.0811, 0.1128)   |<0.0001 |
+|Anxiety (GAD-7)    |Year in school: third year vs first year           |0.1101      |0.0085         |(0.0936, 0.1267)   |<0.0001 |
+|Anxiety (GAD-7)    |Year in school: fourth year or later vs first year |0.1102      |0.0087         |(0.0932, 0.1273)   |<0.0001 |
+|Anxiety (GAD-7)    |Financial stress (per category)                    |0.0205      |0.0027         |(0.0152, 0.0258)   |<0.0001 |
+|Anxiety (GAD-7)    |Age (per year)                                     |-0.0122     |0.0006         |(-0.0133, -0.0111) |<0.0001 |
+
+
+
+Table: Regression Results
+
+|Outcome |Predictor                  | Coefficient| Standard_Error| CI_Lower| CI_Upper|  T_Value| P_Value|
+|:-------|:--------------------------|-----------:|--------------:|--------:|--------:|--------:|-------:|
+|PHQ     |(Intercept)                |      1.9135|         0.0140|   1.8861|   1.9409| 136.8542|  0.0000|
+|PHQ     |Period2022-2023 Post-COVID |      0.0793|         0.0053|   0.0689|   0.0897|  14.9048|  0.0000|
+|PHQ     |genderWomen                |      0.1468|         0.0056|   0.1359|   0.1577|  26.2992|  0.0000|
+|PHQ     |fieldSTEM                  |     -0.0382|         0.0052|  -0.0483|  -0.0280|  -7.3888|  0.0000|
+|PHQ     |race.2Asian                |      0.0191|         0.0073|   0.0049|   0.0334|   2.6278|  0.0086|
+|PHQ     |race.2Black                |      0.0576|         0.0093|   0.0393|   0.0759|   6.1760|  0.0000|
+|PHQ     |race.2Hispanic             |      0.0823|         0.0092|   0.0642|   0.1004|   8.9126|  0.0000|
+|PHQ     |race.2Middle Eastern       |      0.1249|         0.0202|   0.0852|   0.1646|   6.1680|  0.0000|
+|PHQ     |yr_sch.2secondyear         |      0.0625|         0.0068|   0.0491|   0.0759|   9.1354|  0.0000|
+|PHQ     |yr_sch.2thirdyear          |      0.0824|         0.0071|   0.0684|   0.0965|  11.5403|  0.0000|
+|PHQ     |yr_sch.2fourthyear+        |      0.0709|         0.0073|   0.0565|   0.0853|   9.6486|  0.0000|
+|PHQ     |fincur.2                   |      0.0236|         0.0023|   0.0192|   0.0281|  10.3311|  0.0000|
+|PHQ     |age                        |     -0.0115|         0.0005|  -0.0124|  -0.0106| -24.5805|  0.0000|
+|GAD     |(Intercept)                |      1.9392|         0.0165|   1.9068|   1.9717| 117.2908|  0.0000|
+|GAD     |Period2022-2023 Post-COVID |      0.1439|         0.0063|   0.1316|   0.1562|  22.8535|  0.0000|
+|GAD     |genderWomen                |      0.2969|         0.0066|   0.2840|   0.3099|  44.9487|  0.0000|
+|GAD     |fieldSTEM                  |     -0.0381|         0.0061|  -0.0501|  -0.0261|  -6.2310|  0.0000|
+|GAD     |race.2Asian                |     -0.0980|         0.0086|  -0.1149|  -0.0811| -11.3670|  0.0000|
+|GAD     |race.2Black                |     -0.0625|         0.0111|  -0.0842|  -0.0408|  -5.6415|  0.0000|
+|GAD     |race.2Hispanic             |      0.0148|         0.0109|  -0.0066|   0.0362|   1.3521|  0.1763|
+|GAD     |race.2Middle Eastern       |      0.1010|         0.0240|   0.0540|   0.1479|   4.2114|  0.0000|
+|GAD     |yr_sch.2secondyear         |      0.0969|         0.0081|   0.0811|   0.1128|  11.9762|  0.0000|
+|GAD     |yr_sch.2thirdyear          |      0.1101|         0.0085|   0.0936|   0.1267|  13.0272|  0.0000|
+|GAD     |yr_sch.2fourthyear+        |      0.1102|         0.0087|   0.0932|   0.1273|  12.6758|  0.0000|
+|GAD     |fincur.2                   |      0.0205|         0.0027|   0.0152|   0.0258|   7.5691|  0.0000|
+|GAD     |age                        |     -0.0122|         0.0006|  -0.0133|  -0.0111| -22.0936|  0.0000|
+
+
+
+Table: Regression Results
+
+|Outcome            |Predictor                                          |Coefficient |Standard_Error |95% CI             |p-value |
+|:------------------|:--------------------------------------------------|:-----------|:--------------|:------------------|:-------|
+|Depression (PHQ-9) |Intercept                                          |1.9135      |0.0140         |(1.8861, 1.9409)   |<0.0001 |
+|Depression (PHQ-9) |Survey period: 2022–2023 vs 2017–2018              |0.0793      |0.0053         |(0.0689, 0.0897)   |<0.0001 |
+|Depression (PHQ-9) |Gender: women vs men                               |0.1468      |0.0056         |(0.1359, 0.1577)   |<0.0001 |
+|Depression (PHQ-9) |Major: STEM vs non-STEM                            |-0.0382     |0.0052         |(-0.0483, -0.0280) |<0.0001 |
+|Depression (PHQ-9) |Race: Asian vs White                               |0.0191      |0.0073         |(0.0049, 0.0334)   |0.0086  |
+|Depression (PHQ-9) |Race: Black vs White                               |0.0576      |0.0093         |(0.0393, 0.0759)   |<0.0001 |
+|Depression (PHQ-9) |Race: Hispanic vs White                            |0.0823      |0.0092         |(0.0642, 0.1004)   |<0.0001 |
+|Depression (PHQ-9) |Race: Middle Eastern vs White                      |0.1249      |0.0202         |(0.0852, 0.1646)   |<0.0001 |
+|Depression (PHQ-9) |Year in school: second year vs first year          |0.0625      |0.0068         |(0.0491, 0.0759)   |<0.0001 |
+|Depression (PHQ-9) |Year in school: third year vs first year           |0.0824      |0.0071         |(0.0684, 0.0965)   |<0.0001 |
+|Depression (PHQ-9) |Year in school: fourth year or later vs first year |0.0709      |0.0073         |(0.0565, 0.0853)   |<0.0001 |
+|Depression (PHQ-9) |Financial stress (per category)                    |0.0236      |0.0023         |(0.0192, 0.0281)   |<0.0001 |
+|Depression (PHQ-9) |Age (per year)                                     |-0.0115     |0.0005         |(-0.0124, -0.0106) |<0.0001 |
+|Anxiety (GAD-7)    |Intercept                                          |1.9392      |0.0165         |(1.9068, 1.9717)   |<0.0001 |
+|Anxiety (GAD-7)    |Survey period: 2022–2023 vs 2017–2018              |0.1439      |0.0063         |(0.1316, 0.1562)   |<0.0001 |
+|Anxiety (GAD-7)    |Gender: women vs men                               |0.2969      |0.0066         |(0.2840, 0.3099)   |<0.0001 |
+|Anxiety (GAD-7)    |Major: STEM vs non-STEM                            |-0.0381     |0.0061         |(-0.0501, -0.0261) |<0.0001 |
+|Anxiety (GAD-7)    |Race: Asian vs White                               |-0.0980     |0.0086         |(-0.1149, -0.0811) |<0.0001 |
+|Anxiety (GAD-7)    |Race: Black vs White                               |-0.0625     |0.0111         |(-0.0842, -0.0408) |<0.0001 |
+|Anxiety (GAD-7)    |Race: Hispanic vs White                            |0.0148      |0.0109         |(-0.0066, 0.0362)  |0.1763  |
+|Anxiety (GAD-7)    |Race: Middle Eastern vs White                      |0.1010      |0.0240         |(0.0540, 0.1479)   |<0.0001 |
+|Anxiety (GAD-7)    |Year in school: second year vs first year          |0.0969      |0.0081         |(0.0811, 0.1128)   |<0.0001 |
+|Anxiety (GAD-7)    |Year in school: third year vs first year           |0.1101      |0.0085         |(0.0936, 0.1267)   |<0.0001 |
+|Anxiety (GAD-7)    |Year in school: fourth year or later vs first year |0.1102      |0.0087         |(0.0932, 0.1273)   |<0.0001 |
+|Anxiety (GAD-7)    |Financial stress (per category)                    |0.0205      |0.0027         |(0.0152, 0.0258)   |<0.0001 |
+|Anxiety (GAD-7)    |Age (per year)                                     |-0.0122     |0.0006         |(-0.0133, -0.0111) |<0.0001 |
+

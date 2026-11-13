@@ -7,3 +7,57 @@
 ## 
 ## data:  stem_table
 ## X-squared = 950.35, df = 1, p-value < 2.2e-16
+##                       
+##                        Non-STEM  STEM
+##   2017-2018 Pre-COVID     32173 25099
+##   2022-2023 Post-COVID    18957 22065
+## 
+## 	Pearson's Chi-squared test with Yates' continuity correction
+## 
+## data:  stem_table
+## X-squared = 950.35, df = 1, p-value < 2.2e-16
+##                       
+##                        Non-STEM  STEM
+##   2017-2018 Pre-COVID     32173 25099
+##   2022-2023 Post-COVID    18957 22065
+## 
+## 	Pearson's Chi-squared test with Yates' continuity correction
+## 
+## data:  stem_table
+## X-squared = 950.35, df = 1, p-value < 2.2e-16
+##                       
+##                        Non-STEM  STEM
+##   2017-2018 Pre-COVID     32173 25099
+##   2022-2023 Post-COVID    18957 22065
+## 
+## 	Pearson's Chi-squared test with Yates' continuity correction
+## 
+## data:  stem_table
+## X-squared = 950.35, df = 1, p-value < 2.2e-16
+##                       
+##                        Non-STEM  STEM
+##   2017-2018 Pre-COVID     32173 25099
+##   2022-2023 Post-COVID    18957 22065
+## 
+## 	Pearson's Chi-squared test with Yates' continuity correction
+## 
+## data:  stem_table
+## X-squared = 950.35, df = 1, p-value < 2.2e-16
+##                       
+##                        Non-STEM  STEM
+##   2017-2018 Pre-COVID     32173 25099
+##   2022-2023 Post-COVID    18957 22065
+## 
+## 	Pearson's Chi-squared test with Yates' continuity correction
+## 
+## data:  stem_table
+## X-squared = 950.35, df = 1, p-value < 2.2e-16
+##                       
+##                        Non-STEM  STEM
+##   2017-2018 Pre-COVID     32173 25099
+##   2022-2023 Post-COVID    18957 22065
+## 
+## 	Pearson's Chi-squared test with Yates' continuity correction
+## 
+## data:  stem_table
+## X-squared = 950.35, df = 1, p-value < 2.2e-16

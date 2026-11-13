@@ -7,15 +7,6 @@ output:
     toc_depth: 3
     number_sections: true
 ---
----
-title: "02 - Descriptive Analysis: Pre- and Post-COVID"
-author: "Caylee Collins and Kate Miller"
-output:
-  html_document:
-    toc: true
-    toc_depth: 3
-    number_sections: true
----
 
 
 <style>

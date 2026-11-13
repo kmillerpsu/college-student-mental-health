@@ -28,3 +28,63 @@
 ## Residual standard error: 0.4599 on 24019 degrees of freedom
 ## Multiple R-squared:  0.5672,	Adjusted R-squared:  0.567 
 ## F-statistic:  2623 on 12 and 24019 DF,  p-value: < 2.2e-16
+## 
+## Call:
+## lm(formula = PHQ ~ GAD + gender + field + race.2 + yr_sch.2 + 
+##     fincur.2 + age, data = train)
+## 
+## Residuals:
+##      Min       1Q   Median       3Q      Max 
+## -2.13097 -0.28715 -0.04656  0.26125  2.68846 
+## 
+## Coefficients:
+##                        Estimate Std. Error t value Pr(>|t|)    
+## (Intercept)           0.5173570  0.0176097  29.379  < 2e-16 ***
+## GAD                   0.5983017  0.0038407 155.779  < 2e-16 ***
+## genderWomen          -0.0480096  0.0067045  -7.161 8.25e-13 ***
+## fieldSTEM             0.0077450  0.0059789   1.295 0.195199    
+## race.2Asian           0.0950405  0.0090609  10.489  < 2e-16 ***
+## race.2Black           0.0605918  0.0097409   6.220 5.04e-10 ***
+## race.2Hispanic        0.0598192  0.0109365   5.470 4.55e-08 ***
+## race.2Middle Eastern  0.0632946  0.0249764   2.534 0.011277 *  
+## yr_sch.2secondyear   -0.0075529  0.0084259  -0.896 0.370052    
+## yr_sch.2thirdyear    -0.0149432  0.0085694  -1.744 0.081208 .  
+## yr_sch.2fourthyear+  -0.0303610  0.0086532  -3.509 0.000451 ***
+## fincur.2              0.0768694  0.0028360  27.105  < 2e-16 ***
+## age                  -0.0020559  0.0006768  -3.038 0.002387 ** 
+## ---
+## Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
+## 
+## Residual standard error: 0.4599 on 24019 degrees of freedom
+## Multiple R-squared:  0.5672,	Adjusted R-squared:  0.567 
+## F-statistic:  2623 on 12 and 24019 DF,  p-value: < 2.2e-16
+## 
+## Call:
+## lm(formula = PHQ ~ GAD + gender + field + race.2 + yr_sch.2 + 
+##     fincur.2 + age, data = train)
+## 
+## Residuals:
+##      Min       1Q   Median       3Q      Max 
+## -2.13097 -0.28715 -0.04656  0.26125  2.68846 
+## 
+## Coefficients:
+##                        Estimate Std. Error t value Pr(>|t|)    
+## (Intercept)           0.5173570  0.0176097  29.379  < 2e-16 ***
+## GAD                   0.5983017  0.0038407 155.779  < 2e-16 ***
+## genderWomen          -0.0480096  0.0067045  -7.161 8.25e-13 ***
+## fieldSTEM             0.0077450  0.0059789   1.295 0.195199    
+## race.2Asian           0.0950405  0.0090609  10.489  < 2e-16 ***
+## race.2Black           0.0605918  0.0097409   6.220 5.04e-10 ***
+## race.2Hispanic        0.0598192  0.0109365   5.470 4.55e-08 ***
+## race.2Middle Eastern  0.0632946  0.0249764   2.534 0.011277 *  
+## yr_sch.2secondyear   -0.0075529  0.0084259  -0.896 0.370052    
+## yr_sch.2thirdyear    -0.0149432  0.0085694  -1.744 0.081208 .  
+## yr_sch.2fourthyear+  -0.0303610  0.0086532  -3.509 0.000451 ***
+## fincur.2              0.0768694  0.0028360  27.105  < 2e-16 ***
+## age                  -0.0020559  0.0006768  -3.038 0.002387 ** 
+## ---
+## Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
+## 
+## Residual standard error: 0.4599 on 24019 degrees of freedom
+## Multiple R-squared:  0.5672,	Adjusted R-squared:  0.567 
+## F-statistic:  2623 on 12 and 24019 DF,  p-value: < 2.2e-16

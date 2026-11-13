@@ -13,3 +13,63 @@ Table: Variables Available in Both Datasets
 |fincur.2 |TRUE      |TRUE       |
 |age      |TRUE      |TRUE       |
 
+
+
+Table: Variables Available in Both Datasets
+
+|Variable |Pre_COVID |Post_COVID |
+|:--------|:---------|:----------|
+|PHQ      |TRUE      |TRUE       |
+|GAD      |TRUE      |TRUE       |
+|gender   |TRUE      |TRUE       |
+|field    |TRUE      |TRUE       |
+|race.2   |TRUE      |TRUE       |
+|yr_sch.2 |TRUE      |TRUE       |
+|fincur.2 |TRUE      |TRUE       |
+|age      |TRUE      |TRUE       |
+
+
+
+Table: Variables Available in Both Datasets
+
+|Variable |Pre_COVID |Post_COVID |
+|:--------|:---------|:----------|
+|PHQ      |TRUE      |TRUE       |
+|GAD      |TRUE      |TRUE       |
+|gender   |TRUE      |TRUE       |
+|field    |TRUE      |TRUE       |
+|race.2   |TRUE      |TRUE       |
+|yr_sch.2 |TRUE      |TRUE       |
+|fincur.2 |TRUE      |TRUE       |
+|age      |TRUE      |TRUE       |
+
+
+
+Table: Variables Available in Both Datasets
+
+|Variable |Pre_COVID |Post_COVID |
+|:--------|:---------|:----------|
+|PHQ      |TRUE      |TRUE       |
+|GAD      |TRUE      |TRUE       |
+|gender   |TRUE      |TRUE       |
+|field    |TRUE      |TRUE       |
+|race.2   |TRUE      |TRUE       |
+|yr_sch.2 |TRUE      |TRUE       |
+|fincur.2 |TRUE      |TRUE       |
+|age      |TRUE      |TRUE       |
+
+
+
+Table: Variables Available in Both Datasets
+
+|Variable |Pre_COVID |Post_COVID |
+|:--------|:---------|:----------|
+|PHQ      |TRUE      |TRUE       |
+|GAD      |TRUE      |TRUE       |
+|gender   |TRUE      |TRUE       |
+|field    |TRUE      |TRUE       |
+|race.2   |TRUE      |TRUE       |
+|yr_sch.2 |TRUE      |TRUE       |
+|fincur.2 |TRUE      |TRUE       |
+|age      |TRUE      |TRUE       |
+
